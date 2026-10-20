@@ -657,6 +657,49 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
       });
     return;
   }
+  // ==========================================
+  // OPEN ANIME API PROXY (optional self-hosted instance)
+  // Repository: https://github.com/Zcross091/Open-Anime-API
+  // Endpoints: /api/openanime/trending, /api/openanime/search?q=,
+  //            /api/openanime/anime/:id, /api/openanime/stream?title=&episode=
+  // Upstream: OPENANIME_API_URL (default http://localhost:3100)
+  // When no instance is running this answers 504 immediately so the UI/provider
+  // cascade skips the source without waiting.
+  // ==========================================
+  if (url.pathname.startsWith('/api/openanime/')) {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', '*');
+
+    const openAnimeBase = (process.env.OPENANIME_API_URL || 'http://localhost:3100').replace(/\/$/, '');
+    const subpath = url.pathname.replace('/api/openanime/', '');
+    const target = `${openAnimeBase}/api/${subpath}${url.search}`;
+
+    upstreamFetch(target, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json'
+      }
+    })
+      .then(upRes => upRes.text().then(text => {
+        if (!upRes.ok) {
+          res.statusCode = upRes.status;
+        }
+        res.end(text);
+      }))
+      .catch(err => {
+        // Aborted (deadline) or connection refused: no instance reachable.
+        res.statusCode = 504;
+        res.end(JSON.stringify({
+          status: 'error',
+          message: 'Open Anime API instance unreachable',
+          detail: err?.name === 'AbortError' ? 'timeout' : (err?.message || 'connection failed'),
+          hint: 'Start https://github.com/Zcross091/Open-Anime-API and set OPENANIME_API_URL'
+        }));
+      });
+    return;
+  }
+
   // ANIMEKUN-BACKEND INTEGRATION
   // Repository: https://github.com/Subhajeetch/Animekun-backend
   // Endpoints: /api/animekun/news, /api/animekun/servers, /api/animekun/search/suggestion

@@ -6,6 +6,7 @@ import { HiAnimeProvider } from './providers/hianimeProvider';
 import { AnivexaProvider } from './providers/anivexaProvider';
 import { AnikotoProvider } from './providers/anikotoProvider';
 import { AnimeApiProvider } from './providers/animeApiProvider';
+import { OpenAnimeProvider } from './providers/openAnimeProvider';
 
 // Register all live modular providers
 providerRegistry.register(new AniListProvider(), true);
@@ -14,6 +15,10 @@ providerRegistry.register(new HiAnimeProvider());
 providerRegistry.register(new AnivexaProvider());
 providerRegistry.register(new AnikotoProvider());
 providerRegistry.register(new AnimeApiProvider());
+// Optional self-hosted Open Anime API instance (see /api/openanime/* proxy).
+// Registered last: when no instance is running the proxy fails fast and the
+// cascade simply skips it.
+providerRegistry.register(new OpenAnimeProvider());
 
 class AnimeService {
   private memoryCache: Map<string, AnimeItem> = new Map();
@@ -227,6 +232,7 @@ class AnimeService {
     const details = await this.getAnimeDetails(animeId);
     const anilistId = details?.anilistId || String(animeId).replace(/[^0-9]/g, '') || '154587';
     const slug = details?.slug || (details?.title ? details.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'anime');
+    const openAnime = await this.getOpenAnimeServerOption();
 
     return {
       sub: [
@@ -265,7 +271,8 @@ class AnimeService {
           serverId: 5,
           type: 'sub',
           embedUrl: `https://anitaku.bz/${slug}-episode-${episodeNumber}`,
-        }
+        },
+        ...(openAnime ? [openAnime] : [])
       ],
       dub: [
         {
@@ -288,8 +295,40 @@ class AnimeService {
           serverId: 3,
           type: 'dub',
           embedUrl: `https://megacloud.tv/embed-2/e-1/${anilistId}?ep=${episodeNumber}&dub=1`,
-        }
+        },
+        ...(openAnime ? [{ ...openAnime, id: 'server-openanime-dub', type: 'dub' as StreamAudioMode }] : [])
       ]
+    };
+  }
+
+  /**
+   * The self-hosted Open Anime API instance is optional. Probe it (cheaply,
+   * once per short window) and only offer Server 6 when it is actually
+   * reachable — so the picker never shows a dead entry on machines without it.
+   */
+  private openAnimeProbe: { at: number; reachable: boolean } | null = null;
+
+  private async getOpenAnimeServerOption(): Promise<StreamServerOption | null> {
+    const now = Date.now();
+    if (!this.openAnimeProbe || now - this.openAnimeProbe.at > 30_000) {
+      let reachable = false;
+      try {
+        const res = await fetch('/api/openanime/trending');
+        reachable = res.ok;
+      } catch {
+        reachable = false;
+      }
+      this.openAnimeProbe = { at: now, reachable };
+    }
+    if (!this.openAnimeProbe.reachable) return null;
+
+    return {
+      id: 'server-openanime',
+      name: 'Server 6: OpenAnime API',
+      serverId: 6,
+      type: 'sub',
+      embedUrl: '/api/openanime',
+      isPrimary: false,
     };
   }
 
@@ -332,6 +371,15 @@ class AnimeService {
       // 4. AniKoto
       streamUrl = `https://anikototv.to/embed/${slug}?ep=${episodeNumber}&mode=${audio}`;
       serverName = 'Server 4: AniKoto Stream';
+    } else if (serverId === 6) {
+      // 6. Self-hosted Open Anime API — resolves a fresh link per episode
+      const resolved = await new OpenAnimeProvider().getStreamSource(
+        details?.title || slug,
+        episodeNumber,
+        6,
+        audio
+      );
+      return resolved;
     } else {
       // 5. Multi-Mirror
       streamUrl = `https://anitaku.bz/${slug}-episode-${episodeNumber}`;
