@@ -60,6 +60,13 @@ export interface StreamSourceResult {
   type: 'iframe' | 'hls' | 'mp4';
   serverName: string;
   audioMode: StreamAudioMode;
+  /**
+   * False for mirror hosts that are ordinary web pages rather than embed
+   * players (they send X-Frame-Options/CORP and refuse to be framed). The UI
+   * must open those in a new tab instead of an <iframe>, and auto-fallback
+   * must never cascade onto them.
+   */
+  embeddable?: boolean;
   intro?: { start: number; end: number };
   outro?: { start: number; end: number };
   subtitles?: Array<{ lang: string; url: string; default?: boolean }>;

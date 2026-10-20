@@ -43,7 +43,20 @@ page.on('response', (res) => {
   if (res.status() >= 400) badResponses.push(`${res.status()} ${res.url()}`);
 });
 
-await page.goto(BASE, { waitUntil: 'networkidle', timeout: 45000 });
+// 0. First paint must not wait on the network (offline catalog renders
+// immediately; live data swaps in later). This is a regression test for the
+// multi-minute load caused by hanging upstream providers.
+const firstPaintStart = Date.now();
+await page.goto(BASE, { waitUntil: 'commit', timeout: 45000 });
+await page.waitForFunction(
+  () => document.querySelectorAll('#anime-grid > div').length > 0,
+  null,
+  { timeout: 15000 }
+).catch(() => {});
+const firstPaintMs = Date.now() - firstPaintStart;
+check('first cards render without waiting on the network', firstPaintMs < 6000, `${firstPaintMs}ms`);
+
+await page.waitForLoadState('networkidle', { timeout: 45000 }).catch(() => {});
 await page.waitForTimeout(1500);
 
 // 1. Page boots without uncaught exceptions
@@ -108,6 +121,12 @@ check('watch page shows title', watchTitle.length > 0 && watchTitle !== 'Anime T
 const episodeCount = await page.locator('#episodes-container > button').count();
 check('episode list rendered', episodeCount > 0, `${episodeCount} episodes`);
 
+// The player must never show debug-style server status text
+const playerText = ((await page.locator('#player').innerText().catch(() => '')) || '').trim();
+check('player shows no debug/server status text',
+  !/Connecting to High-Definition Stream|Cascading to Server|Redundant Failover/i.test(playerText),
+  playerText.slice(0, 40));
+
 // Regression guard: episodes must carry distinct numbers (the AniWixi provider
 // used to read a field the API never sends, collapsing every episode to 1).
 const episodeNumbers = await page.evaluate(() =>
@@ -131,6 +150,18 @@ if (episodeCount > 1) {
   const crumb = (await page.locator('#crumb-episode-num').textContent())?.trim() || '';
   check('episode switch updates breadcrumb', /Episode 2/.test(crumb), crumb);
 }
+
+// 8b. Non-embeddable mirrors open externally instead of a broken iframe
+await page.locator('#server-btn-4').click();
+await page.waitForTimeout(700);
+const mirrorLinks = await page.locator('#player a[target="_blank"]').count();
+const mirrorIframes = await page.locator('#player iframe').count();
+check('mirror server shows an external-open panel, not a broken iframe',
+  mirrorLinks === 1 && mirrorIframes === 0,
+  `${mirrorLinks} external link, ${mirrorIframes} iframe`);
+await page.screenshot({ path: 'artifacts/03-mirror-panel.png', fullPage: false });
+await page.locator('#server-btn-1').click();
+await page.waitForTimeout(500);
 
 // 9. Back to browse
 await page.locator('button', { hasText: 'Back to Browse' }).click();

@@ -25,6 +25,26 @@ class AnimeService {
    * returns a non-empty result (AniList first, then AniWixi, HiAnime, AniVexa,
    * AniKoto, ANIME-API). Empty arrays and thrown errors both advance the cascade.
    */
+  /**
+   * A single provider may hang for a long time when its host is blocked or
+   * rate-limited on the viewer's network. Capping each attempt keeps the whole
+   * cascade (and therefore first paint) bounded.
+   */
+  private static readonly PROVIDER_TIMEOUT_MS = 4000;
+
+  private withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+      const timer = setTimeout(
+        () => reject(new Error(`${label} timed out after ${AnimeService.PROVIDER_TIMEOUT_MS}ms`)),
+        AnimeService.PROVIDER_TIMEOUT_MS
+      );
+      promise.then(
+        (value) => { clearTimeout(timer); resolve(value); },
+        (err) => { clearTimeout(timer); reject(err); }
+      );
+    });
+  }
+
   private async cascadeList(
     operationName: string,
     run: (provider: IAnimeProvider) => Promise<AnimeItem[] | null | undefined>
@@ -34,7 +54,7 @@ class AnimeService {
         operationName,
         async (provider) => {
           try {
-            const result = await run(provider);
+            const result = await this.withTimeout(run(provider), `${provider.id}.${operationName}`);
             if (!Array.isArray(result) || result.length === 0) return null;
             return result;
           } catch {
@@ -152,7 +172,7 @@ class AnimeService {
         'getAnimeDetails',
         async (provider) => {
           try {
-            const details = await provider.getAnimeDetails(id);
+            const details = await this.withTimeout(provider.getAnimeDetails(id), `${provider.id}.getAnimeDetails`);
             if (!details) return null;
             this.memoryCache.set(String(details.id), details);
             return details;
@@ -323,6 +343,10 @@ class AnimeService {
       type: 'iframe',
       serverName,
       audioMode: audio,
+      // Servers 4/5 point at ordinary video-site pages that send
+      // X-Frame-Options and refuse to be embedded, so the UI opens them in a
+      // new tab instead of an <iframe>, and auto-fallback never lands on them.
+      embeddable: serverId <= 3,
       // No fake intro/outro timestamps! Only provided if real metadata exists.
     };
   }

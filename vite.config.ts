@@ -16,6 +16,16 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
   const host = req.headers.host || 'localhost:3000';
   const url = new URL(urlStr, `http://${host}`);
 
+  // Upstream hosts (graphql.anilist.co, aniwixi.xyz, ...) can hang when they
+  // are blocked, rate-limited or slow on the viewer's network. Every proxied
+  // call gets a hard deadline so the browser never waits minutes for a reply.
+  const UPSTREAM_TIMEOUT_MS = 8000;
+  const upstreamFetch = (target: string, init?: RequestInit): Promise<Response> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+    return fetch(target, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+  };
+
   // CORS preflight
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -469,7 +479,7 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
         }
       `;
 
-      fetch('https://graphql.anilist.co', {
+            upstreamFetch('https://graphql.anilist.co', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ query })
@@ -509,7 +519,7 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
         }
       `;
 
-      fetch('https://graphql.anilist.co', {
+            upstreamFetch('https://graphql.anilist.co', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ query: searchQuery, variables: { search: q } })
@@ -547,7 +557,7 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
         }
       `;
 
-      fetch('https://graphql.anilist.co', {
+            upstreamFetch('https://graphql.anilist.co', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ query: scheduleQuery })
@@ -595,7 +605,7 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
         }
       `;
 
-      fetch('https://graphql.anilist.co', {
+            upstreamFetch('https://graphql.anilist.co', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({ query: detailsQuery, variables: { id } })
@@ -631,8 +641,7 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
     const targetSubpath = url.pathname.replace('/api/aniwixi/', '');
     const queryString = url.search ? url.search : '';
     const upstreamUrl = `https://aniwixi.xyz/wp-json/aniwixi/v1/${targetSubpath}${queryString}`;
-
-    fetch(upstreamUrl, {
+          upstreamFetch(upstreamUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'application/json'
