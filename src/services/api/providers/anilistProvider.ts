@@ -6,44 +6,6 @@ export class AniListProvider implements IAnimeProvider {
   public readonly version = '2.0.0';
   public readonly website = 'https://anilist.co';
 
-  /** Map a raw AniList media node onto the shared AnimeItem contract. */
-  private mapMedia(item: any, rank = 1): AnimeItem | null {
-    if (!item || !item.id) return null;
-
-    const english = item.title?.english;
-    const romaji = item.title?.romaji;
-
-    return {
-      id: String(item.id),
-      anilistId: item.id,
-      title: english || romaji || 'Unknown Anime',
-      // Show the romaji line only when it differs from the displayed title,
-      // and keep the native Japanese title in its own field (CJK glyphs are
-      // not guaranteed to be available on the viewer's system).
-      altTitle: english && romaji && romaji !== english ? romaji : undefined,
-      japaneseTitle: item.title?.native,
-      synopsis: (item.description || '').replace(/<[^>]*>?/gm, ''),
-      poster: item.coverImage?.extraLarge || item.coverImage?.large,
-      banner: item.bannerImage,
-      rating: item.averageScore ? parseFloat((item.averageScore / 10).toFixed(1)) : 8.9,
-      score: item.averageScore ? `${item.averageScore}%` : '89%',
-      quality: 'HD',
-      type: item.format || 'TV',
-      duration: item.duration ? `${item.duration}m` : '24m',
-      year: item.seasonYear || 2024,
-      season: item.season,
-      status: item.status === 'FINISHED' ? 'Completed' : 'Ongoing',
-      genres: item.genres && item.genres.length > 0 ? item.genres : ['Action'],
-      studios: item.studios?.nodes?.map((s: any) => s.name) || [],
-      totalEpisodes: item.episodes || 12,
-      subEpisodes: item.episodes || 12,
-      dubEpisodes: Math.max(1, (item.episodes || 12) - 2),
-      rank,
-      isTrending: true,
-      isPopular: true,
-    };
-  }
-
   public async getSpotlight(): Promise<AnimeItem[]> {
     return this.getTrending();
   }
@@ -52,13 +14,32 @@ export class AniListProvider implements IAnimeProvider {
     const res = await fetch('/api/anilist/browse?sort=TRENDING_DESC&perPage=12');
     if (!res.ok) throw new Error('AniList trending failed');
     const data = await res.json();
-    // The browse proxy returns { data: { trending, popular, topRated } };
-    // accept the paginated { data: { Page: { media } } } shape too.
-    const media = data.data?.trending?.media || data.data?.Page?.media || [];
+    const media = data.data?.Page?.media || [];
 
-    return media
-      .map((item: any, idx: number) => this.mapMedia(item, idx + 1))
-      .filter((item: AnimeItem | null): item is AnimeItem => item !== null);
+    return media.map((item: any, idx: number) => ({
+      id: String(item.id),
+      anilistId: item.id,
+      title: item.title?.english || item.title?.romaji || 'Unknown Anime',
+      altTitle: item.title?.native,
+      synopsis: (item.description || '').replace(/<[^>]*>?/gm, ''),
+      poster: item.coverImage?.extraLarge || item.coverImage?.large,
+      banner: item.bannerImage,
+      rating: item.averageScore ? (item.averageScore / 10).toFixed(1) : 8.9,
+      score: item.averageScore ? `${item.averageScore}%` : '89%',
+      quality: 'HD',
+      type: item.format || 'TV',
+      duration: item.duration ? `${item.duration}m` : '24m',
+      year: item.seasonYear || 2024,
+      season: item.season,
+      status: item.status === 'FINISHED' ? 'Completed' : 'Ongoing',
+      genres: item.genres || ['Action'],
+      studios: item.studios?.nodes?.map((s: any) => s.name) || [],
+      totalEpisodes: item.episodes || 12,
+      subEpisodes: item.episodes || 12,
+      dubEpisodes: Math.max(1, (item.episodes || 12) - 2),
+      rank: idx + 1,
+      isTrending: true,
+    }));
   }
 
   public async getTopAiring(): Promise<AnimeItem[]> {
@@ -75,9 +56,23 @@ export class AniListProvider implements IAnimeProvider {
     const data = await res.json();
     const media = data.data?.Page?.media || [];
 
-    const results = media
-      .map((item: any, idx: number) => this.mapMedia(item, idx + 1))
-      .filter((item: AnimeItem | null): item is AnimeItem => item !== null);
+    const results = media.map((item: any) => ({
+      id: String(item.id),
+      anilistId: item.id,
+      title: item.title?.english || item.title?.romaji,
+      altTitle: item.title?.native,
+      synopsis: (item.description || '').replace(/<[^>]*>?/gm, ''),
+      poster: item.coverImage?.extraLarge || item.coverImage?.large,
+      rating: item.averageScore ? (item.averageScore / 10).toFixed(1) : 8.8,
+      quality: 'HD' as const,
+      type: (item.format || 'TV') as any,
+      duration: '24m',
+      year: item.seasonYear || 2024,
+      status: item.status === 'FINISHED' ? 'Completed' : 'Ongoing',
+      genres: item.genres || ['Action'],
+      studios: [],
+      totalEpisodes: item.episodes || 12,
+    }));
 
     return { results, total: data.data?.Page?.pageInfo?.total || results.length };
   }
@@ -93,27 +88,6 @@ export class AniListProvider implements IAnimeProvider {
   }
 
   public async getAnimeDetails(id: string): Promise<AnimeItem | null> {
-    const cleanId = String(id).replace(/[^0-9]/g, '');
-
-    // Numeric IDs resolve through the dedicated details endpoint (richer than
-    // search: studios, duration, characters); everything else falls back to a
-    // title/slug search.
-    if (cleanId) {
-      try {
-        const res = await fetch(`/api/anilist/details/${cleanId}`);
-        if (res.ok) {
-          const json = await res.json();
-          const media = json.data?.Media;
-          if (media) {
-            const mapped = this.mapMedia(media);
-            if (mapped) return mapped;
-          }
-        }
-      } catch {
-        // fall through to the search-based lookup below
-      }
-    }
-
     const { results } = await this.search(id, 1);
     return results[0] || null;
   }

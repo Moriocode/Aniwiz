@@ -56,7 +56,7 @@ export class AnikotoProvider implements IAnimeProvider {
       const item: AnimeItem = {
         id: slug,
         title: info.title || query,
-        japaneseTitle: info.titleJapanese,
+        altTitle: info.titleJapanese,
         synopsis: info.synopsis || '',
         poster: info.poster || '',
         rating: parseFloat(info.rating) || 9.0,

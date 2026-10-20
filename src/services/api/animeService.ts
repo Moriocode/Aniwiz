@@ -1,4 +1,4 @@
-import { AnimeItem, AnimeEpisode, StreamServerOption, StreamSourceResult, StreamAudioMode, AiringScheduleItem, IAnimeProvider } from './types';
+import { AnimeItem, AnimeEpisode, StreamServerOption, StreamSourceResult, StreamAudioMode, AiringScheduleItem } from './types';
 import { providerRegistry } from './providerRegistry';
 import { AniListProvider } from './providers/anilistProvider';
 import { AniwixiProvider } from './providers/aniwixiProvider';
@@ -6,7 +6,6 @@ import { HiAnimeProvider } from './providers/hianimeProvider';
 import { AnivexaProvider } from './providers/anivexaProvider';
 import { AnikotoProvider } from './providers/anikotoProvider';
 import { AnimeApiProvider } from './providers/animeApiProvider';
-import { OpenAnimeProvider } from './providers/openAnimeProvider';
 
 // Register all live modular providers
 providerRegistry.register(new AniListProvider(), true);
@@ -15,10 +14,6 @@ providerRegistry.register(new HiAnimeProvider());
 providerRegistry.register(new AnivexaProvider());
 providerRegistry.register(new AnikotoProvider());
 providerRegistry.register(new AnimeApiProvider());
-// Optional self-hosted Open Anime API instance (see /api/openanime/* proxy).
-// Registered last: when no instance is running the proxy fails fast and the
-// cascade simply skips it.
-providerRegistry.register(new OpenAnimeProvider());
 
 class AnimeService {
   private memoryCache: Map<string, AnimeItem> = new Map();
@@ -26,80 +21,70 @@ class AnimeService {
   private trendingCache: AnimeItem[] = [];
 
   /**
-   * Run a list-returning operation across every registered provider until one
-   * returns a non-empty result (AniList first, then AniWixi, HiAnime, AniVexa,
-   * AniKoto, ANIME-API). Empty arrays and thrown errors both advance the cascade.
-   */
-  /**
-   * A single provider may hang for a long time when its host is blocked or
-   * rate-limited on the viewer's network. Capping each attempt keeps the whole
-   * cascade (and therefore first paint) bounded.
-   */
-  private static readonly PROVIDER_TIMEOUT_MS = 4000;
-
-  private withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
-    return new Promise<T>((resolve, reject) => {
-      const timer = setTimeout(
-        () => reject(new Error(`${label} timed out after ${AnimeService.PROVIDER_TIMEOUT_MS}ms`)),
-        AnimeService.PROVIDER_TIMEOUT_MS
-      );
-      promise.then(
-        (value) => { clearTimeout(timer); resolve(value); },
-        (err) => { clearTimeout(timer); reject(err); }
-      );
-    });
-  }
-
-  private async cascadeList(
-    operationName: string,
-    run: (provider: IAnimeProvider) => Promise<AnimeItem[] | null | undefined>
-  ): Promise<AnimeItem[]> {
-    try {
-      const items = await providerRegistry.executeWithFallback<AnimeItem[]>(
-        operationName,
-        async (provider) => {
-          try {
-            const result = await this.withTimeout(run(provider), `${provider.id}.${operationName}`);
-            if (!Array.isArray(result) || result.length === 0) return null;
-            return result;
-          } catch {
-            return null;
-          }
-        },
-        'anilist'
-      );
-      return items || [];
-    } catch (err) {
-      console.warn(`[AnimeService] ${operationName} failed across all providers:`, err);
-      return [];
-    }
-  }
-
-  /**
-   * Fetch Spotlight Releases (live cascade across all registered providers)
+   * Fetch Spotlight Releases (Live from AniList GraphQL / AnimeWixi)
    */
   public async getSpotlight(): Promise<AnimeItem[]> {
     if (this.spotlightCache.length > 0) return this.spotlightCache;
 
-    const items = await this.cascadeList('getSpotlight', (provider) => provider.getSpotlight());
-    if (items.length > 0) {
-      this.spotlightCache = items;
-      items.forEach(a => this.memoryCache.set(String(a.id), a));
+    try {
+      const res = await fetch('/api/anilist/browse');
+      if (res.ok) {
+        const json = await res.json();
+        const media = json.data?.trending?.media || [];
+        if (media.length > 0) {
+          this.spotlightCache = media.map((item: any, idx: number) => this.mapAniListMedia(item, idx + 1));
+          this.spotlightCache.forEach(a => this.memoryCache.set(String(a.id), a));
+          return this.spotlightCache;
+        }
+      }
+    } catch (e) {
+      console.warn('[AnimeService] Spotlight fetch from AniList failed, trying Aniwixi:', e);
     }
+
+    try {
+      const aniwixi = new AniwixiProvider();
+      const items = await aniwixi.getTrending();
+      if (items.length > 0) {
+        this.spotlightCache = items;
+        items.forEach(a => this.memoryCache.set(String(a.id), a));
+        return items;
+      }
+    } catch {}
+
     return this.spotlightCache;
   }
 
   /**
-   * Fetch Trending Anime (live cascade across all registered providers)
+   * Fetch Trending Anime (Live from AniList GraphQL)
    */
   public async getTrending(): Promise<AnimeItem[]> {
     if (this.trendingCache.length > 0) return this.trendingCache;
 
-    const items = await this.cascadeList('getTrending', (provider) => provider.getTrending());
-    if (items.length > 0) {
-      this.trendingCache = items;
-      items.forEach(a => this.memoryCache.set(String(a.id), a));
+    try {
+      const res = await fetch('/api/anilist/browse');
+      if (res.ok) {
+        const json = await res.json();
+        const media = json.data?.trending?.media || [];
+        if (media.length > 0) {
+          this.trendingCache = media.map((item: any, idx: number) => this.mapAniListMedia(item, idx + 1));
+          this.trendingCache.forEach(a => this.memoryCache.set(String(a.id), a));
+          return this.trendingCache;
+        }
+      }
+    } catch (e) {
+      console.warn('[AnimeService] Trending fetch from AniList failed:', e);
     }
+
+    try {
+      const aniwixi = new AniwixiProvider();
+      const items = await aniwixi.getTrending();
+      if (items.length > 0) {
+        this.trendingCache = items;
+        items.forEach(a => this.memoryCache.set(String(a.id), a));
+        return items;
+      }
+    } catch {}
+
     return this.trendingCache;
   }
 
@@ -119,7 +104,7 @@ class AnimeService {
   }
 
   /**
-   * Real Search across every registered provider (AniList first)
+   * Real Search across AniList GraphQL and AnimeWixi
    */
   public async search(query: string, page = 1): Promise<{ results: AnimeItem[]; total: number }> {
     const q = query.trim();
@@ -128,13 +113,27 @@ class AnimeService {
       return { results: list, total: list.length };
     }
 
-    const results = await this.cascadeList('search', async (provider) => {
-      const outcome = await provider.search(q, page);
-      return outcome?.results || [];
-    });
+    // Try live AniList search first
+    try {
+      const res = await fetch(`/api/anilist/search?q=${encodeURIComponent(q)}&page=${page}`);
+      if (res.ok) {
+        const json = await res.json();
+        const media = json.data?.Page?.media || [];
+        const results = media.map((item: any, idx: number) => this.mapAniListMedia(item, idx + 1));
+        results.forEach((a: AnimeItem) => this.memoryCache.set(String(a.id), a));
+        return { results, total: results.length };
+      }
+    } catch (e) {
+      console.warn('[AnimeService] Live search on AniList failed, cascading to AnimeWixi:', e);
+    }
 
-    results.forEach((a: AnimeItem) => this.memoryCache.set(String(a.id), a));
-    return { results, total: results.length };
+    // Cascade to AnimeWixi real search
+    try {
+      const aniwixi = new AniwixiProvider();
+      return await aniwixi.search(q);
+    } catch {
+      return { results: [], total: 0 };
+    }
   }
 
   /**
@@ -157,8 +156,20 @@ class AnimeService {
     const cleanId = String(id).replace(/[^0-9]/g, '');
 
     if (cleanId) {
-      const details = await this.cascadeDetails(cleanId);
-      if (details) return details;
+      try {
+        const res = await fetch(`/api/anilist/details/${cleanId}`);
+        if (res.ok) {
+          const json = await res.json();
+          const media = json.data?.Media;
+          if (media) {
+            const item = this.mapAniListMedia(media);
+            this.memoryCache.set(cleanId, item);
+            return item;
+          }
+        }
+      } catch (e) {
+        console.warn('[AnimeService] AniList details failed, trying memory cache:', e);
+      }
     }
 
     if (this.memoryCache.has(id)) {
@@ -168,30 +179,6 @@ class AnimeService {
     // If ID is not numeric, search by title/slug
     const { results } = await this.search(id, 1);
     return results[0] || null;
-  }
-
-  /** Cascade details lookups across all providers, caching what resolves. */
-  private async cascadeDetails(id: string): Promise<AnimeItem | null> {
-    try {
-      const item = await providerRegistry.executeWithFallback<AnimeItem>(
-        'getAnimeDetails',
-        async (provider) => {
-          try {
-            const details = await this.withTimeout(provider.getAnimeDetails(id), `${provider.id}.getAnimeDetails`);
-            if (!details) return null;
-            this.memoryCache.set(String(details.id), details);
-            return details;
-          } catch {
-            return null;
-          }
-        },
-        'anilist'
-      );
-      return item || null;
-    } catch (err) {
-      console.warn('[AnimeService] Details lookup failed across all providers:', err);
-      return null;
-    }
   }
 
   /**
@@ -232,7 +219,6 @@ class AnimeService {
     const details = await this.getAnimeDetails(animeId);
     const anilistId = details?.anilistId || String(animeId).replace(/[^0-9]/g, '') || '154587';
     const slug = details?.slug || (details?.title ? details.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'anime');
-    const openAnime = await this.getOpenAnimeServerOption();
 
     return {
       sub: [
@@ -271,8 +257,7 @@ class AnimeService {
           serverId: 5,
           type: 'sub',
           embedUrl: `https://anitaku.bz/${slug}-episode-${episodeNumber}`,
-        },
-        ...(openAnime ? [openAnime] : [])
+        }
       ],
       dub: [
         {
@@ -295,40 +280,8 @@ class AnimeService {
           serverId: 3,
           type: 'dub',
           embedUrl: `https://megacloud.tv/embed-2/e-1/${anilistId}?ep=${episodeNumber}&dub=1`,
-        },
-        ...(openAnime ? [{ ...openAnime, id: 'server-openanime-dub', type: 'dub' as StreamAudioMode }] : [])
+        }
       ]
-    };
-  }
-
-  /**
-   * The self-hosted Open Anime API instance is optional. Probe it (cheaply,
-   * once per short window) and only offer Server 6 when it is actually
-   * reachable — so the picker never shows a dead entry on machines without it.
-   */
-  private openAnimeProbe: { at: number; reachable: boolean } | null = null;
-
-  private async getOpenAnimeServerOption(): Promise<StreamServerOption | null> {
-    const now = Date.now();
-    if (!this.openAnimeProbe || now - this.openAnimeProbe.at > 30_000) {
-      let reachable = false;
-      try {
-        const res = await fetch('/api/openanime/trending');
-        reachable = res.ok;
-      } catch {
-        reachable = false;
-      }
-      this.openAnimeProbe = { at: now, reachable };
-    }
-    if (!this.openAnimeProbe.reachable) return null;
-
-    return {
-      id: 'server-openanime',
-      name: 'Server 6: OpenAnime API',
-      serverId: 6,
-      type: 'sub',
-      embedUrl: '/api/openanime',
-      isPrimary: false,
     };
   }
 
@@ -371,15 +324,6 @@ class AnimeService {
       // 4. AniKoto
       streamUrl = `https://anikototv.to/embed/${slug}?ep=${episodeNumber}&mode=${audio}`;
       serverName = 'Server 4: AniKoto Stream';
-    } else if (serverId === 6) {
-      // 6. Self-hosted Open Anime API — resolves a fresh link per episode
-      const resolved = await new OpenAnimeProvider().getStreamSource(
-        details?.title || slug,
-        episodeNumber,
-        6,
-        audio
-      );
-      return resolved;
     } else {
       // 5. Multi-Mirror
       streamUrl = `https://anitaku.bz/${slug}-episode-${episodeNumber}`;
@@ -391,10 +335,6 @@ class AnimeService {
       type: 'iframe',
       serverName,
       audioMode: audio,
-      // Servers 4/5 point at ordinary video-site pages that send
-      // X-Frame-Options and refuse to be embedded, so the UI opens them in a
-      // new tab instead of an <iframe>, and auto-fallback never lands on them.
-      embeddable: serverId <= 3,
       // No fake intro/outro timestamps! Only provided if real metadata exists.
     };
   }
@@ -442,13 +382,7 @@ class AnimeService {
 
   private mapAniListMedia(item: any, rank = 1): AnimeItem {
     const title = item.title?.english || item.title?.romaji || 'Unknown Anime';
-    // Keep the Latin (romaji) title as the visible alternate line and preserve
-    // the native Japanese title in its own field — CJK text renders as tofu on
-    // systems without Japanese fonts.
-    const japaneseTitle = item.title?.native;
-    const altTitle = item.title?.english && item.title.romaji && item.title.romaji !== item.title.english
-      ? item.title.romaji
-      : undefined;
+    const altTitle = item.title?.native || item.title?.romaji;
     const desc = (item.description || '').replace(/<[^>]*>?/gm, '').trim();
     const score = item.averageScore ? `${item.averageScore}%` : '89%';
     const rating = item.averageScore ? parseFloat((item.averageScore / 10).toFixed(1)) : 8.9;
@@ -462,7 +396,6 @@ class AnimeService {
       slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       title,
       altTitle,
-      japaneseTitle,
       synopsis: desc || 'Stream popular episodes in high definition.',
       poster,
       banner,
