@@ -22,7 +22,8 @@ export class AniwixiProvider implements IAnimeProvider {
         anilistId: Number(item.anilist_id) || undefined,
         slug: item.slug,
         title: item.title?.english || item.title?.romaji || item.title || 'Anime',
-        altTitle: item.title?.native,
+        altTitle: item.title?.english && item.title.romaji && item.title.romaji !== item.title.english ? item.title.romaji : undefined,
+        japaneseTitle: item.title?.native,
         synopsis: (item.synopsis || '').replace(/<[^>]*>?/gm, '').trim(),
         poster: item.poster || item.cover,
         banner: item.banner,
@@ -66,7 +67,8 @@ export class AniwixiProvider implements IAnimeProvider {
         anilistId: Number(item.anilist_id) || undefined,
         slug: item.slug,
         title: item.title?.english || item.title?.romaji || item.title,
-        altTitle: item.title?.native,
+        altTitle: item.title?.english && item.title.romaji && item.title.romaji !== item.title.english ? item.title.romaji : undefined,
+        japaneseTitle: item.title?.native,
         synopsis: (item.synopsis || '').replace(/<[^>]*>?/gm, '').trim(),
         poster: item.poster,
         rating: 8.8,
@@ -108,7 +110,8 @@ export class AniwixiProvider implements IAnimeProvider {
         id,
         anilistId: Number(id) || undefined,
         title: info.title?.english || info.title?.romaji || 'Anime',
-        altTitle: info.title?.native,
+        altTitle: info.title?.english && info.title.romaji && info.title.romaji !== info.title.english ? info.title.romaji : undefined,
+        japaneseTitle: info.title?.native,
         synopsis: (info.synopsis || '').replace(/<[^>]*>?/gm, '').trim(),
         poster: info.poster,
         banner: info.banner,
@@ -136,12 +139,18 @@ export class AniwixiProvider implements IAnimeProvider {
       const epData = json.data?.episodes || [];
 
       if (Array.isArray(epData) && epData.length > 0) {
-        return epData.map((ep: any) => ({
-          id: `${id}::ep=${ep.episode_number || ep.num}`,
-          number: Number(ep.episode_number || ep.num) || 1,
-          title: ep.title || `Episode ${ep.episode_number || ep.num}`,
-          isFiller: false,
-        }));
+        // The upstream AniWixi payload numbers episodes with `episode_no`
+        // (older payloads used `episode_number`/`num`); falling back to the
+        // array index keeps the list usable if none of them are present.
+        return epData.map((ep: any, index: number) => {
+          const number = Number(ep.episode_no ?? ep.episode_number ?? ep.num) || index + 1;
+          return {
+            id: `${id}::ep=${number}`,
+            number,
+            title: ep.title || `Episode ${number}`,
+            isFiller: false,
+          };
+        });
       }
 
       return Array.from({ length: 12 }, (_, i) => ({

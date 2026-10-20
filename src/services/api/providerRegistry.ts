@@ -64,7 +64,9 @@ export class AnimeProviderRegistry {
    */
   public async executeWithFallback<T>(
     operationName: string,
-    operation: (provider: IAnimeProvider) => Promise<T>,
+    // Returning null/undefined (e.g. an empty result set) or throwing both
+    // count as "this provider had nothing", so the cascade moves on.
+    operation: (provider: IAnimeProvider) => Promise<T | null | undefined>,
     preferredProviderId?: string
   ): Promise<T> {
     const attempted: string[] = [];

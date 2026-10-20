@@ -14,38 +14,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CSS via CDN with custom modern streaming palette -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
-          },
-          colors: {
-            brand: {
-              DEFAULT: '#E50914',
-              hover: '#C10711',
-              subtle: '#2A1113',
-              glow: 'rgba(229, 9, 20, 0.35)',
-            },
-            dark: {
-              950: '#07090E',
-              900: '#0B0E14',
-              850: '#11151F',
-              800: '#171C28',
-              750: '#1E2433',
-              700: '#232A3B',
-              600: '#343E54',
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Tailwind CSS: compiled at build time from src/index.css (brand/dark theme) -->
+  <link rel="stylesheet" href="/src/index.css" />
 
   <!-- Pre-initialization safety stubs to ensure window handlers exist immediately -->
   <script>
@@ -154,6 +124,7 @@
             placeholder="Search anime, genres, studios (Press '/' to focus)..."
             autocomplete="off"
             oninput="handleSearchAutocomplete(this.value)"
+            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('search-autocomplete-box').classList.add('hidden'); }"
             class="w-full h-10 pl-9 pr-9 rounded-xl bg-dark-800 text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
           />
           <div class="absolute left-3 text-zinc-500 pointer-events-none">
@@ -275,13 +246,14 @@
               <span>Watch Episode 1</span>
             </button>
             <button
+              id="hero-info-btn"
               onclick="toggleHeroAnimeDetails()"
               class="px-4 py-2.5 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-zinc-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm transition-all active:scale-95"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>Anime Info</span>
+              <span id="hero-info-btn-label">Anime Info</span>
             </button>
           </div>
         </div>
@@ -415,11 +387,11 @@
             <div class="flex items-center gap-1.5">
               <span class="text-[11px] text-zinc-400 font-medium">Server:</span>
               <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-800">
-                <button id="server-btn-1" onclick="switchStreamServer(1, 'Server 1 (VidStreaming)')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-white transition" title="Server 1: VidStreaming (HiAnime HD)">HD-1</button>
-                <button id="server-btn-2" onclick="switchStreamServer(2, 'Server 2 (MegaCloud)')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 2: MegaCloud (Anivexa Aggregator)">HD-2</button>
-                <button id="server-btn-3" onclick="switchStreamServer(3, 'Server 3 (AniKoto)')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 3: AniKoto Stream (Anikoto-API)">HD-3</button>
-                <button id="server-btn-4" onclick="switchStreamServer(4, 'Server 4 (Multi-Mirror)')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 4: Multi-Mirror (ANIME-API)">Mirror</button>
-                <button id="server-btn-5" onclick="switchStreamServer(5, 'Server 5 (StreamSB)')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 5: Fast CDN / StreamSB">Fast</button>
+              <button id="server-btn-1" onclick="switchStreamServer(1, 'AnimeWixi')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-white transition" title="Server 1: AnimeWixi embed (HD)">HD-1</button>
+              <button id="server-btn-2" onclick="switchStreamServer(2, 'ani.pm')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 2: ani.pm (VidStreaming) embed">HD-2</button>
+              <button id="server-btn-3" onclick="switchStreamServer(3, 'MegaCloud')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 3: MegaCloud embed">HD-3</button>
+              <button id="server-btn-4" onclick="switchStreamServer(4, 'AniKoto')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 4: AniKoto — opens on its own site in a new tab">AniKoto</button>
+              <button id="server-btn-5" onclick="switchStreamServer(5, 'Multi-Mirror')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 5: Multi-Mirror — opens on its own site in a new tab">Mirror</button>
               </div>
             </div>
 
@@ -586,13 +558,26 @@
     window.currentAnime = currentAnime;
     window.currentEpisode = currentEpisode;
 
+    // Catalog filter state (genre + free-text search) shared by the hero, grid and badges
+    let fullCatalog = [];
+    let activeGenre = 'All';
+    let activeQuery = '';
+    // Results of the last server-side search: { query, items }
+    let searchResults = null;
+    let searchRequestSeq = 0;
+
     window.toggleAutoFallback = (checked) => {
       autoFallbackActive = Boolean(checked);
     };
 
     document.addEventListener('DOMContentLoaded', async () => {
-      await initializeCatalog();
+      // First paint is synchronous: no waiting on the network before content
+      // is visible (this is what made slow upstreams feel like a minute-long load).
+      paintOfflineCatalog();
       updateHistoryBadge();
+
+      // Live data swaps in whenever it is ready — it must never block the UI.
+      initializeCatalog();
 
       // Listen to postMessage events from embedded player for auto-progress tracking
       window.addEventListener('message', (event) => {
@@ -638,6 +623,19 @@
     /**
      * Initialize Catalog: Load Spotlight & Trending Anime
      */
+    /**
+     * Paint the offline catalog immediately so the page is usable while the
+     * provider cascade runs in the background; live data replaces it in place.
+     */
+    function paintOfflineCatalog() {
+      fullCatalog = FALLBACK_ANIME_CATALOG;
+      renderHeroBanner(FALLBACK_ANIME_CATALOG[0]);
+      applyCatalogFilters();
+
+      const badge = document.getElementById('catalog-count-badge');
+      if (badge) badge.textContent = 'Updating catalogue…';
+    }
+
     async function initializeCatalog() {
       try {
         const [spotlights, trending] = await Promise.all([
@@ -646,11 +644,13 @@
         ]);
 
         const hero = spotlights[0] || trending[0] || FALLBACK_ANIME_CATALOG[0];
+        fullCatalog = trending.length > 0 ? trending : FALLBACK_ANIME_CATALOG;
         renderHeroBanner(hero);
-        renderCatalogGrid(trending.length > 0 ? trending : FALLBACK_ANIME_CATALOG);
+        applyCatalogFilters();
       } catch (err) {
+        fullCatalog = FALLBACK_ANIME_CATALOG;
         renderHeroBanner(FALLBACK_ANIME_CATALOG[0]);
-        renderCatalogGrid(FALLBACK_ANIME_CATALOG);
+        applyCatalogFilters();
       }
     }
 
@@ -665,6 +665,7 @@
       const backdropEl = document.getElementById('hero-backdrop');
       const typeEl = document.getElementById('hero-type');
       const durationEl = document.getElementById('hero-duration');
+      const statusEl = document.getElementById('hero-status');
 
       if (titleEl) titleEl.textContent = anime.title;
       if (altTitleEl) altTitleEl.textContent = anime.altTitle || '';
@@ -672,6 +673,7 @@
       if (ratingEl) ratingEl.textContent = String(anime.rating || '9.3');
       if (typeEl) typeEl.textContent = anime.type || 'TV Series';
       if (durationEl) durationEl.textContent = anime.duration || '24m';
+      if (statusEl) statusEl.textContent = anime.status || 'Airing';
       if (backdropEl && (anime.banner || anime.poster)) {
         backdropEl.style.backgroundImage = `url('${anime.banner || anime.poster}')`;
       }
@@ -683,6 +685,22 @@
       }
     }
     window.startWatchingSpotlight = startWatchingSpotlight;
+
+    /**
+     * "Anime Info" button: expand/collapse the full spotlight synopsis
+     */
+    function toggleHeroAnimeDetails() {
+      const synopsisEl = document.getElementById('hero-synopsis');
+      const labelEl = document.getElementById('hero-info-btn-label');
+      if (!synopsisEl) return;
+
+      const expanded = synopsisEl.dataset.expanded === 'true';
+      synopsisEl.dataset.expanded = String(!expanded);
+      synopsisEl.classList.toggle('line-clamp-2', expanded);
+      synopsisEl.classList.toggle('sm:line-clamp-3', expanded);
+      if (labelEl) labelEl.textContent = expanded ? 'Anime Info' : 'Show Less';
+    }
+    window.toggleHeroAnimeDetails = toggleHeroAnimeDetails;
 
     function renderCatalogGrid(animeList) {
       const grid = document.getElementById('anime-grid');
@@ -760,10 +778,10 @@
       }).join('');
     }
 
-    async function openAnimeFromCard(animeId) {
+    async function openAnimeFromCard(animeId, episodeNumber = 1) {
       const anime = await animeService.getAnimeDetails(animeId);
       if (anime) {
-        openWatchPage(anime, 1);
+        openWatchPage(anime, episodeNumber);
       }
     }
     window.openAnimeFromCard = openAnimeFromCard;
@@ -776,6 +794,7 @@
       currentEpisode = Number(episodeNumber) || 1;
       window.currentAnime = anime;
       window.currentEpisode = currentEpisode;
+      window._hasAutoSkippedThisEp = false;
 
       // Update Views
       document.getElementById('browse-section')?.classList.add('hidden');
@@ -825,6 +844,7 @@
       document.getElementById('browse-section')?.classList.remove('hidden');
 
       // Unload video player iframe
+      clearTimeout(window._embedLoadTimer);
       const player = document.getElementById('player');
       if (player) player.innerHTML = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -909,6 +929,7 @@
       const targetEp = Number(epNumber) || 1;
       currentEpisode = targetEp;
       window.currentEpisode = targetEp;
+      window._hasAutoSkippedThisEp = false;
 
       const crumbEp = document.getElementById('crumb-episode-num');
       if (crumbEp) crumbEp.textContent = `Episode ${currentEpisode}`;
@@ -922,13 +943,37 @@
     /**
      * Stream Loader with Graceful Multi-API Fallback & Server Selection
      */
-    const SERVER_NAMES = {
-      1: 'Server 1: VidStreaming (HiAnime HD)',
-      2: 'Server 2: MegaCloud (Anivexa Aggregator)',
-      3: 'Server 3: AniKoto Stream (Anikoto REST)',
-      4: 'Server 4: Multi-Mirror (ANIME-API)',
-      5: 'Server 5: Fast CDN (StreamSB)'
+    // Friendly labels shown to the viewer (no internal engine names).
+    // Must match getStreamSource() in animeService:
+    //   1 AnimeWixi · 2 ani.pm/VidStreaming · 3 MegaCloud
+    //   4 AniKoto (external) · 5 Multi-Mirror (external)
+    //   6 OpenAnime (self-hosted, only offered when an instance is reachable)
+    const SERVER_SHORT_NAMES = {
+      1: 'AnimeWixi',
+      2: 'ani.pm',
+      3: 'MegaCloud',
+      4: 'AniKoto',
+      5: 'Multi-Mirror',
+      6: 'OpenAnime'
     };
+
+    // Servers 4/5 point at ordinary video-site pages that refuse to be framed
+    // (X-Frame-Options), so they open in a new tab and auto-fallback skips them.
+    // Auto-fallback itself only rotates the three HD servers (1-3); server 6
+    // (OpenAnime, self-hosted) is a manual picker choice, but failing over FROM
+    // it lands on server 2 rather than a dead end.
+    // Keep in sync with StreamSourceResult.embeddable in animeService.
+    const EMBEDDABLE_SERVERS = { 1: true, 2: true, 3: true, 4: false, 5: false, 6: true };
+
+    function nextEmbeddableServer(fromId) {
+      const rotation = [1, 2, 3];
+      const start = Math.max(0, rotation.indexOf(fromId));
+      for (let offset = 1; offset < rotation.length; offset++) {
+        const id = rotation[(start + offset) % rotation.length];
+        if (id !== fromId && EMBEDDABLE_SERVERS[id]) return id;
+      }
+      return 2;
+    }
 
     let streamFailCount = 0;
 
@@ -938,22 +983,46 @@
 
       const ep = Number(episode) || 1;
       const lang = ['sub', 'dub'].includes(language) ? language : 'sub';
-      const serverLabel = SERVER_NAMES[currentServerId] || `Server ${currentServerId}`;
 
-      // Show sleek loading state
+      // Minimal loading state — just a spinner, no internal server labels
       player.innerHTML = `
-        <div class="flex flex-col items-center justify-center p-8 text-center space-y-3">
-          <div class="w-10 h-10 rounded-full border-3 border-dark-700 border-t-brand animate-spin"></div>
-          <p class="text-xs font-medium text-zinc-300">Connecting to High-Definition Stream...</p>
-          <span class="text-[10px] text-zinc-400 font-mono bg-dark-900 px-2 py-0.5 rounded border border-dark-750">
-            ${escapeHtml(serverLabel)} · ${lang.toUpperCase()}
-          </span>
+        <div class="flex items-center justify-center w-full h-full min-h-[240px]">
+          <div class="w-9 h-9 rounded-full border-[3px] border-dark-700 border-t-brand animate-spin"></div>
         </div>
       `;
 
       try {
         const streamResult = await animeService.getStreamSource(anime.id, ep, currentServerId, lang);
         streamFailCount = 0;
+
+        // Mirrors that refuse to be embedded open in their own tab instead of
+        // showing the browser's "refused to connect" error page inside a player.
+        if (streamResult.embeddable === false) {
+          const shortName = SERVER_SHORT_NAMES[currentServerId] || 'this mirror';
+          player.innerHTML = `
+            <div class="flex flex-col items-center justify-center gap-3 p-8 text-center max-w-md">
+              <div class="w-11 h-11 rounded-full bg-dark-800 border border-dark-750 flex items-center justify-center text-zinc-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </div>
+              <p class="text-sm font-semibold text-zinc-100">${escapeHtml(shortName)} plays on its own site</p>
+              <p class="text-xs text-zinc-400 leading-relaxed">
+                This mirror can't be embedded in the player. Continue on its site to watch episode ${ep},
+                or pick one of the HD servers below.
+              </p>
+              <a
+                href="${streamResult.streamUrl}"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="px-4 py-2 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-bold transition active:scale-95"
+              >
+                Open ${escapeHtml(shortName)} in a new tab
+              </a>
+            </div>
+          `;
+          return;
+        }
         
         player.innerHTML = `
           <iframe
@@ -963,9 +1032,23 @@
             class="w-full h-full border-0 absolute inset-0"
             allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
             allowfullscreen
+            onload="this.dataset.loaded = '1'"
             onerror="handleStreamIframeError()"
           ></iframe>
         `;
+
+        // If a host is blocked on the viewer's network the frame never fires
+        // `load`, so nothing would ever trigger auto-fallback. Surface the
+        // server picker instead of leaving a silent, blank player.
+        clearTimeout(window._embedLoadTimer);
+        window._embedLoadTimer = setTimeout(() => {
+          const frame = document.getElementById('stream-iframe');
+          const watchSection = document.getElementById('watch-section');
+          const watchVisible = watchSection && !watchSection.classList.contains('hidden');
+          if (frame && !frame.dataset.loaded && watchVisible) {
+            handleStreamFailure(anime, ep, lang);
+          }
+        }, 10000);
       } catch (err) {
         handleStreamFailure(anime, ep, lang);
       }
@@ -976,30 +1059,34 @@
       const player = document.getElementById('player');
       if (!player) return;
 
-      // If auto-fallback is active and we haven't exhausted all servers
+      // If auto-fallback is active, move to the next embeddable server
+      // (never onto the mirrors that refuse to be framed).
       if (autoFallbackActive && streamFailCount < 5) {
-        const nextServer = (currentServerId % 5) + 1;
-        player.innerHTML = `
-          <div class="flex flex-col items-center justify-center p-8 text-center space-y-3">
-            <div class="w-10 h-10 rounded-full border-3 border-dark-700 border-t-amber-400 animate-spin"></div>
-            <p class="text-xs font-semibold text-zinc-200">Server ${currentServerId} unavailable. Cascading to Server ${nextServer}...</p>
-            <span class="text-[10px] text-zinc-500 font-mono">Multi-API Redundant Failover Active</span>
-          </div>
-        `;
-        setTimeout(() => {
-          switchStreamServer(nextServer);
-        }, 1200);
-        return;
+        const nextServer = nextEmbeddableServer(currentServerId);
+        if (nextServer !== currentServerId) {
+          player.innerHTML = `
+            <div class="flex items-center justify-center w-full h-full min-h-[240px]">
+              <div class="w-9 h-9 rounded-full border-[3px] border-dark-700 border-t-amber-400 animate-spin"></div>
+            </div>
+          `;
+          setTimeout(() => {
+            switchStreamServer(nextServer);
+          }, 900);
+          return;
+        }
       }
 
-      // Graceful Player Fallback Screen if all fail or manual retry
+      // Graceful Player Fallback Screen if all fail or manual retry.
+      // List the three HD servers plus the manual mirror options; server 6
+      // (OpenAnime, self-hosted) is a manual picker choice and is only wired in
+      // when the instance is reachable, so it is not shown here.
       player.innerHTML = `
         <div class="flex flex-col items-center justify-center p-6 text-center space-y-3 max-w-lg">
           <div class="w-11 h-11 rounded-full bg-red-500/15 text-brand flex items-center justify-center">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
           </div>
           <h4 class="font-bold text-sm text-white">Stream Temporarily Unavailable on Server ${currentServerId}</h4>
-          <p class="text-xs text-zinc-400">Our multi-source engine has 5 alternative stream mirrors. Select any server below to resume instant playback:</p>
+          <p class="text-xs text-zinc-400">Choose another stream server below to resume instant playback:</p>
           <div class="pt-2 flex flex-wrap items-center justify-center gap-2">
             <button onclick="switchStreamServer(1)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white text-xs font-semibold border border-dark-700 transition active:scale-95">Server 1 (VidStreaming)</button>
             <button onclick="switchStreamServer(2)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white text-xs font-semibold border border-dark-700 transition active:scale-95">Server 2 (MegaCloud)</button>
@@ -1088,9 +1175,25 @@
 
       clearTimeout(searchDebounceTimeout);
       if (!query || query.trim().length === 0) {
+        activeQuery = '';
+        searchResults = null;
+        searchRequestSeq++;
+        applyCatalogFilters();
         if (suggestBox) suggestBox.classList.add('hidden');
         return;
       }
+
+      // Live local filtering of the catalog grid while typing
+      activeQuery = query;
+      // Search takes precedence over the browse-scope genre filter
+      if (activeGenre !== 'All') {
+        activeGenre = 'All';
+        updateGenreButtons();
+      }
+      applyCatalogFilters();
+
+      const requestedQuery = query.trim();
+      const requestSeq = ++searchRequestSeq;
 
       searchDebounceTimeout = setTimeout(async () => {
         try {
@@ -1113,6 +1216,20 @@
             suggestBox.classList.add('hidden');
           }
         } catch (e) {}
+
+        // Server-side search: surface titles beyond the currently loaded catalog
+        try {
+          const { results } = await animeService.search(requestedQuery);
+          if (
+            requestSeq === searchRequestSeq &&
+            activeQuery.trim() === requestedQuery &&
+            Array.isArray(results) &&
+            results.length > 0
+          ) {
+            searchResults = { query: requestedQuery, items: results };
+            applyCatalogFilters();
+          }
+        } catch (e) {}
       }, 250);
     }
     window.handleSearchAutocomplete = handleSearchAutocomplete;
@@ -1124,33 +1241,82 @@
       if (input) input.value = '';
       if (clearBtn) clearBtn.classList.add('hidden');
       if (suggestBox) suggestBox.classList.add('hidden');
-      resetFiltersAndSearch();
+      activeQuery = '';
+      applyCatalogFilters();
     }
     window.clearSearchInput = clearSearchInput;
 
-    async function filterByGenre(genre) {
-      document.querySelectorAll('.genre-btn').forEach(btn => {
-        if (btn.textContent === genre) {
-          btn.className = 'genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand text-white transition shrink-0 active:scale-95';
-        } else {
-          btn.className = 'genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95';
+    /**
+     * Single filter pipeline: genre + free-text query over whatever catalog
+     * is currently loaded (live AniList data, or the offline fallback).
+     */
+    function applyCatalogFilters() {
+      const rawQuery = activeQuery.trim();
+      const query = rawQuery.toLowerCase();
+      const usingServerResults = Boolean(query && searchResults && searchResults.query === rawQuery);
+
+      let list;
+      if (usingServerResults) {
+        list = searchResults.items;
+      } else {
+        list = fullCatalog.length > 0 ? fullCatalog : FALLBACK_ANIME_CATALOG;
+        if (query) {
+          list = list.filter(a =>
+            (a.title || '').toLowerCase().includes(query) ||
+            (a.altTitle || '').toLowerCase().includes(query) ||
+            (a.genres || []).some(g => g.toLowerCase().includes(query)) ||
+            (a.studios || []).some(s => s.toLowerCase().includes(query)) ||
+            String(a.year || '').includes(query)
+          );
         }
-      });
+      }
+
+      // Genre pills only scope browsing; an active search overrides them.
+      if (activeGenre !== 'All' && !query) {
+        list = list.filter(a => (a.genres || []).includes(activeGenre));
+      }
 
       const badge = document.getElementById('catalog-count-badge');
-      if (badge) badge.textContent = genre === 'All' ? 'Showing all releases' : `Filtered by ${genre}`;
-
-      if (genre === 'All') {
-        renderCatalogGrid(FALLBACK_ANIME_CATALOG);
-      } else {
-        const filtered = FALLBACK_ANIME_CATALOG.filter(a => a.genres.includes(genre));
-        renderCatalogGrid(filtered);
+      if (badge) {
+        if (query) {
+          badge.textContent = `${list.length} result${list.length === 1 ? '' : 's'} for "${rawQuery}"`;
+        } else if (activeGenre !== 'All') {
+          badge.textContent = `Filtered by ${activeGenre}`;
+        } else {
+          badge.textContent = 'Showing all releases';
+        }
       }
+
+      renderCatalogGrid(list);
+    }
+
+    function updateGenreButtons() {
+      const activeClass = 'genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand text-white transition shrink-0 active:scale-95';
+      const idleClass = 'genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95';
+
+      document.querySelectorAll('.genre-btn').forEach(btn => {
+        btn.className = btn.textContent === activeGenre ? activeClass : idleClass;
+      });
+    }
+
+    function filterByGenre(genre) {
+      activeGenre = genre;
+      updateGenreButtons();
+      applyCatalogFilters();
     }
     window.filterByGenre = filterByGenre;
 
     function resetFiltersAndSearch() {
       closeWatchPage();
+
+      const input = document.getElementById('search-input');
+      const clearBtn = document.getElementById('search-clear-btn');
+      const suggestBox = document.getElementById('search-autocomplete-box');
+      if (input) input.value = '';
+      if (clearBtn) clearBtn.classList.add('hidden');
+      if (suggestBox) suggestBox.classList.add('hidden');
+
+      activeQuery = '';
       filterByGenre('All');
     }
     window.resetFiltersAndSearch = resetFiltersAndSearch;
@@ -1213,7 +1379,7 @@
               </div>
             </div>
             <button
-              onclick="toggleHistoryModal(); openAnimeFromCard('${item.id}'); switchEpisode(${item.episode});"
+              onclick="toggleHistoryModal(); openAnimeFromCard('${item.id}', ${Number(item.episode) || 1});"
               class="px-3 py-1 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white font-semibold text-xs shrink-0 transition"
             >
               Resume
