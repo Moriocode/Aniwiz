@@ -5,10 +5,3 @@ coverage/
 *.log
 .env*
 !.env.example
-
-# Test output & generated local setup
-artifacts/
-scripts/browser-env.sh
-
-# Original AI Studio export (contents live at the repo root; blob stays in git history)
-aniplayer-integration-builder*.zip
