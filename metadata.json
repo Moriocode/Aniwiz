@@ -1,0 +1,6 @@
+{
+  "name": "AniStream - Modern Anime Streaming Platform",
+  "description": "Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

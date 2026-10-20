@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/*
+ * AniStream design tokens.
+ *
+ * These were previously defined in the Tailwind Play CDN <script> inside
+ * index.html. Defining them here means the stylesheet is compiled into the
+ * build by @tailwindcss/vite (no runtime CDN fetch, no "do not use in
+ * production" console warning) while every class keeps the same name.
+ */
+@theme {
+  /* Brand */
+  --color-brand: #e50914;
+  --color-brand-hover: #c10711;
+  --color-brand-subtle: #2a1113;
+
+  /* Dark surfaces */
+  --color-dark-950: #07090e;
+  --color-dark-900: #0b0e14;
+  --color-dark-850: #11151f;
+  --color-dark-800: #171c28;
+  --color-dark-750: #1e2433;
+  --color-dark-700: #232a3b;
+  --color-dark-600: #343e54;
+
+  /* Type */
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background-color: #07090e;
+  }
+
+  body {
+    background-color: #07090e;
+    color: #e2e8f0;
+    overflow-x: hidden;
+    font-family: var(--font-sans);
+  }
+}
