@@ -2266,6 +2266,11 @@ const appRootDir = import.meta.dirname || process.cwd();
 
 export default defineConfig(() => {
   return {
+    // Relative asset base: the built index.html references ./assets/... so the
+    // committed dist/ renders from ANY static server, sub-path or editor
+    // preview (Spck on Android, VS Code Live Server, GitHub Pages) — not just
+    // from a server whose root contains /assets.
+    base: './',
     plugins: [tailwindcss(), anipmPartnerApiPlugin()],
     resolve: {
       alias: {

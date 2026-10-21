@@ -54,11 +54,12 @@
         if (!reported) {
           reported = true;
           console.error('[AniStream] The app script did not load (first missing handler: "' + missingName + '"). ' +
-            'index.html must run through Vite: run "npm install" then "npm run dev" and open http://localhost:3000. ' +
-            'Plain static servers (VS Code Live Server, file://) cannot serve the TypeScript imports this app uses.');
+            'This SOURCE index.html must run through Vite: run "npm install" then "npm run dev" and open http://localhost:3000. ' +
+            'If you are in a static editor/preview (Spck on Android, VS Code Live Server, file://), open the built ' +
+            'dist/index.html instead — plain servers cannot serve the TypeScript imports in the source file.');
           if (document.body) {
             var toast = document.createElement('div');
-            toast.textContent = "AniStream's app script didn't load — run it with npm run dev (not Live Server / file://). See the browser console.";
+            toast.textContent = "App script didn't load: in a static editor open dist/index.html, or run npm run dev. See console.";
             toast.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:99999;background:#7f1d1d;color:#fff;padding:10px 16px;border-radius:10px;font:600 13px/1.45 system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.55);max-width:92vw;text-align:center';
             document.body.appendChild(toast);
           }
