@@ -36,12 +36,18 @@ class AnimeService {
    * cascade (and therefore first paint) bounded.
    */
   private static readonly PROVIDER_TIMEOUT_MS = 4000;
+  /**
+   * Hard ceiling for one full provider cascade (every provider combined), so
+   * a network where all upstreams hang resolves in seconds instead of a
+   * provider-count multiple of the per-attempt timeout.
+   */
+  private static readonly CASCADE_BUDGET_MS = 10000;
 
-  private withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  private withTimeout<T>(promise: Promise<T>, label: string, timeoutMs = AnimeService.PROVIDER_TIMEOUT_MS): Promise<T> {
     return new Promise<T>((resolve, reject) => {
       const timer = setTimeout(
-        () => reject(new Error(`${label} timed out after ${AnimeService.PROVIDER_TIMEOUT_MS}ms`)),
-        AnimeService.PROVIDER_TIMEOUT_MS
+        () => reject(new Error(`${label} timed out after ${timeoutMs}ms`)),
+        timeoutMs
       );
       promise.then(
         (value) => { clearTimeout(timer); resolve(value); },
@@ -50,29 +56,60 @@ class AnimeService {
     });
   }
 
+  /**
+   * Shared cascade runner: tries providers in order (AniList first), with a
+   * per-attempt timeout AND a whole-cascade deadline. Returns null once every
+   * provider failed or the budget ran out.
+   */
+  private async executeBounded<T>(
+    operationName: string,
+    run: (provider: IAnimeProvider) => Promise<T | null | undefined>,
+    preferredProviderId: string
+  ): Promise<T | null> {
+    const deadline = Date.now() + AnimeService.CASCADE_BUDGET_MS;
+    try {
+      const result = await providerRegistry.executeWithFallback<T>(
+        operationName,
+        async (provider) => {
+          const remaining = deadline - Date.now();
+          if (remaining <= 0) {
+            // Budget spent — stop trying further providers.
+            throw new Error(`${operationName} cascade budget exhausted`);
+          }
+          try {
+            const value = await this.withTimeout(
+              run(provider),
+              `${provider.id}.${operationName}`,
+              Math.min(AnimeService.PROVIDER_TIMEOUT_MS, remaining)
+            );
+            return value ?? null;
+          } catch (err) {
+            if (Date.now() >= deadline) throw err;
+            return null;
+          }
+        },
+        preferredProviderId
+      );
+      return result ?? null;
+    } catch (err) {
+      console.warn(`[AnimeService] ${operationName} failed across all providers:`, err);
+      return null;
+    }
+  }
+
   private async cascadeList(
     operationName: string,
     run: (provider: IAnimeProvider) => Promise<AnimeItem[] | null | undefined>
   ): Promise<AnimeItem[]> {
-    try {
-      const items = await providerRegistry.executeWithFallback<AnimeItem[]>(
-        operationName,
-        async (provider) => {
-          try {
-            const result = await this.withTimeout(run(provider), `${provider.id}.${operationName}`);
-            if (!Array.isArray(result) || result.length === 0) return null;
-            return result;
-          } catch {
-            return null;
-          }
-        },
-        'anilist'
-      );
-      return items || [];
-    } catch (err) {
-      console.warn(`[AnimeService] ${operationName} failed across all providers:`, err);
-      return [];
-    }
+    const items = await this.executeBounded<AnimeItem[]>(
+      operationName,
+      async (provider) => {
+        const result = await run(provider);
+        return Array.isArray(result) && result.length > 0 ? result : null;
+      },
+      'anilist'
+    );
+    return items || [];
   }
 
   /**
@@ -154,44 +191,37 @@ class AnimeService {
    * Real Anime Details (Titles, Studio, Characters, Synopsis, Ratings)
    */
   public async getAnimeDetails(id: string): Promise<AnimeItem | null> {
-    const cleanId = String(id).replace(/[^0-9]/g, '');
+    const rawId = String(id);
+
+    // The catalog load already cached every visible title — never pay a
+    // provider cascade for data we hold in memory.
+    const cached = this.memoryCache.get(rawId);
+    if (cached) return cached;
+
+    const cleanId = rawId.replace(/[^0-9]/g, '');
 
     if (cleanId) {
       const details = await this.cascadeDetails(cleanId);
       if (details) return details;
     }
 
-    if (this.memoryCache.has(id)) {
-      return this.memoryCache.get(id)!;
-    }
-
     // If ID is not numeric, search by title/slug
-    const { results } = await this.search(id, 1);
+    const { results } = await this.search(rawId, 1);
     return results[0] || null;
   }
 
   /** Cascade details lookups across all providers, caching what resolves. */
   private async cascadeDetails(id: string): Promise<AnimeItem | null> {
-    try {
-      const item = await providerRegistry.executeWithFallback<AnimeItem>(
-        'getAnimeDetails',
-        async (provider) => {
-          try {
-            const details = await this.withTimeout(provider.getAnimeDetails(id), `${provider.id}.getAnimeDetails`);
-            if (!details) return null;
-            this.memoryCache.set(String(details.id), details);
-            return details;
-          } catch {
-            return null;
-          }
-        },
-        'anilist'
-      );
-      return item || null;
-    } catch (err) {
-      console.warn('[AnimeService] Details lookup failed across all providers:', err);
-      return null;
-    }
+    return this.executeBounded<AnimeItem>(
+      'getAnimeDetails',
+      async (provider) => {
+        const details = await provider.getAnimeDetails(id);
+        if (!details) return null;
+        this.memoryCache.set(String(details.id), details);
+        return details;
+      },
+      'anilist'
+    );
   }
 
   /**
@@ -231,7 +261,6 @@ class AnimeService {
   }> {
     const details = await this.getAnimeDetails(animeId);
     const anilistId = details?.anilistId || String(animeId).replace(/[^0-9]/g, '') || '154587';
-    const slug = details?.slug || (details?.title ? details.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'anime');
     const openAnime = await this.getOpenAnimeServerOption();
 
     return {
@@ -251,27 +280,6 @@ class AnimeService {
           type: 'sub',
           embedUrl: `https://ani.pm/embed/ani/${anilistId}/${episodeNumber}/sub`,
         },
-        {
-          id: 'server-megacloud',
-          name: 'Server 3: MegaCloud',
-          serverId: 3,
-          type: 'sub',
-          embedUrl: `https://megacloud.tv/embed-2/e-1/${anilistId}?ep=${episodeNumber}`,
-        },
-        {
-          id: 'server-anikoto',
-          name: 'Server 4: AniKoto Stream',
-          serverId: 4,
-          type: 'sub',
-          embedUrl: `https://anikototv.to/embed/${slug}?ep=${episodeNumber}&mode=sub`,
-        },
-        {
-          id: 'server-mirror',
-          name: 'Server 5: Multi-Mirror',
-          serverId: 5,
-          type: 'sub',
-          embedUrl: `https://anitaku.bz/${slug}-episode-${episodeNumber}`,
-        },
         ...(openAnime ? [openAnime] : [])
       ],
       dub: [
@@ -288,13 +296,6 @@ class AnimeService {
           serverId: 2,
           type: 'dub',
           embedUrl: `https://ani.pm/embed/ani/${anilistId}/${episodeNumber}/dub`,
-        },
-        {
-          id: 'server-megacloud-dub',
-          name: 'Server 3: MegaCloud (Dub)',
-          serverId: 3,
-          type: 'dub',
-          embedUrl: `https://megacloud.tv/embed-2/e-1/${anilistId}?ep=${episodeNumber}&dub=1`,
         },
         ...(openAnime ? [{ ...openAnime, id: 'server-openanime-dub', type: 'dub' as StreamAudioMode }] : [])
       ]
@@ -336,17 +337,38 @@ class AnimeService {
    * Real Stream Source Resolver (Zero Fake Intros, Zero Mock Videos)
    */
   public async getStreamSource(animeId: string, episodeNumber: number, serverId: number, audio: StreamAudioMode): Promise<StreamSourceResult> {
-    const details = await this.getAnimeDetails(animeId);
-    const anilistId = details?.anilistId || String(animeId).replace(/[^0-9]/g, '') || '154587';
+    const rawId = String(animeId);
+    const cleanId = rawId.replace(/[^0-9]/g, '');
+    // Catalog titles are already cached in memory — never block the player on
+    // a provider cascade just to rebuild ids we already have. Unknown ids fall
+    // back to digit derivation below (same as before when nothing resolved).
+    const details = this.memoryCache.get(rawId) || null;
+    const anilistId = details?.anilistId || cleanId || '154587';
     const slug = details?.slug || (details?.title ? details.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'anime');
 
+    if (serverId === 6) {
+      // Self-hosted Open Anime API — resolves a fresh link per episode
+      return new OpenAnimeProvider().getStreamSource(details?.title || slug, episodeNumber, 6, audio);
+    }
+
+    // Servers 3-5 (MegaCloud, AniKoto, Multi-Mirror) were removed: their embed
+    // links 404 or refuse to be framed, so they never played on this site.
+    // Legacy ids land on server 1 rather than a dead player.
     let streamUrl = '';
     let serverName = '';
 
-    if (serverId === 1) {
-      // 1. AnimeWixi Live Embed
+    if (serverId === 2) {
+      // VidStreaming / AniPM
+      streamUrl = `https://ani.pm/embed/ani/${anilistId}/${episodeNumber}/${audio}`;
+      serverName = 'Server 2: VidStreaming HD';
+    } else {
+      // AnimeWixi Live Embed — the player_data lookup picks the canonical
+      // embed (incl. dub track) but is capped at 3s so a slow or blocked
+      // AnimeWixi API can never stall the iframe behind a spinner.
+      const controller = new AbortController();
+      const probeTimer = setTimeout(() => controller.abort(), 3000);
       try {
-        const res = await fetch(`/api/aniwixi/anilist/${anilistId}/ep/${episodeNumber}`);
+        const res = await fetch(`/api/aniwixi/anilist/${anilistId}/ep/${episodeNumber}`, { signal: controller.signal });
         if (res.ok) {
           const json = await res.json();
           const p = json.data?.player_data;
@@ -355,35 +377,11 @@ class AnimeService {
           }
         }
       } catch {}
+      clearTimeout(probeTimer);
       if (!streamUrl) {
         streamUrl = `https://aniwixi.xyz/embed/${anilistId}/${episodeNumber}${audio === 'dub' ? '?lang=en' : ''}`;
       }
       serverName = 'Server 1: AnimeWixi (Embed HD)';
-    } else if (serverId === 2) {
-      // 2. VidStreaming / AniPM
-      streamUrl = `https://ani.pm/embed/ani/${anilistId}/${episodeNumber}/${audio}`;
-      serverName = 'Server 2: VidStreaming HD';
-    } else if (serverId === 3) {
-      // 3. MegaCloud
-      streamUrl = `https://megacloud.tv/embed-2/e-1/${anilistId}?ep=${episodeNumber}${audio === 'dub' ? '&dub=1' : ''}`;
-      serverName = 'Server 3: MegaCloud';
-    } else if (serverId === 4) {
-      // 4. AniKoto
-      streamUrl = `https://anikototv.to/embed/${slug}?ep=${episodeNumber}&mode=${audio}`;
-      serverName = 'Server 4: AniKoto Stream';
-    } else if (serverId === 6) {
-      // 6. Self-hosted Open Anime API — resolves a fresh link per episode
-      const resolved = await new OpenAnimeProvider().getStreamSource(
-        details?.title || slug,
-        episodeNumber,
-        6,
-        audio
-      );
-      return resolved;
-    } else {
-      // 5. Multi-Mirror
-      streamUrl = `https://anitaku.bz/${slug}-episode-${episodeNumber}`;
-      serverName = 'Server 5: Multi-Mirror';
     }
 
     return {
@@ -391,10 +389,7 @@ class AnimeService {
       type: 'iframe',
       serverName,
       audioMode: audio,
-      // Servers 4/5 point at ordinary video-site pages that send
-      // X-Frame-Options and refuse to be embedded, so the UI opens them in a
-      // new tab instead of an <iframe>, and auto-fallback never lands on them.
-      embeddable: serverId <= 3,
+      embeddable: true,
       // No fake intro/outro timestamps! Only provided if real metadata exists.
     };
   }

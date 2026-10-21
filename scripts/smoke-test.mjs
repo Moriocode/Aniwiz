@@ -151,15 +151,16 @@ if (episodeCount > 1) {
   check('episode switch updates breadcrumb', /Episode 2/.test(crumb), crumb);
 }
 
-// 8b. Non-embeddable mirrors open externally instead of a broken iframe
-await page.locator('#server-btn-4').click();
-await page.waitForTimeout(700);
-const mirrorLinks = await page.locator('#player a[target="_blank"]').count();
-const mirrorIframes = await page.locator('#player iframe').count();
-check('mirror server shows an external-open panel, not a broken iframe',
-  mirrorLinks === 1 && mirrorIframes === 0,
-  `${mirrorLinks} external link, ${mirrorIframes} iframe`);
-await page.screenshot({ path: 'artifacts/03-mirror-panel.png', fullPage: false });
+// 8b. Only the live embeddable servers remain — the dead mirrors (MegaCloud,
+// AniKoto, Multi-Mirror) were removed from the picker and service layer.
+const serverBtnCount = await page.locator('.server-btn').count();
+check('picker offers only the two live embeddable servers', serverBtnCount === 2, `${serverBtnCount} server buttons`);
+const serverTitles = (await page.locator('.server-btn').evaluateAll((els) => els.map((e) => e.getAttribute('title') || ''))).join(' | ');
+check('no dead mirrors in the server picker', !/AniKoto|MegaCloud|Mirror/i.test(serverTitles), serverTitles);
+await page.locator('#server-btn-2').click();
+await page.waitForTimeout(900);
+const externalLinks = await page.locator('#player a[target="_blank"]').count();
+check('server 2 plays inside the site (no external-open panel)', externalLinks === 0, `${externalLinks} external links`);
 await page.locator('#server-btn-1').click();
 await page.waitForTimeout(500);
 

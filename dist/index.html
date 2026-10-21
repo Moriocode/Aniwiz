@@ -9,10 +9,19 @@
   <meta property="og:description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
   <meta property="og:type" content="website" />
 
-  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <!-- Google Fonts: loaded asynchronously so a slow or blocked fonts host can
+       never stall first paint (the page falls back to system fonts). -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link
+    rel="preload"
+    as="style"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'"
+  />
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" />
+  </noscript>
 
   <!-- Tailwind CSS: compiled at build time from src/index.css (brand/dark theme) -->
 
@@ -29,8 +38,8 @@
   </script>
 
   <style>*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}html{scroll-behavior:smooth;background-color:#07090e}body{color:#e2e8f0;background-color:#07090e;font-family:Plus Jakarta Sans,system-ui,-apple-system,sans-serif;overflow-x:hidden}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0b0e14}::-webkit-scrollbar-thumb{background:#232a3b;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#343e54}.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}@keyframes shimmer{to{transform:translate(100%)}}.skeleton-box{background-color:#11151f;position:relative;overflow:hidden}.skeleton-box:after{content:"";background-image:linear-gradient(90deg,#fff0 0,#ffffff0d 20%,#ffffff1a 60%,#fff0);animation:1.8s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}</style>
-  <script type="module" crossorigin src="/assets/index-_TcAGmSS.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DD8IdmkL.css">
+  <script type="module" crossorigin src="/assets/index-CPe1rmFr.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CL94SKIF.css">
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-white">
 
@@ -97,7 +106,7 @@
       <!-- Header Navigation & User Actions -->
       <div class="flex items-center gap-2 sm:gap-3">
         <!-- Multi-API Redundancy Status Indicator -->
-        <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-750 text-xs text-zinc-300 shadow-sm" title="Streams & metadata backed by 4 independent APIs (HiAnime, Anivexa, Anikoto, ANIME-API, AniList) with automatic fallback">
+        <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-750 text-xs text-zinc-300 shadow-sm" title="Streams & metadata backed by 5 independent APIs (HiAnime, Anivexa, AnimeWixi, ANIME-API, AniList) with automatic fallback">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span class="font-medium text-zinc-300">Multi-API Cascade</span>
           <span class="text-[10px] px-1.5 py-0.5 bg-dark-900 border border-dark-700/60 rounded text-emerald-400 font-mono font-semibold">Active</span>
@@ -145,7 +154,7 @@
 
       <!-- Hero Spotlight Banner -->
       <div id="hero-banner" class="relative rounded-2xl overflow-hidden bg-dark-900 border border-dark-800 min-h-[300px] sm:min-h-[380px] flex items-end p-6 sm:p-10 shadow-2xl">
-        <div id="hero-backdrop" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 brightness-[0.45]" style="background-image: url('https://images.unsplash.com/photo-1578632767115-351597cf2477?w=1600&auto=format&fit=crop&q=80')"></div>
+        <div id="hero-backdrop" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 brightness-[0.45]" style="background-image: linear-gradient(135deg, #151A26 0%, #0B0E14 70%)"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/70 to-transparent"></div>
         <div class="absolute inset-0 bg-gradient-to-r from-dark-950/90 via-dark-950/40 to-transparent"></div>
 
@@ -263,13 +272,6 @@
           <span class="text-zinc-600">/</span>
           <span id="crumb-episode-num" class="text-brand font-bold">Episode 1</span>
         </nav>
-
-        <button
-          onclick="closeWatchPage()"
-          class="px-3 py-1 rounded-lg bg-dark-800 hover:bg-dark-750 text-zinc-300 hover:text-white border border-dark-700 text-xs font-semibold transition active:scale-95"
-        >
-          Close Player ✕
-        </button>
       </div>
 
       <!-- Cinema Video Player Container -->
@@ -323,15 +325,12 @@
               <button id="lang-btn-dub" onclick="setLanguage('dub')" class="lang-btn px-2.5 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition">DUB</button>
             </div>
 
-            <!-- Multi-API Server Selector (5 Redundant Engines) -->
+            <!-- Stream Server Selector (live embeddable servers only) -->
             <div class="flex items-center gap-1.5">
               <span class="text-[11px] text-zinc-400 font-medium">Server:</span>
               <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-800">
               <button id="server-btn-1" onclick="switchStreamServer(1, 'AnimeWixi')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-white transition" title="Server 1: AnimeWixi embed (HD)">HD-1</button>
               <button id="server-btn-2" onclick="switchStreamServer(2, 'ani.pm')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 2: ani.pm (VidStreaming) embed">HD-2</button>
-              <button id="server-btn-3" onclick="switchStreamServer(3, 'MegaCloud')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 3: MegaCloud embed">HD-3</button>
-              <button id="server-btn-4" onclick="switchStreamServer(4, 'AniKoto')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 4: AniKoto — opens on its own site in a new tab">AniKoto</button>
-              <button id="server-btn-5" onclick="switchStreamServer(5, 'Multi-Mirror')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 5: Multi-Mirror — opens on its own site in a new tab">Mirror</button>
               </div>
             </div>
 
