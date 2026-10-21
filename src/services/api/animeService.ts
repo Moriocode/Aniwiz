@@ -287,6 +287,13 @@ class AnimeService {
           type: 'sub',
           embedUrl: `/api/aniraku/stream?animeId=${anilistId}&episode=${episodeNumber}&lang=sub`,
         },
+        {
+          id: 'server-shonen',
+          name: 'Server 4: Shonen',
+          serverId: 4,
+          type: 'sub',
+          embedUrl: `https://shonen.to/embed/anilist/${anilistId}/${episodeNumber}?language=sub&parentOrigin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`,
+        },
         ...(openAnime ? [openAnime] : [])
       ],
       dub: [
@@ -310,6 +317,13 @@ class AnimeService {
           serverId: 3,
           type: 'dub',
           embedUrl: `/api/aniraku/stream?animeId=${anilistId}&episode=${episodeNumber}&lang=dub`,
+        },
+        {
+          id: 'server-shonen-dub',
+          name: 'Server 4: Shonen (Dub)',
+          serverId: 4,
+          type: 'dub',
+          embedUrl: `https://shonen.to/embed/anilist/${anilistId}/${episodeNumber}?language=dub&parentOrigin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`,
         },
         ...(openAnime ? [{ ...openAnime, id: 'server-openanime-dub', type: 'dub' as StreamAudioMode }] : [])
       ]
@@ -378,9 +392,23 @@ class AnimeService {
       };
     }
 
-    // Legacy server ids 4/5 (AniKoto, Multi-Mirror) were removed: their embed
-    // links 404 or refuse to be framed, so they never played on this site.
-    // Legacy ids land on server 1 rather than a dead player.
+    if (serverId === 4) {
+      // Shonen — hosted player embed (github.com/EKSDEEf/shonen-embed).
+      // Verified live: loads in ~1.3s and streams postMessage events
+      // (sourcechange/captionchange/play/progress) to the parent.
+      // parentOrigin must exactly match this page's origin.
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      return {
+        streamUrl: `https://shonen.to/embed/anilist/${anilistId}/${episodeNumber}?language=${audio}&parentOrigin=${encodeURIComponent(origin)}`,
+        type: 'iframe',
+        serverName: 'Server 4: Shonen',
+        audioMode: audio,
+        embeddable: true,
+      };
+    }
+
+    // Legacy server id 5 (Multi-Mirror) was removed: its page refuses to be
+    // framed. Unknown legacy ids land on server 1 rather than a dead player.
     let streamUrl = '';
     let serverName = '';
 
