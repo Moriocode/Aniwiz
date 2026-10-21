@@ -20,9 +20,9 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
   // are blocked, rate-limited or slow on the viewer's network. Every proxied
   // call gets a hard deadline so the browser never waits minutes for a reply.
   const UPSTREAM_TIMEOUT_MS = 8000;
-  const upstreamFetch = (target: string, init?: RequestInit): Promise<Response> => {
+  const upstreamFetch = (target: string, init?: RequestInit, timeoutMs = UPSTREAM_TIMEOUT_MS): Promise<Response> => {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     return fetch(target, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
   };
 
@@ -428,7 +428,7 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
     if (url.pathname === '/api/anilist/browse') {
       const query = `
         query {
-          trending: Page(page: 1, perPage: 10) {
+          trending: Page(page: 1, perPage: 30) {
             media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
               id
               idMal
@@ -444,7 +444,7 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
               genres
             }
           }
-          popular: Page(page: 1, perPage: 10) {
+          popular: Page(page: 1, perPage: 30) {
             media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
               id
               idMal
@@ -460,7 +460,7 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
               genres
             }
           }
-          topRated: Page(page: 1, perPage: 10) {
+          topRated: Page(page: 1, perPage: 30) {
             media(sort: SCORE_DESC, type: ANIME, isAdult: false) {
               id
               idMal
@@ -997,6 +997,70 @@ const anipmApiMiddleware: Connect.NextHandleFunction = (req, res, next) => {
       totalEpisodes: enrichedEpisodes.length,
       episodes: enrichedEpisodes
     }, null, 2));
+    return;
+  }
+
+  // ==========================================
+  // ANIRAKU STREAM RESOLVER (public Aniraku API -> native HLS player, server 3)
+  // Repository: https://github.com/Aniraku/Aniraku-Backend
+  // Endpoint: GET /api/aniraku/stream?animeId=&episode=&lang=
+  // Returns { ok, url, type, name }. Browser-like headers are mandatory:
+  // api.aniraku.tech's Cloudflare rules 403 default server UAs (verified:
+  // undici default -> 403, browser headers -> 200). The returned URLs sit
+  // behind api.aniraku.tech/api/v1/proxy which sends `Access-Control-Allow-
+  // Origin: *`, so hls.js loads them directly in the browser.
+  // ==========================================
+  if (url.pathname === '/api/aniraku/stream') {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'no-store');
+
+    const animeId = (url.searchParams.get('animeId') || '').replace(/[^0-9]/g, '') || '154587';
+    const episode = (url.searchParams.get('episode') || '1').replace(/[^0-9]/g, '') || '1';
+    const lang = url.searchParams.get('lang') === 'dub' ? 'dub' : 'sub';
+
+    // The Connect middleware itself is synchronous (see other routes' .then
+    // chains); this resolver is a self-contained async unit that owns `res`.
+    void (async () => {
+      try {
+        const upstream = await upstreamFetch(
+          `https://api.aniraku.tech/api/v1/servers?animeId=${animeId}&episode=${episode}&lang=${lang}`,
+          {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
+              'Accept': 'application/json,text/plain,*/*',
+              'Accept-Language': 'en-US,en;q=0.9',
+              'Referer': 'https://api.aniraku.tech/',
+              'Origin': 'https://api.aniraku.tech'
+            }
+          },
+          15000
+        );
+        if (!upstream.ok) throw new Error(`upstream ${upstream.status}`);
+        const data = await upstream.json();
+        const servers = Array.isArray(data) ? data : (data.servers || []);
+
+        let picked: { name: string; url: string; type: string } | null = null;
+        for (const s of servers) {
+          const sources = s?.sources || [];
+          const src = sources.find((x: any) => String(x?.type || '').toLowerCase() === 'hls') || sources[0];
+          if (src?.url) {
+            picked = { name: s.name || s.provider || 'AniRaku', url: src.url, type: String(src.type || 'hls').toLowerCase() };
+            break;
+          }
+        }
+
+        if (!picked) {
+          res.statusCode = 502;
+          res.end(JSON.stringify({ ok: false, error: 'No playable source for this episode' }));
+          return;
+        }
+        res.end(JSON.stringify({ ok: true, ...picked }));
+      } catch (err) {
+        res.statusCode = 504;
+        res.end(JSON.stringify({ ok: false, error: 'AniRaku API unreachable' }));
+      }
+    })();
     return;
   }
 

@@ -280,6 +280,13 @@ class AnimeService {
           type: 'sub',
           embedUrl: `https://ani.pm/embed/ani/${anilistId}/${episodeNumber}/sub`,
         },
+        {
+          id: 'server-aniraku',
+          name: 'Server 3: AniRaku (Direct HLS)',
+          serverId: 3,
+          type: 'sub',
+          embedUrl: `/api/aniraku/stream?animeId=${anilistId}&episode=${episodeNumber}&lang=sub`,
+        },
         ...(openAnime ? [openAnime] : [])
       ],
       dub: [
@@ -296,6 +303,13 @@ class AnimeService {
           serverId: 2,
           type: 'dub',
           embedUrl: `https://ani.pm/embed/ani/${anilistId}/${episodeNumber}/dub`,
+        },
+        {
+          id: 'server-aniraku-dub',
+          name: 'Server 3: AniRaku (Dub)',
+          serverId: 3,
+          type: 'dub',
+          embedUrl: `/api/aniraku/stream?animeId=${anilistId}&episode=${episodeNumber}&lang=dub`,
         },
         ...(openAnime ? [{ ...openAnime, id: 'server-openanime-dub', type: 'dub' as StreamAudioMode }] : [])
       ]
@@ -351,7 +365,20 @@ class AnimeService {
       return new OpenAnimeProvider().getStreamSource(details?.title || slug, episodeNumber, 6, audio);
     }
 
-    // Servers 3-5 (MegaCloud, AniKoto, Multi-Mirror) were removed: their embed
+    if (serverId === 3) {
+      // AniRaku — the public Aniraku API resolves a direct HLS source that the
+      // native <video> player plays (no iframe, so no embed can refuse framing).
+      // The local middleware endpoint answers { ok, url, type, name }.
+      return {
+        streamUrl: `/api/aniraku/stream?animeId=${anilistId}&episode=${episodeNumber}&lang=${audio}`,
+        type: 'hls',
+        serverName: 'Server 3: AniRaku (Direct HLS)',
+        audioMode: audio,
+        embeddable: true,
+      };
+    }
+
+    // Legacy server ids 4/5 (AniKoto, Multi-Mirror) were removed: their embed
     // links 404 or refuse to be framed, so they never played on this site.
     // Legacy ids land on server 1 rather than a dead player.
     let streamUrl = '';

@@ -49,12 +49,22 @@ export class AniListProvider implements IAnimeProvider {
   }
 
   public async getTrending(): Promise<AnimeItem[]> {
-    const res = await fetch('/api/anilist/browse?sort=TRENDING_DESC&perPage=12');
+    const res = await fetch('/api/anilist/browse?sort=TRENDING_DESC&perPage=30');
     if (!res.ok) throw new Error('AniList trending failed');
     const data = await res.json();
-    // The browse proxy returns { data: { trending, popular, topRated } };
-    // accept the paginated { data: { Page: { media } } } shape too.
-    const media = data.data?.trending?.media || data.data?.Page?.media || [];
+    // The browse proxy returns three ranked lists ({ data: { trending,
+    // popular, topRated } }); merge trending + popular (deduped by id) so the
+    // grid shows a full catalog instead of the first page only. The paginated
+    // { data: { Page: { media } } } shape is still accepted as a fallback.
+    const trending = data.data?.trending?.media || [];
+    const popular = data.data?.popular?.media || [];
+    const seen = new Set();
+    const merged = [...trending, ...popular].filter((item: any) => {
+      if (!item?.id || seen.has(item.id)) return false;
+      seen.add(item.id);
+      return true;
+    });
+    const media = merged.length > 0 ? merged : (data.data?.Page?.media || []);
 
     return media
       .map((item: any, idx: number) => this.mapMedia(item, idx + 1))

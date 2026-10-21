@@ -391,6 +391,7 @@
               <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-800">
               <button id="server-btn-1" onclick="switchStreamServer(1, 'AnimeWixi')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-white transition" title="Server 1: AnimeWixi embed (HD)">HD-1</button>
               <button id="server-btn-2" onclick="switchStreamServer(2, 'ani.pm')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 2: ani.pm (VidStreaming) embed">HD-2</button>
+              <button id="server-btn-3" onclick="switchStreamServer(3, 'AniRaku')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 3: AniRaku (Direct HLS — plays natively on this site)">HD-3</button>
               </div>
             </div>
 
@@ -595,7 +596,7 @@
         }
       });
 
-      // Quick key shortcuts ('/' for search, Space for play/pause, S for skip intro, 1-2 for servers)
+      // Quick key shortcuts ('/' for search, Space for play/pause, S for skip intro, 1-3 for servers)
       window.addEventListener('keydown', (e) => {
         const tag = document.activeElement?.tagName?.toLowerCase();
         if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
@@ -609,6 +610,8 @@
           switchStreamServer(1, 'Server 1');
         } else if (e.key === '2') {
           switchStreamServer(2, 'Server 2');
+        } else if (e.key === '3') {
+          switchStreamServer(3, 'Server 3');
         }
       });
     });
@@ -868,8 +871,11 @@
       document.getElementById('watch-section')?.classList.add('hidden');
       document.getElementById('browse-section')?.classList.remove('hidden');
 
-      // Unload video player iframe
+      // Unload video player iframe / native video
       clearTimeout(window._embedLoadTimer);
+      const closingVideo = document.getElementById('stream-video');
+      if (closingVideo) { try { closingVideo.pause(); } catch (e) {} }
+      if (window._activeHls) { try { window._activeHls.destroy(); } catch (e) {} window._activeHls = null; }
       const player = document.getElementById('player');
       if (player) player.innerHTML = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -970,24 +976,25 @@
      */
     // Friendly labels shown to the viewer (no internal engine names).
     // Must match getStreamSource() in animeService:
-    //   1 AnimeWixi · 2 ani.pm/VidStreaming
+    //   1 AnimeWixi · 2 ani.pm/VidStreaming · 3 AniRaku (native HLS)
     //   6 OpenAnime (self-hosted, only offered when an instance is reachable)
     // MegaCloud, AniKoto and Multi-Mirror were removed: their embed links 404
     // or refuse to be framed, so they never played inside this site.
     const SERVER_SHORT_NAMES = {
       1: 'AnimeWixi',
       2: 'ani.pm',
+      3: 'AniRaku',
       6: 'OpenAnime'
     };
 
-    // Auto-fallback only rotates the two live embeddable servers (1-2); server
+    // Auto-fallback rotates the live embeddable servers (1-3); server
     // 6 (OpenAnime, self-hosted) is a manual picker choice, but failing over
     // FROM it lands on server 1 rather than a dead end.
     // Keep in sync with StreamSourceResult.embeddable in animeService.
-    const EMBEDDABLE_SERVERS = { 1: true, 2: true, 6: true };
+    const EMBEDDABLE_SERVERS = { 1: true, 2: true, 3: true, 6: true };
 
     function nextEmbeddableServer(fromId) {
-      const rotation = [1, 2];
+      const rotation = [1, 2, 3];
       const start = Math.max(0, rotation.indexOf(fromId));
       for (let offset = 1; offset < rotation.length; offset++) {
         const id = rotation[(start + offset) % rotation.length];
@@ -998,9 +1005,74 @@
 
     let streamFailCount = 0;
 
+    /**
+     * Native HLS playback (server 3 / AniRaku). The middleware resolves a
+     * direct m3u8 URL behind Aniraku's CORS-open media proxy; hls.js drives a
+     * real <video> element, so there is no embed page that can refuse framing,
+     * show ads or fail to load.
+     */
+    async function loadNativeHlsStream(streamResult, anime, ep, lang) {
+      // hls.js (~640 kB) is loaded on demand, only when this server is picked.
+      const { default: Hls } = await import('hls.js');
+      const player = document.getElementById('player');
+      const res = await fetch(streamResult.streamUrl);
+      if (!res.ok) throw new Error(`AniRaku resolve failed: ${res.status}`);
+      const info = await res.json();
+      if (!info?.ok || !info.url) throw new Error(info?.error || 'No playable source');
+
+      player.innerHTML = `
+        <video id="stream-video" controls autoplay playsinline preload="auto"
+          class="w-full h-full absolute inset-0 bg-black">
+        </video>
+      `;
+      const video = document.getElementById('stream-video');
+      wireNativeVideoProgress(video, anime, ep);
+
+      if (Hls.isSupported()) {
+        const hls = new Hls({ enableWorker: true, backBufferLength: 60 });
+        window._activeHls = hls;
+        hls.loadSource(info.url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR, (_event, data) => {
+          if (data.fatal) {
+            try { hls.destroy(); } catch (e) {}
+            handleStreamFailure(anime, ep, lang);
+          }
+        });
+        video.play().catch(() => { /* autoplay blocked — controls are visible */ });
+      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        // Safari plays HLS natively
+        video.src = info.url;
+        video.play().catch(() => {});
+      } else {
+        throw new Error('HLS is not supported in this browser');
+      }
+    }
+
+    /** Progress persistence + auto-skip for the native player (mirrors the
+     *  postMessage flow used by iframe embeds). */
+    function wireNativeVideoProgress(video, anime, ep) {
+      video.addEventListener('timeupdate', () => {
+        const curTime = Math.floor(video.currentTime || 0);
+        if (curTime <= 0) return;
+        saveWatchProgress(anime.id, ep, curTime, Math.floor(video.duration || 1440));
+
+        if (autoSkipOpActive && curTime >= 3 && curTime <= 8 && !window._hasAutoSkippedThisEp) {
+          window._hasAutoSkippedThisEp = true;
+          skipOpeningCredits();
+        }
+      });
+    }
+
     async function loadStream(anime, episode, language = currentLanguage) {
       const player = document.getElementById('player');
       if (!player) return;
+
+      // Stop any previous native video (and its HLS pipeline) before replacing
+      // the player contents — a detached <video> can keep playing audio.
+      const oldVideo = document.getElementById('stream-video');
+      if (oldVideo) { try { oldVideo.pause(); } catch (e) {} }
+      if (window._activeHls) { try { window._activeHls.destroy(); } catch (e) {} window._activeHls = null; }
 
       const ep = Number(episode) || 1;
       const lang = ['sub', 'dub'].includes(language) ? language : 'sub';
@@ -1015,6 +1087,13 @@
       try {
         const streamResult = await animeService.getStreamSource(anime.id, ep, currentServerId, lang);
         streamFailCount = 0;
+
+        // Server 3 (AniRaku) resolves a direct HLS source — play it natively
+        // instead of loading an iframe.
+        if (streamResult.type === 'hls') {
+          await loadNativeHlsStream(streamResult, anime, ep, lang);
+          return;
+        }
 
         // Mirrors that refuse to be embedded open in their own tab instead of
         // showing the browser's "refused to connect" error page inside a player.
@@ -1098,7 +1177,7 @@
       }
 
       // Graceful Player Fallback Screen if all fail or manual retry.
-      // Lists the two live embeddable servers; server 6 (OpenAnime,
+      // Lists the live embeddable servers (1-3); server 6 (OpenAnime,
       // self-hosted) is only wired in when an instance is reachable, so it is
       // not shown here.
       player.innerHTML = `
@@ -1111,6 +1190,7 @@
           <div class="pt-2 flex flex-wrap items-center justify-center gap-2">
             <button onclick="switchStreamServer(1)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white text-xs font-semibold border border-dark-700 transition active:scale-95">Server 1 (AnimeWixi)</button>
             <button onclick="switchStreamServer(2)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white text-xs font-semibold border border-dark-700 transition active:scale-95">Server 2 (ani.pm)</button>
+            <button onclick="switchStreamServer(3)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white text-xs font-semibold border border-dark-700 transition active:scale-95">Server 3 (AniRaku)</button>
           </div>
         </div>
       `;
@@ -1167,6 +1247,12 @@
     window.setLanguage = setLanguage;
 
     function skipOpeningCredits() {
+      const video = document.getElementById('stream-video');
+      if (video && video.readyState > 0) {
+        const target = (video.currentTime || 0) + 85;
+        video.currentTime = video.duration ? Math.min(target, video.duration - 1) : target;
+        return;
+      }
       const iframe = document.getElementById('stream-iframe');
       if (iframe && iframe.contentWindow) {
         iframe.contentWindow.postMessage({ ns: 'anipm.player', cmd: 'seekBy', data: 85 }, '*');

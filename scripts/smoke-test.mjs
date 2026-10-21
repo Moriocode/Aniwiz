@@ -151,16 +151,24 @@ if (episodeCount > 1) {
   check('episode switch updates breadcrumb', /Episode 2/.test(crumb), crumb);
 }
 
-// 8b. Only the live embeddable servers remain — the dead mirrors (MegaCloud,
-// AniKoto, Multi-Mirror) were removed from the picker and service layer.
+// 8b. Only live embeddable servers remain — the dead mirrors (MegaCloud,
+// AniKoto, Multi-Mirror) are gone; every offered server plays on this site.
 const serverBtnCount = await page.locator('.server-btn').count();
-check('picker offers only the two live embeddable servers', serverBtnCount === 2, `${serverBtnCount} server buttons`);
+check('picker offers three live embeddable servers', serverBtnCount === 3, `${serverBtnCount} server buttons`);
 const serverTitles = (await page.locator('.server-btn').evaluateAll((els) => els.map((e) => e.getAttribute('title') || ''))).join(' | ');
 check('no dead mirrors in the server picker', !/AniKoto|MegaCloud|Mirror/i.test(serverTitles), serverTitles);
 await page.locator('#server-btn-2').click();
 await page.waitForTimeout(900);
 const externalLinks = await page.locator('#player a[target="_blank"]').count();
 check('server 2 plays inside the site (no external-open panel)', externalLinks === 0, `${externalLinks} external links`);
+
+// 8c. Server 3 (AniRaku) resolves a direct HLS source into the native player
+await page.locator('#server-btn-3').click();
+await page.waitForSelector('#stream-video', { timeout: 20000 }).catch(() => {});
+const nativeVideo = await page.locator('#stream-video').count();
+check('server 3 (AniRaku) loads the native HLS video player', nativeVideo === 1, `${nativeVideo} <video> elements`);
+await page.screenshot({ path: 'artifacts/03-native-hls.png', fullPage: false });
+
 await page.locator('#server-btn-1').click();
 await page.waitForTimeout(500);
 
