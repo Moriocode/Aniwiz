@@ -35,10 +35,51 @@
       const el = document.getElementById('schedule-modal');
       if (el) el.classList.toggle('hidden');
     };
+
+    // ------------------------------------------------------------------
+    // Guard for running index.html WITHOUT Vite (VS Code Live Server,
+    // file://, any plain static host): those servers deliver /src/*.ts with
+    // a non-JavaScript MIME type, the browser refuses the module import, and
+    // the app script never executes — so every inline onclick used to throw
+    // a bare "X is not defined" (resetFiltersAndSearch,
+    // startWatchingSpotlight, toggleHeroAnimeDetails, ...).
+    // Pre-register placeholders (the real module overwrites them on a
+    // successful load) and surface ONE actionable message instead.
+    // ------------------------------------------------------------------
+    window.__anistreamModuleLoaded = false;
+    (function () {
+      var reported = false;
+      function report(missingName) {
+        if (!reported) {
+          reported = true;
+          console.error('[AniStream] The app script did not load (first missing handler: "' + missingName + '"). ' +
+            'index.html must run through Vite: run "npm install" then "npm run dev" and open http://localhost:3000. ' +
+            'Plain static servers (VS Code Live Server, file://) cannot serve the TypeScript imports this app uses.');
+          if (document.body) {
+            var toast = document.createElement('div');
+            toast.textContent = "AniStream's app script didn't load — run it with npm run dev (not Live Server / file://). See the browser console.";
+            toast.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:99999;background:#7f1d1d;color:#fff;padding:10px 16px;border-radius:10px;font:600 13px/1.45 system-ui,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.55);max-width:92vw;text-align:center';
+            document.body.appendChild(toast);
+          }
+        }
+        console.warn('[AniStream] "' + missingName + '" is unavailable because the app script has not loaded.');
+      }
+      ['resetFiltersAndSearch', 'startWatchingSpotlight', 'toggleHeroAnimeDetails', 'handleSearchAutocomplete',
+       'clearSearchInput', 'filterByGenre', 'filterEpisodeButtons', 'switchEpisode', 'skipOpeningCredits',
+       'setLanguage', 'switchStreamServer', 'toggleAutoFallback', 'toggleAutoSkipOp', 'openAnimeFromCard',
+       'openWatchPage', 'closeWatchPage', 'clearAllWatchHistory'].forEach(function (name) {
+        if (typeof window[name] !== 'function') {
+          window[name] = function () { report(name); };
+        }
+      });
+      document.addEventListener('DOMContentLoaded', function () {
+        if (!window.__anistreamModuleLoaded) report('module');
+      });
+    })();
   </script>
 
   <style>*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}html{scroll-behavior:smooth;background-color:#07090e}body{color:#e2e8f0;background-color:#07090e;font-family:Plus Jakarta Sans,system-ui,-apple-system,sans-serif;overflow-x:hidden}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0b0e14}::-webkit-scrollbar-thumb{background:#232a3b;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#343e54}.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}@keyframes shimmer{to{transform:translate(100%)}}.skeleton-box{background-color:#11151f;position:relative;overflow:hidden}.skeleton-box:after{content:"";background-image:linear-gradient(90deg,#fff0 0,#ffffff0d 20%,#ffffff1a 60%,#fff0);animation:1.8s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}</style>
-  <script type="module" crossorigin src="/assets/index-CLjDvAYj.js"></script>
+  <script type="module" crossorigin src="/assets/index-B0M9OuE0.js"></script>
   <link rel="stylesheet" crossorigin href="/assets/index-eGPrDFzB.css">
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-white">
