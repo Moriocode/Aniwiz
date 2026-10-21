@@ -3,6 +3,7 @@ import { toHiResImage } from './imageQuality';
 import { providerRegistry } from './providerRegistry';
 import { AniListProvider } from './providers/anilistProvider';
 import { AniwixiProvider } from './providers/aniwixiProvider';
+import { AniPulseProvider } from './providers/aniPulseProvider';
 import { OpenAnimeProvider } from './providers/openAnimeProvider';
 
 // Register the LIVE providers only. HiAnime/AniKoto/Anivexa/ANIME-API were
@@ -11,6 +12,7 @@ import { OpenAnimeProvider } from './providers/openAnimeProvider';
 // The cascade is now AniList -> AniWixi -> OpenAnime — every entry backed by
 // a real upstream.
 providerRegistry.register(new AniListProvider(), true);
+providerRegistry.register(new AniPulseProvider());
 providerRegistry.register(new AniwixiProvider());
 // Optional self-hosted Open Anime API instance (see /api/openanime/* proxy).
 // Registered last: when no instance is running the proxy fails fast and the
@@ -244,15 +246,25 @@ class AnimeService {
     const details = await this.getAnimeDetails(id);
     const count = details?.totalEpisodes;
 
-    // Check if Aniwixi has exact episode metadata
+    // Check if Aniwixi has exact episode metadata — only for purely numeric
+    // (AniList-keyed) ids; slug ids would resolve to an unrelated title.
     try {
       const cleanId = String(id).replace(/[^0-9]/g, '');
-      if (cleanId) {
+      if (/^\d+$/.test(String(id)) && cleanId) {
         const aniwixi = new AniwixiProvider();
         const eps = await aniwixi.getEpisodes(cleanId);
         if (eps && eps.length > 0) return eps;
       }
     } catch {}
+
+    // AniPulse (AnimeAPI) ids are its own slugs — ask it for real episode data
+    // (fails fast and skips the source when the proxy is not configured).
+    if (!/^\d+$/.test(String(id))) {
+      try {
+        const eps = await new AniPulseProvider().getEpisodes(String(id));
+        if (eps && eps.length > 0) return eps;
+      } catch {}
+    }
 
     // No known episode count -> honest empty list (the UI shows "No episodes
     // available"); we never invent a 12-episode catalog. With a real count,
@@ -277,7 +289,11 @@ class AnimeService {
     raw?: StreamServerOption[];
   }> {
     const details = await this.getAnimeDetails(animeId);
-    const anilistId = details?.anilistId || String(animeId).replace(/[^0-9]/g, '') || '154587';
+    const resolvedId = details?.anilistId || await this.resolveAnilistIdForStream(details, String(animeId));
+    // No resolvable AniList id -> no server URLs (a digits-from-slug guess
+    // would silently stream a different anime).
+    if (resolvedId == null) return { sub: [], dub: [] };
+    const anilistId = String(resolvedId);
     const openAnime = await this.getOpenAnimeServerOption();
 
     return {
@@ -378,23 +394,76 @@ class AnimeService {
     };
   }
 
+  /** title -> AniList id resolution cache (keyed by catalog item id). */
+  private anilistIdByItem = new Map<string, number>();
+
+  /**
+   * Resolve the AniList id that every stream server URL needs.
+   *
+   * Providers without native AniList ids (e.g. AniPulse, whose ids are its own
+   * slugs) must NOT fall back to digits scraped out of the slug — that
+   * silently streams a different anime. We resolve by exact title match
+   * against the live AniWixi search and cache the result; purely numeric ids
+   * (AniList-keyed catalogs) pass through. Returns undefined when nothing
+   * resolves so callers can surface an honest "no source" state.
+   */
+  private async resolveAnilistIdForStream(details: AnimeItem | null, animeId: string): Promise<number | undefined> {
+    if (details?.anilistId) return details.anilistId;
+    if (/^\d+$/.test(animeId)) return Number(animeId) || undefined;
+
+    const cacheKey = String(details?.id || animeId);
+    const cached = this.anilistIdByItem.get(cacheKey);
+    if (cached) return cached;
+
+    const title = (details?.title || '').trim();
+    if (!title) return undefined;
+    const wanted = title.toLowerCase();
+    const wantedAlt = (details?.altTitle || '').trim().toLowerCase();
+
+    try {
+      const res = await fetch(`/api/aniwixi/search?q=${encodeURIComponent(title)}`);
+      if (res.ok) {
+        const json = await res.json();
+        const items = Array.isArray(json?.data) ? json.data : [];
+        const match = items.find((it: any) => {
+          const en = String(it?.title?.english || '').trim().toLowerCase();
+          const ro = String(it?.title?.romaji || '').trim().toLowerCase();
+          return (en && (en === wanted || en === wantedAlt)) || (ro && (ro === wanted || ro === wantedAlt));
+        });
+        const id = Number(match?.anilist_id) || undefined;
+        if (id) {
+          this.anilistIdByItem.set(cacheKey, id);
+          if (details) details.anilistId = id;
+          return id;
+        }
+      }
+    } catch {}
+    return undefined;
+  }
+
   /**
    * Real Stream Source Resolver (Zero Fake Intros, Zero Mock Videos)
    */
   public async getStreamSource(animeId: string, episodeNumber: number, serverId: number, audio: StreamAudioMode): Promise<StreamSourceResult> {
     const rawId = String(animeId);
-    const cleanId = rawId.replace(/[^0-9]/g, '');
     // Catalog titles are already cached in memory — never block the player on
-    // a provider cascade just to rebuild ids we already have. Unknown ids fall
-    // back to digit derivation below (same as before when nothing resolved).
+    // a provider cascade just to rebuild ids we already have.
     const details = this.memoryCache.get(rawId) || null;
-    const anilistId = details?.anilistId || cleanId || '154587';
     const slug = details?.slug || (details?.title ? details.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'anime');
 
     if (serverId === 6) {
       // Self-hosted Open Anime API — resolves a fresh link per episode
       return new OpenAnimeProvider().getStreamSource(details?.title || slug, episodeNumber, 6, audio);
     }
+
+    // Every remaining server builds its URL from a real AniList id — resolve
+    // it (title match via live AniWixi search for non-AniList catalogs) and
+    // fail honestly instead of streaming an unrelated anime.
+    const resolved = details?.anilistId || await this.resolveAnilistIdForStream(details, rawId);
+    if (resolved == null) {
+      throw new Error(`No stream source: no AniList id resolves for "${details?.title || rawId}".`);
+    }
+    const anilistId = String(resolved);
 
     if (serverId === 3) {
       // AniRaku — the public Aniraku API resolves a direct HLS source that the

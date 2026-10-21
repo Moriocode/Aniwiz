@@ -936,6 +936,49 @@ export const anipmApiMiddleware: AnipmApiMiddleware = (req, res, next) => {
   }
 
   // ==========================================
+  // ANIPULSE ANIMEAPI PROXY (optional live upstream)
+  // Repository: https://github.com/AniPulse/AnimeAPI
+  //
+  // Set ANIPULSE_API_URL to a deployed AnimeAPI origin (e.g.
+  // https://anipulse-api.vercel.app) to enable it. Without that variable the
+  // route answers an honest 503 and with an unreachable upstream an honest
+  // 504 (bounded by the shared 8s upstream timeout) — the client's provider
+  // cascade skips it either way. This proxy never fabricates a response.
+  // ==========================================
+  if (url.pathname.startsWith('/api/anipulse/')) {
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'no-store');
+
+    const base = (process.env.ANIPULSE_API_URL || '').replace(/\/+$/, '');
+    if (!base) {
+      res.statusCode = 503;
+      res.end(JSON.stringify({
+        error: 'anipulse_not_configured',
+        hint: 'Set ANIPULSE_API_URL to your deployed AnimeAPI origin to enable this source.',
+      }));
+      return;
+    }
+
+    // /api/anipulse/search?... -> {ANIPULSE_API_URL}/api/search?...
+    // Only strip /api/anipulse/ (with trailing slash) so /api/anipulse/ -> /api/
+    // and /api/anipulse/search?... -> /api/search?... but /api/anipulse (no
+    // trailing slash) does not become an empty pathname.
+    const target = `${base}${url.pathname.replace('/api/anipulse/', '/api/')}${url.search}`;
+    void upstreamFetch(target, { headers: { Accept: 'application/json' } }, 8000)
+      .then(async (upstream) => {
+        const body = await upstream.text();
+        res.statusCode = upstream.status;
+        res.end(body);
+      })
+      .catch((err) => {
+        res.statusCode = 504;
+        res.end(JSON.stringify({ error: 'anipulse_unreachable', detail: String(err?.message || err) }));
+      });
+    return;
+  }
+
+  // ==========================================
   // REMOVED PLACEHOLDER ROUTES
   // /api/hianime, /api/anikoto, /api/anivexa, /api/anime-api, /api/metachan,
   // /api/animekun and /api/aniraku/episodes previously returned hardcoded
