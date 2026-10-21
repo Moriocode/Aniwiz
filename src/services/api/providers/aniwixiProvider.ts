@@ -17,31 +17,9 @@ export class AniwixiProvider implements IAnimeProvider {
       const json = await res.json();
       const list = json.data || [];
 
-      return list.map((item: any, idx: number) => ({
-        id: String(item.anilist_id || item.post_id || item.slug),
-        anilistId: Number(item.anilist_id) || undefined,
-        slug: item.slug,
-        title: item.title?.english || item.title?.romaji || item.title || 'Anime',
-        altTitle: item.title?.english && item.title.romaji && item.title.romaji !== item.title.english ? item.title.romaji : undefined,
-        japaneseTitle: item.title?.native,
-        synopsis: (item.synopsis || '').replace(/<[^>]*>?/gm, '').trim(),
-        poster: item.poster || item.cover,
-        banner: item.banner,
-        rating: item.score ? parseFloat(item.score) / 10 : 8.8,
-        score: item.score ? `${item.score}%` : '88%',
-        quality: 'HD' as const,
-        type: (item.type || 'TV') as any,
-        duration: item.duration || '24m',
-        year: parseInt(item.year) || 2024,
-        status: item.status === 'FINISHED' ? 'Completed' : 'Ongoing',
-        genres: Array.isArray(item.genres) ? item.genres : ['Action'],
-        studios: item.studio ? [item.studio] : [],
-        totalEpisodes: parseInt(item.episodes) || 12,
-        subEpisodes: parseInt(item.episodes) || 12,
-        dubEpisodes: Math.max(1, (parseInt(item.episodes) || 12) - 2),
-        rank: idx + 1,
-        isTrending: true,
-      }));
+      // Pass through exactly what AniWixi reports — missing fields stay
+      // undefined so the UI shows "—" instead of invented values.
+      return list.map((item: any, idx: number) => this.mapAniwixiItem(item, idx));
     } catch {
       return [];
     }
@@ -62,25 +40,7 @@ export class AniwixiProvider implements IAnimeProvider {
       const json = await res.json();
       const list = json.data || [];
 
-      const results: AnimeItem[] = list.map((item: any) => ({
-        id: String(item.anilist_id || item.post_id || item.slug),
-        anilistId: Number(item.anilist_id) || undefined,
-        slug: item.slug,
-        title: item.title?.english || item.title?.romaji || item.title,
-        altTitle: item.title?.english && item.title.romaji && item.title.romaji !== item.title.english ? item.title.romaji : undefined,
-        japaneseTitle: item.title?.native,
-        synopsis: (item.synopsis || '').replace(/<[^>]*>?/gm, '').trim(),
-        poster: item.poster,
-        rating: 8.8,
-        quality: 'HD' as const,
-        type: 'TV' as const,
-        duration: '24m',
-        year: 2024,
-        status: 'Ongoing' as const,
-        genres: ['Action', 'Adventure'],
-        studios: [],
-        totalEpisodes: 12,
-      }));
+      const results: AnimeItem[] = list.map((item: any, idx: number) => this.mapAniwixiItem(item, idx));
 
       return { results, total: json.total || results.length };
     } catch {
@@ -88,7 +48,7 @@ export class AniwixiProvider implements IAnimeProvider {
     }
   }
 
-  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster: string; rating: number }>> {
+  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster?: string; rating?: number }>> {
     const { results } = await this.search(query);
     return results.slice(0, 5).map(r => ({
       id: r.id,
@@ -106,29 +66,50 @@ export class AniwixiProvider implements IAnimeProvider {
       const info = json.data?.anime_info;
       if (!info) return null;
 
-      return {
-        id,
-        anilistId: Number(id) || undefined,
-        title: info.title?.english || info.title?.romaji || 'Anime',
-        altTitle: info.title?.english && info.title.romaji && info.title.romaji !== info.title.english ? info.title.romaji : undefined,
-        japaneseTitle: info.title?.native,
-        synopsis: (info.synopsis || '').replace(/<[^>]*>?/gm, '').trim(),
-        poster: info.poster,
-        banner: info.banner,
-        rating: info.score ? parseFloat(info.score) / 10 : 9.0,
-        score: info.score ? `${info.score}%` : '90%',
-        quality: 'HD',
-        type: 'TV',
-        duration: '24m',
-        year: parseInt(info.year) || 2024,
-        status: info.status === 'FINISHED' ? 'Completed' : 'Ongoing',
-        genres: Array.isArray(info.genres) ? info.genres : ['Action'],
-        studios: info.studio ? [info.studio] : [],
-        totalEpisodes: 12,
-      };
+      return this.mapAniwixiItem(info, 0, id);
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Map one AniWixi payload item to AnimeItem with zero invented fields:
+   * anything the upstream omits stays undefined (rendered as "—" by the UI).
+   */
+  private mapAniwixiItem(item: any, idx: number, forcedId?: string): AnimeItem {
+    const score = item.score !== undefined && item.score !== null && item.score !== '' ? String(item.score) : undefined;
+    const episodes = parseInt(item.total_episodes ?? item.episodes) || undefined;
+    const year = parseInt(item.year) || undefined;
+    const rawStatus = String(item.status || '').toUpperCase();
+    const status = rawStatus === 'FINISHED' ? 'Completed' : rawStatus === 'RELEASING' || rawStatus === 'ONGOING' ? 'Ongoing' : undefined;
+    const poster = typeof item.poster === 'string' && item.poster.startsWith('http') ? item.poster : undefined;
+    const banner = typeof item.banner === 'string' && item.banner.startsWith('http') ? item.banner : undefined;
+
+    return {
+      id: forcedId || String(item.anilist_id || item.post_id || item.slug),
+      anilistId: Number(item.anilist_id) || undefined,
+      slug: item.slug,
+      title: item.title?.english || item.title?.romaji || item.title || 'Anime',
+      altTitle: item.title?.english && item.title.romaji && item.title.romaji !== item.title.english ? item.title.romaji : undefined,
+      japaneseTitle: item.title?.native,
+      synopsis: (item.synopsis || '').replace(/<[^>]*>?/gm, '').trim(),
+      poster,
+      banner,
+      rating: score ? parseFloat(score) / 10 : undefined,
+      score: score ? `${score}%` : undefined,
+      quality: 'HD' as const,
+      type: (['TV', 'Movie', 'OVA', 'ONA', 'Special'].includes(item.type) ? item.type : undefined),
+      duration: typeof item.duration === 'string' && item.duration ? item.duration : undefined,
+      year,
+      status,
+      genres: Array.isArray(item.genres) ? item.genres : [],
+      studios: item.studio ? [item.studio] : [],
+      totalEpisodes: episodes,
+      subEpisodes: episodes,
+      dubEpisodes: parseInt(item.dub_episodes) || undefined,
+      rank: idx + 1,
+      isTrending: true,
+    };
   }
 
   public async getEpisodes(id: string): Promise<AnimeEpisode[]> {

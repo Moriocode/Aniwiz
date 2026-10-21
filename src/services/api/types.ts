@@ -1,6 +1,8 @@
 /**
  * Unified Anime Streaming Data Types & Interfaces
- * Designed for modular multi-provider integration (HiAnime, AniWatch, AniList, Consumet, etc.)
+ * Designed for modular multi-provider integration (AniList, AniWixi, OpenAnime, etc.).
+ * Sparse fields are optional on purpose: providers pass through exactly what
+ * their upstream reports — no invented ratings, years, genres or episode counts.
  */
 
 export interface AnimeItem {
@@ -11,19 +13,21 @@ export interface AnimeItem {
   altTitle?: string;
   japaneseTitle?: string;
   synopsis: string;
-  poster: string;
+  /** Real fetched artwork only — absent when the upstream has none. */
+  poster?: string;
   banner?: string;
-  rating: number; // e.g. 9.2
+  /** Absent when the upstream does not report a score (never fabricated). */
+  rating?: number; // e.g. 9.2
   score?: string; // e.g. "88%"
   quality: 'HD' | 'FHD' | '4K' | 'SD';
-  type: 'TV' | 'Movie' | 'OVA' | 'ONA' | 'Special';
-  duration: string; // e.g. "24m"
-  year: number;
+  type?: 'TV' | 'Movie' | 'OVA' | 'ONA' | 'Special';
+  duration?: string; // e.g. "24m"
+  year?: number;
   season?: string;
-  status: 'Ongoing' | 'Completed' | 'Upcoming';
-  genres: string[];
+  status?: 'Ongoing' | 'Completed' | 'Upcoming';
+  genres?: string[];
   studios: string[];
-  totalEpisodes: number;
+  totalEpisodes?: number;
   subEpisodes?: number;
   dubEpisodes?: number;
   rank?: number;
@@ -99,7 +103,7 @@ export interface IAnimeProvider {
   getTopAiring(): Promise<AnimeItem[]>;
   getLatestEpisodes(): Promise<AnimeItem[]>;
   search(query: string, page?: number): Promise<{ results: AnimeItem[]; total: number }>;
-  getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster: string; rating: number }>>;
+  getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster?: string; rating?: number }>>;
   getAnimeDetails(id: string): Promise<AnimeItem | null>;
   getEpisodes(id: string): Promise<AnimeEpisode[]>;
   getServers(animeId: string, episodeNumber: number): Promise<{

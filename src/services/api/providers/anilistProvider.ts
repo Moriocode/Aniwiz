@@ -12,6 +12,13 @@ export class AniListProvider implements IAnimeProvider {
 
     const english = item.title?.english;
     const romaji = item.title?.romaji;
+    const format = String(item.format || '').toUpperCase();
+    const typeMap: Record<string, AnimeItem['type']> = {
+      TV: 'TV', TV_SHORT: 'TV', MOVIE: 'Movie', OVA: 'OVA', ONA: 'ONA', SPECIAL: 'Special',
+    };
+    const statusMap: Record<string, AnimeItem['status']> = {
+      FINISHED: 'Completed', RELEASING: 'Ongoing',
+    };
 
     return {
       id: String(item.id),
@@ -25,19 +32,20 @@ export class AniListProvider implements IAnimeProvider {
       synopsis: (item.description || '').replace(/<[^>]*>?/gm, ''),
       poster: item.coverImage?.extraLarge || item.coverImage?.large,
       banner: item.bannerImage,
-      rating: item.averageScore ? parseFloat((item.averageScore / 10).toFixed(1)) : 8.9,
-      score: item.averageScore ? `${item.averageScore}%` : '89%',
+      // Real AniList values only — missing fields stay undefined (never 8.9/89%).
+      rating: item.averageScore ? parseFloat((item.averageScore / 10).toFixed(1)) : undefined,
+      score: item.averageScore ? `${item.averageScore}%` : undefined,
       quality: 'HD',
-      type: item.format || 'TV',
-      duration: item.duration ? `${item.duration}m` : '24m',
-      year: item.seasonYear || 2024,
+      type: typeMap[format],
+      duration: item.duration ? `${item.duration}m` : undefined,
+      year: item.seasonYear || undefined,
       season: item.season,
-      status: item.status === 'FINISHED' ? 'Completed' : 'Ongoing',
-      genres: item.genres && item.genres.length > 0 ? item.genres : ['Action'],
+      status: statusMap[String(item.status || '').toUpperCase()],
+      genres: item.genres && item.genres.length > 0 ? item.genres : [],
       studios: item.studios?.nodes?.map((s: any) => s.name) || [],
-      totalEpisodes: item.episodes || 12,
-      subEpisodes: item.episodes || 12,
-      dubEpisodes: Math.max(1, (item.episodes || 12) - 2),
+      totalEpisodes: item.episodes || undefined,
+      subEpisodes: item.episodes || undefined,
+      dubEpisodes: item.dubEpisodes || undefined,
       rank,
       isTrending: true,
       isPopular: true,
@@ -92,7 +100,7 @@ export class AniListProvider implements IAnimeProvider {
     return { results, total: data.data?.Page?.pageInfo?.total || results.length };
   }
 
-  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster: string; rating: number }>> {
+  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster?: string; rating?: number }>> {
     const { results } = await this.search(query, 1);
     return results.slice(0, 5).map(r => ({
       id: r.id,

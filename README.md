@@ -49,15 +49,21 @@ index.html            UI markup + the app controller (inline ES module)
 src/services/api      Provider registry + 6 anime providers
                         anilist · aniwixi · hianime · anivexa · anikoto · anime-api
                         (cascaded with automatic fallback — see providerRegistry)
-src/data              Offline fallback catalog (used when every provider fails)
-vite.config.ts        Local API middleware: AniList GraphQL proxy + all
-                      provider endpoints, registered for dev AND preview
+                        imageQuality.ts upgrades poster URLs from the low-res
+                        `hd-1` CDN rendition to the high-definition `hd-4` one
+server/               Shared /api middleware (anipmApiHandler.ts) — mounted by
+                      the Vite plugin (dev/preview) and by the Vercel function
+api/                  Vercel serverless catch-all ([...path].ts) serving the
+                      same /api routes in production (no env vars required)
+vite.config.ts        Vite config + plugin mounting the shared API middleware
 src/index.css         Tailwind v4 theme (brand/dark palette), compiled at build
 ```
 
-Data flow: `index.html` → `animeService` → provider cascade → local `/api/*`
-middleware → upstream sources (AniList GraphQL, AniWixi, …). If the whole chain
-fails, the UI renders `FALLBACK_ANIME_CATALOG` instead of an empty page.
+Data flow: `index.html` → `animeService` → provider cascade → `/api/*`
+(shared middleware: Vite dev/preview locally, the Vercel function in
+production) → upstream sources (AniList GraphQL, AniWixi, …). The grid only
+renders live provider data; if the whole chain fails the UI shows an honest
+error state with a Retry action — there is no bundled placeholder catalog.
 
 ## Notes
 

@@ -219,29 +219,27 @@
         <div class="absolute inset-0 bg-gradient-to-r from-dark-950/90 via-dark-950/40 to-transparent"></div>
 
         <div class="relative z-10 max-w-2xl space-y-3">
-          <!-- Spotlight metadata -->
+          <!-- Spotlight metadata (populated from live provider data only) -->
           <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-300 font-medium">
             <span class="px-2 py-0.5 rounded bg-brand text-white font-bold text-[10px] uppercase tracking-wider">#1 Spotlight</span>
-            <span id="hero-type">TV Series</span>
+            <span id="hero-type">—</span>
             <span aria-hidden="true" class="text-zinc-600">·</span>
-            <span id="hero-duration">24 min/ep</span>
+            <span id="hero-duration">—</span>
             <span aria-hidden="true" class="text-zinc-600">·</span>
-            <span id="hero-status">Airing</span>
+            <span id="hero-status">Loading…</span>
             <span aria-hidden="true" class="text-zinc-600">·</span>
-            <span class="text-amber-400 font-bold flex items-center gap-1">★ <span id="hero-rating">9.3</span></span>
+            <span class="text-amber-400 font-bold flex items-center gap-1">★ <span id="hero-rating">—</span></span>
           </div>
 
           <!-- Title -->
           <h1 id="hero-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-md">
-            Solo Leveling Season 2: -Arise from the Shadow-
+            Loading live spotlight…
           </h1>
           <p id="hero-alt-title" class="text-xs sm:text-sm text-zinc-400 font-medium line-clamp-1">
-            Ore dake Level Up na Ken Season 2
           </p>
 
           <!-- Synopsis -->
           <p id="hero-synopsis" class="text-xs sm:text-sm text-zinc-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
-            Sung Jinwoo awakens legions of undead shadow soldiers as Monarchs plot the annihilation of Earth. As the Red Gate opens, humanity's greatest hunter must unlock the final truth of the System.
           </p>
 
           <!-- Action buttons -->
@@ -302,14 +300,14 @@
           <!-- Populated dynamically via renderCatalogGrid -->
         </div>
 
-        <!-- Empty State UI -->
+        <!-- Empty / Loading / Error State UI (title, message and action are set dynamically) -->
         <div id="anime-empty-state" class="hidden py-16 text-center space-y-3 bg-dark-900/50 rounded-2xl border border-dark-800 p-8">
           <div class="w-12 h-12 mx-auto rounded-full bg-dark-800 flex items-center justify-center text-zinc-500">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
-          <h4 class="font-bold text-base text-zinc-200">No Anime Found</h4>
-          <p class="text-xs text-zinc-400 max-w-sm mx-auto">We couldn't find any anime matching your criteria. Try adjusting your search query or reset your genre filters.</p>
-          <button onclick="resetFiltersAndSearch()" class="px-4 py-2 rounded-xl bg-brand text-white text-xs font-semibold shadow transition active:scale-95">Reset Filters</button>
+          <h4 id="anime-empty-title" class="font-bold text-base text-zinc-200">No Anime Found</h4>
+          <p id="anime-empty-message" class="text-xs text-zinc-400 max-w-sm mx-auto">We couldn't find any anime matching your criteria. Try adjusting your search query or reset your genre filters.</p>
+          <button id="anime-empty-action" onclick="resetFiltersAndSearch()" class="px-4 py-2 rounded-xl bg-brand text-white text-xs font-semibold shadow transition active:scale-95">Reset Filters</button>
         </div>
       </div>
 
@@ -424,7 +422,7 @@
               <div class="flex items-center gap-2 pt-1 text-[11px] text-zinc-400">
                 <span class="text-amber-400 font-bold">★ <span id="watch-anime-rating">9.2</span></span>
                 <span>·</span>
-                <span id="watch-anime-ep-count">12 Episodes</span>
+                <span id="watch-anime-ep-count">— Episodes</span>
               </div>
             </div>
           </div>
@@ -542,7 +540,7 @@
   <!-- MODULAR FRONTEND APPLICATION LOGIC         -->
   <!-- ========================================== -->
   <script type="module">
-    import { animeService, FALLBACK_ANIME_CATALOG } from '/src/services/api/index.ts';
+    import { animeService } from '/src/services/api/index.ts';
 
     // Application State
     let currentAnime = null;
@@ -572,9 +570,10 @@
     };
 
     document.addEventListener('DOMContentLoaded', async () => {
-      // First paint is synchronous: no waiting on the network before content
-      // is visible (this is what made slow upstreams feel like a minute-long load).
-      paintOfflineCatalog();
+      // First paint is synchronous: an honest loading state, no waiting on the
+      // network before content is visible. The grid only ever renders real
+      // provider data — never bundled placeholder cards.
+      showCatalogLoadingState();
       updateHistoryBadge();
 
       // Live data swaps in whenever it is ready — it must never block the UI.
@@ -620,21 +619,64 @@
     });
 
     /**
-     * Initialize Catalog: Load Spotlight & Trending Anime
+     * Catalog states
+     * =============
+     * The grid only ever shows live provider data. While the provider cascade
+     * runs we show a loading state, and if every provider fails we show an
+     * honest error state with a Retry action — the old bundled placeholder
+     * catalog (generic wallpaper/flower stock images) has been removed.
      */
-    /**
-     * Paint the offline catalog immediately so the page is usable while the
-     * provider cascade runs in the background; live data replaces it in place.
-     */
-    function paintOfflineCatalog() {
-      fullCatalog = FALLBACK_ANIME_CATALOG;
-      renderHeroBanner(FALLBACK_ANIME_CATALOG[0]);
+    function setCatalogState(title, message, actionLabel, actionFn) {
+      const titleEl = document.getElementById('anime-empty-title');
+      const messageEl = document.getElementById('anime-empty-message');
+      const actionEl = document.getElementById('anime-empty-action');
+      if (titleEl) titleEl.textContent = title;
+      if (messageEl) messageEl.textContent = message;
+      if (actionEl) {
+        actionEl.textContent = actionLabel || '';
+        actionEl.classList.toggle('hidden', !actionLabel);
+        actionEl.onclick = actionFn || null;
+      }
+    }
+
+    function showCatalogLoadingState() {
+      fullCatalog = [];
+      setCatalogState(
+        'Loading Live Releases…',
+        'Fetching the latest catalogue from the anime providers. This takes a moment on first load.',
+        '',
+        null
+      );
       applyCatalogFilters();
 
       const badge = document.getElementById('catalog-count-badge');
-      if (badge) badge.textContent = 'Updating catalogue…';
+      if (badge) badge.textContent = 'Loading live releases…';
     }
 
+    function showCatalogErrorState(message) {
+      fullCatalog = [];
+      setCatalogState(
+        'Live Catalogue Unavailable',
+        message || 'Every anime provider failed to respond. Check your connection and retry — the catalogue never falls back to fake data.',
+        'Retry',
+        () => retryCatalogLoad()
+      );
+      applyCatalogFilters();
+
+      const badge = document.getElementById('catalog-count-badge');
+      if (badge) badge.textContent = 'Catalogue unavailable';
+    }
+
+    function retryCatalogLoad() {
+      showCatalogLoadingState();
+      initializeCatalog();
+    }
+    window.retryCatalogLoad = retryCatalogLoad;
+
+    /**
+     * Initialize Catalog: Load Spotlight & Trending Anime from the live
+     * provider cascade. Failures are surfaced (console + UI), never swallowed.
+     */
     async function initializeCatalog() {
       try {
         const [spotlights, trending] = await Promise.all([
@@ -642,14 +684,18 @@
           animeService.getTrending()
         ]);
 
-        const hero = spotlights[0] || trending[0] || FALLBACK_ANIME_CATALOG[0];
-        fullCatalog = trending.length > 0 ? trending : FALLBACK_ANIME_CATALOG;
-        renderHeroBanner(hero);
+        if (trending.length === 0 && spotlights.length === 0) {
+          console.error('[AniStream] Provider cascade returned no catalog data (all providers failed or timed out).');
+          showCatalogErrorState('All anime providers failed or timed out. Retry in a moment.');
+          return;
+        }
+
+        fullCatalog = trending.length > 0 ? trending : spotlights;
+        renderHeroBanner(spotlights[0] || trending[0]);
         applyCatalogFilters();
       } catch (err) {
-        fullCatalog = FALLBACK_ANIME_CATALOG;
-        renderHeroBanner(FALLBACK_ANIME_CATALOG[0]);
-        applyCatalogFilters();
+        console.error('[AniStream] Failed to initialize the live catalogue:', err);
+        showCatalogErrorState('The catalogue could not be loaded. Retry in a moment.');
       }
     }
 
@@ -669,12 +715,16 @@
       if (titleEl) titleEl.textContent = anime.title;
       if (altTitleEl) altTitleEl.textContent = anime.altTitle || '';
       if (synopsisEl) synopsisEl.textContent = anime.synopsis;
-      if (ratingEl) ratingEl.textContent = String(anime.rating || '9.3');
-      if (typeEl) typeEl.textContent = anime.type || 'TV Series';
-      if (durationEl) durationEl.textContent = anime.duration || '24m';
-      if (statusEl) statusEl.textContent = anime.status || 'Airing';
+      if (ratingEl) ratingEl.textContent = anime.rating != null ? String(anime.rating) : '—';
+      if (typeEl) typeEl.textContent = anime.type || '—';
+      if (durationEl) durationEl.textContent = anime.duration || '—';
+      if (statusEl) statusEl.textContent = anime.status || '—';
       if (backdropEl && (anime.banner || anime.poster)) {
-        backdropEl.style.backgroundImage = `url('${anime.banner || anime.poster}')`;
+        const backdropUrl = anime.banner || anime.poster;
+        // Only paint the hero backdrop from a real fetched URL.
+        if (/^https?:\/\//.test(backdropUrl || '')) {
+          backdropEl.style.backgroundImage = `url('${backdropUrl}')`;
+        }
       }
     }
 
@@ -715,9 +765,23 @@
       if (emptyState) emptyState.classList.add('hidden');
 
       grid.innerHTML = animeList.map((anime) => {
-        const subCount = anime.subEpisodes || anime.totalEpisodes || 12;
-        const dubCount = anime.dubEpisodes || Math.max(1, subCount - 2);
-        const rating = anime.rating || 9.0;
+        // Missing metadata renders as "—", never as invented numbers.
+        const subCount = anime.subEpisodes ?? anime.totalEpisodes ?? '—';
+        const dubCount = anime.dubEpisodes ?? '—';
+        const rating = anime.rating != null ? anime.rating : '—';
+        // Only ever render a real, fetched poster URL. Titles without artwork
+        // get a neutral tile instead of a broken image or stock placeholder.
+        const posterUrl = typeof anime.poster === 'string' && /^https?:\/\//.test(anime.poster) ? anime.poster : '';
+        const posterMarkup = posterUrl
+          ? `<img
+                src="${escapeHtml(posterUrl)}"
+                alt="${escapeHtml(anime.title)}"
+                loading="lazy"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />`
+          : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-dark-850 to-dark-950">
+                <span class="text-3xl font-black text-zinc-700 select-none">${escapeHtml((anime.title || '?').charAt(0))}</span>
+              </div>`;
 
         return `
           <div
@@ -726,12 +790,7 @@
           >
             <!-- Poster image container -->
             <div class="relative aspect-[3/4] bg-dark-950 overflow-hidden">
-              <img
-                src="${escapeHtml(anime.poster)}"
-                alt="${escapeHtml(anime.title)}"
-                loading="lazy"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
+              ${posterMarkup}
               
               <!-- Subtle top gradient and quality tag -->
               <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-black/30"></div>
@@ -768,8 +827,8 @@
                 ${escapeHtml(anime.title)}
               </h4>
               <div class="flex items-center justify-between text-[11px] text-zinc-500">
-                <span>${anime.type || 'TV'} · ${anime.duration || '24m'}</span>
-                <span class="text-zinc-400 font-medium">${anime.year || 2024}</span>
+                <span>${anime.type || '—'} · ${anime.duration || '—'}</span>
+                <span class="text-zinc-400 font-medium">${anime.year ?? '—'}</span>
               </div>
             </div>
           </div>
@@ -803,7 +862,7 @@
         const raw = localStorage.getItem(WATCH_HISTORY_KEY);
         const entry = raw ? JSON.parse(raw).find(i => String(i.id) === String(animeId)) : null;
         if (entry && entry.title) {
-          openWatchPage({ id: entry.id, title: entry.title, poster: entry.poster, totalEpisodes: 12 }, episodeNumber);
+          openWatchPage({ id: entry.id, title: entry.title, poster: entry.poster, totalEpisodes: 0 }, episodeNumber);
           return;
         }
       } catch (e) {}
@@ -846,12 +905,17 @@
       const countEl = document.getElementById('watch-anime-ep-count');
       const genresEl = document.getElementById('watch-anime-genres');
 
-      if (posterEl) posterEl.src = anime.poster;
+      if (posterEl) {
+        // Real fetched artwork only — otherwise hide the frame (no stock images).
+        const posterUrl = typeof anime.poster === 'string' && /^https?:\/\//.test(anime.poster) ? anime.poster : '';
+        posterEl.classList.toggle('hidden', !posterUrl);
+        posterEl.src = posterUrl;
+      }
       if (titleEl) titleEl.textContent = anime.title;
       if (altEl) altEl.textContent = anime.altTitle || '';
       if (synopsisEl) synopsisEl.textContent = anime.synopsis || '';
-      if (ratingEl) ratingEl.textContent = String(anime.rating || '9.2');
-      if (countEl) countEl.textContent = `${anime.totalEpisodes || 12} Episodes`;
+      if (ratingEl) ratingEl.textContent = anime.rating != null ? String(anime.rating) : '—';
+      if (countEl) countEl.textContent = anime.totalEpisodes != null ? `${anime.totalEpisodes} Episodes` : '— Episodes';
       if (genresEl) {
         genresEl.innerHTML = (anime.genres || ['Action']).map(g => `
           <span class="px-2 py-0.5 rounded-md bg-dark-800 text-zinc-400 text-[10px] font-medium border border-dark-750">${escapeHtml(g)}</span>
@@ -896,15 +960,12 @@
         allEpisodesCache = episodes;
         renderEpisodesList(episodes);
       } catch (err) {
-        const fallbackCount = currentAnime.totalEpisodes || 12;
-        const fakeEps = Array.from({ length: Math.min(fallbackCount, 24) }, (_, i) => ({
-          id: `${currentAnime.id}::ep=${i + 1}`,
-          number: i + 1,
-          title: `Episode ${i + 1}`,
-          isFiller: false,
-        }));
-        allEpisodesCache = fakeEps;
-        renderEpisodesList(fakeEps);
+        // Honest failure state — never a fabricated episode list.
+        console.error('[AniStream] Failed to load episodes:', err);
+        allEpisodesCache = [];
+        if (container) {
+          container.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-zinc-400">Episodes could not be loaded right now. The episode source failed — nothing is faked. Try again shortly.</div>';
+        }
       }
     }
 
@@ -1319,10 +1380,10 @@
                 onclick="openAnimeFromCard('${s.id}'); document.getElementById('search-autocomplete-box').classList.add('hidden');"
                 class="p-2.5 flex items-center gap-3 hover:bg-dark-800 cursor-pointer transition"
               >
-                <img src="${escapeHtml(s.poster)}" class="w-8 h-11 object-cover rounded bg-dark-950 shrink-0" />
+                ${safeImg(s.poster, 'w-8 h-11 object-cover rounded bg-dark-950 shrink-0')}
                 <div class="flex-1 min-w-0">
                   <p class="font-bold text-zinc-100 truncate">${escapeHtml(s.title)}</p>
-                  <p class="text-[10px] text-zinc-500">★ ${s.rating || '9.0'}</p>
+                  <p class="text-[10px] text-zinc-500">★ ${s.rating != null ? s.rating : '—'}</p>
                 </div>
               </div>
             `).join('');
@@ -1359,7 +1420,7 @@
 
     /**
      * Single filter pipeline: genre + free-text query over whatever catalog
-     * is currently loaded (live AniList data, or the offline fallback).
+     * is currently loaded (live provider data only).
      */
     function applyCatalogFilters() {
       const rawQuery = activeQuery.trim();
@@ -1370,7 +1431,7 @@
       if (usingServerResults) {
         list = searchResults.items;
       } else {
-        list = fullCatalog.length > 0 ? fullCatalog : FALLBACK_ANIME_CATALOG;
+        list = fullCatalog;
         if (query) {
           list = list.filter(a =>
             (a.title || '').toLowerCase().includes(query) ||
@@ -1383,7 +1444,11 @@
       }
 
       // Genre pills only scope browsing; an active search overrides them.
-      if (activeGenre !== 'All' && !query) {
+      // If the current source reports no genre metadata at all (possible
+      // during provider outages), filtering would blank the grid — show the
+      // full catalog with an honest badge note instead of a fake-empty grid.
+      const catalogHasGenres = fullCatalog.some(a => (a.genres || []).length > 0);
+      if (activeGenre !== 'All' && !query && catalogHasGenres) {
         list = list.filter(a => (a.genres || []).includes(activeGenre));
       }
 
@@ -1392,10 +1457,25 @@
         if (query) {
           badge.textContent = `${list.length} result${list.length === 1 ? '' : 's'} for "${rawQuery}"`;
         } else if (activeGenre !== 'All') {
-          badge.textContent = `Filtered by ${activeGenre}`;
+          badge.textContent = catalogHasGenres
+            ? `Filtered by ${activeGenre}`
+            : 'Genre data unavailable — showing all releases';
         } else {
           badge.textContent = 'Showing all releases';
         }
+      }
+
+      // A query/genre that matches nothing gets the "adjust filters" empty
+      // state. When the catalogue itself is empty (loading/error), the state
+      // message was already set by showCatalogLoadingState/showCatalogErrorState.
+      const filtering = Boolean(query) || activeGenre !== 'All';
+      if (list.length === 0 && filtering && fullCatalog.length > 0) {
+        setCatalogState(
+          'No Anime Found',
+          "We couldn't find any anime matching your criteria. Try adjusting your search query or reset your genre filters.",
+          'Reset Filters',
+          () => resetFiltersAndSearch()
+        );
       }
 
       renderCatalogGrid(list);
@@ -1483,7 +1563,7 @@
         listEl.innerHTML = list.map(item => `
           <div class="py-2.5 flex items-center justify-between gap-3 group">
             <div class="flex items-center gap-3 min-w-0">
-              <img src="${escapeHtml(item.poster)}" class="w-9 h-12 object-cover rounded bg-dark-950 shrink-0" />
+              ${safeImg(item.poster, 'w-9 h-12 object-cover rounded bg-dark-950 shrink-0')}
               <div class="min-w-0">
                 <p class="font-bold text-xs text-zinc-200 truncate group-hover:text-brand">${escapeHtml(item.title)}</p>
                 <p class="text-[10px] text-zinc-500">Episode ${item.episode}</p>
@@ -1535,6 +1615,10 @@
         if (container) {
           container.innerHTML = '<div class="col-span-full py-8 text-center text-xs text-zinc-500 font-mono animate-pulse">Loading broadcast schedules...</div>';
           const schedules = await animeService.getSchedules();
+          if (!schedules.length) {
+            container.innerHTML = '<div class="col-span-full py-8 text-center text-xs text-zinc-400">The airing schedule is unavailable right now — the schedule source failed to respond. Real data only: nothing is fabricated.</div>';
+            return;
+          }
           container.innerHTML = schedules.map(item => `
             <div class="p-3.5 rounded-xl bg-dark-850 border border-dark-800 space-y-2">
               <div class="flex items-center justify-between pb-1.5 border-b border-dark-800">
@@ -1566,6 +1650,18 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+    }
+
+    /**
+     * Render an <img> only for real, fetched http(s) artwork URLs; anything
+     * else becomes a neutral tile — never a broken image or stock placeholder.
+     */
+    function safeImg(url, classes) {
+      const isRealUrl = typeof url === 'string' && /^https?:\/\//.test(url);
+      if (!isRealUrl) {
+        return `<div class="${escapeHtml(classes || '')} flex items-center justify-center bg-dark-950"><svg class="w-4 h-4 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`;
+      }
+      return `<img src="${escapeHtml(url)}" loading="lazy" class="${escapeHtml(classes || '')}" />`;
     }
   </script>
 </body>

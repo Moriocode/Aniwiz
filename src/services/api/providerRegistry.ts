@@ -2,12 +2,12 @@ import { IAnimeProvider, AnimeItem, AnimeEpisode, StreamServerOption, StreamSour
 
 /**
  * Provider Registry for Modular Anime Engines
- * Supports multiple scrapers and APIs (HiAnime, AniList, Consumet, Zoro, etc.)
+ * Supports multiple scrapers and APIs (AniList, AniWixi, OpenAnime, etc.)
  * Provides seamless fallback if an upstream provider fails.
  */
 export class AnimeProviderRegistry {
   private providers = new Map<string, IAnimeProvider>();
-  private defaultProviderId = 'hianime';
+  private defaultProviderId = 'anilist';
 
   /**
    * Register a new API provider or scraper
