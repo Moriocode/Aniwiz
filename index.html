@@ -36,20 +36,6 @@
       const el = document.getElementById('schedule-modal');
       if (el) el.classList.toggle('hidden');
     };
-
-    // ------------------------------------------------------------------
-    // Silent placeholders for when index.html runs WITHOUT Vite (Spck
-    // preview, VS Code Live Server, file://): the browser refuses the
-    // /src/*.ts module import, so the real handlers never register — these
-    // keep inline onclick handlers as no-ops instead of "X is not defined".
-    // The real module overwrites each of them on a successful load.
-    // ------------------------------------------------------------------
-    ['resetFiltersAndSearch', 'startWatchingSpotlight', 'toggleHeroAnimeDetails', 'handleSearchAutocomplete',
-     'clearSearchInput', 'filterByGenre', 'filterEpisodeButtons', 'switchEpisode', 'skipOpeningCredits',
-     'setLanguage', 'switchStreamServer', 'toggleAutoFallback', 'toggleAutoSkipOp', 'openAnimeFromCard',
-     'openWatchPage', 'closeWatchPage', 'clearAllWatchHistory'].forEach(function (name) {
-      if (typeof window[name] !== 'function') window[name] = function () {};
-    });
   </script>
 
   <style>
