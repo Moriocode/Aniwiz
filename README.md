@@ -46,9 +46,13 @@ npm run test:smoke
 ```
 index.html            UI markup + the app controller (inline ES module)
   └─ imports          src/services/api/index.ts
-src/services/api      Provider registry + 6 anime providers
-                        anilist · aniwixi · hianime · anivexa · anikoto · anime-api
+src/services/api      Provider registry + 4 live providers
+                        anilist · anipulse · aniwixi · openanime
                         (cascaded with automatic fallback — see providerRegistry)
+                        anilistClient.ts / aniwixiClient.ts query the public APIs
+                        directly (both send CORS headers) and fall back to the
+                        local proxy, so the catalogue also works on a static
+                        host and when the proxy is rate-limited
                         imageQuality.ts upgrades poster URLs from the low-res
                         `hd-1` CDN rendition to the high-definition `hd-4` one
 server/               Shared /api middleware (anipmApiHandler.ts) — mounted by
@@ -59,11 +63,15 @@ vite.config.ts        Vite config + plugin mounting the shared API middleware
 src/index.css         Tailwind v4 theme (brand/dark palette), compiled at build
 ```
 
-Data flow: `index.html` → `animeService` → provider cascade → `/api/*`
-(shared middleware: Vite dev/preview locally, the Vercel function in
-production) → upstream sources (AniList GraphQL, AniWixi, …). The grid only
-renders live provider data; if the whole chain fails the UI shows an honest
-error state with a Retry action — there is no bundled placeholder catalog.
+Data flow: `index.html` → `animeService` → provider cascade → upstream sources
+(AniList GraphQL, AniWixi, …), with `/api/*` (shared middleware: Vite
+dev/preview locally, the Vercel function in production) as the cached fallback
+path. The catalogue merges AniList's trending, popular and top-rated lists
+(~130 titles), and titles whose upstream listing omits artwork/metadata are
+enriched from their AniList id so cards show a poster, score, type, runtime and
+studio instead of "—" placeholders. The grid only renders live provider data;
+if the whole chain fails the UI shows an honest error state with a Retry action
+— there is no bundled placeholder catalog.
 
 ## Notes
 

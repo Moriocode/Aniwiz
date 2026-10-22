@@ -2,6 +2,8 @@ import { AnimeItem, AnimeEpisode, StreamServerOption, StreamSourceResult, Stream
 import { toHiResImage } from './imageQuality';
 import { providerRegistry } from './providerRegistry';
 import { AniListProvider } from './providers/anilistProvider';
+import { fetchAniListMediaByIds, requestAniListData } from './anilistClient';
+import { requestAniwixi } from './aniwixiClient';
 import { AniwixiProvider } from './providers/aniwixiProvider';
 import { AniPulseProvider } from './providers/aniPulseProvider';
 import { OpenAnimeProvider } from './providers/openAnimeProvider';
@@ -34,7 +36,7 @@ class AnimeService {
    * rate-limited on the viewer's network. Capping each attempt keeps the whole
    * cascade (and therefore first paint) bounded.
    */
-  private static readonly PROVIDER_TIMEOUT_MS = 4000;
+  private static readonly PROVIDER_TIMEOUT_MS = 6500;
   /**
    * Hard ceiling for one full provider cascade (every provider combined), so
    * a network where all upstreams hang resolves in seconds instead of a
@@ -126,16 +128,20 @@ class AnimeService {
   }
 
   /**
-   * Fetch Spotlight Releases (live cascade across all registered providers)
+   * In-flight catalogue request. The spotlight banner and the trending grid are
+   * loaded together on first paint; sharing one promise means the provider
+   * cascade runs once instead of twice (which used to double every request).
+   */
+  private catalogPromise: Promise<AnimeItem[]> | null = null;
+
+  /**
+   * Fetch Spotlight Releases — the leading titles of the live catalogue, so the
+   * banner and the grid always come from a single provider round-trip.
    */
   public async getSpotlight(): Promise<AnimeItem[]> {
     if (this.spotlightCache.length > 0) return this.spotlightCache;
-
-    const items = await this.cascadeList('getSpotlight', (provider) => provider.getSpotlight());
-    if (items.length > 0) {
-      this.spotlightCache = items.map(a => this.withHiResImages(a));
-      this.spotlightCache.forEach(a => this.memoryCache.set(String(a.id), a));
-    }
+    const catalog = await this.getTrending();
+    if (catalog.length > 0) this.spotlightCache = catalog.slice(0, 10);
     return this.spotlightCache;
   }
 
@@ -145,12 +151,82 @@ class AnimeService {
   public async getTrending(): Promise<AnimeItem[]> {
     if (this.trendingCache.length > 0) return this.trendingCache;
 
-    const items = await this.cascadeList('getTrending', (provider) => provider.getTrending());
-    if (items.length > 0) {
-      this.trendingCache = items.map(a => this.withHiResImages(a));
-      this.trendingCache.forEach(a => this.memoryCache.set(String(a.id), a));
+    if (!this.catalogPromise) {
+      this.catalogPromise = (async () => {
+        const items = await this.cascadeList('getTrending', (provider) => provider.getTrending());
+        const enriched = await this.enrichCatalogMetadata(items);
+        if (enriched.length > 0) {
+          this.trendingCache = enriched.map(a => this.withHiResImages(a));
+          this.trendingCache.forEach(a => this.memoryCache.set(String(a.id), a));
+        }
+        return this.trendingCache;
+      })().finally(() => {
+        this.catalogPromise = null;
+      });
     }
-    return this.trendingCache;
+
+    return this.catalogPromise;
+  }
+
+  /**
+   * Fill in artwork and metadata for providers with sparse listings.
+   *
+   * AniWixi answers `poster: false` and omits format/score/runtime for many
+   * titles, which used to leave the grid full of letter tiles and "—" rows.
+   * Every item carries its `anilist_id`, so one batched AniList lookup fills in
+   * posters, ratings, type, runtime, status, genres and studios. Best effort and
+   * time-boxed: when AniList is unreachable the catalogue still renders.
+   */
+  private async enrichCatalogMetadata(items: AnimeItem[]): Promise<AnimeItem[]> {
+    if (items.length === 0) return items;
+
+    const missingArtwork = items.filter((a) => !a.poster).length;
+    const missingType = items.filter((a) => !a.type).length;
+    const needsEnrichment =
+      missingArtwork >= Math.max(1, Math.ceil(items.length * 0.2)) ||
+      missingType >= Math.max(3, Math.ceil(items.length * 0.5));
+    if (!needsEnrichment) return items;
+
+    const ids = [...new Set(items.map((a) => Number(a.anilistId)).filter((id) => Number.isFinite(id) && id > 0))];
+    if (ids.length === 0) return items;
+
+    const batches: number[][] = [];
+    for (let i = 0; i < ids.length && batches.length < 3; i += 50) {
+      batches.push(ids.slice(i, i + 50));
+    }
+
+    let records: Map<number, AnimeItem>;
+    try {
+      const lookups = await this.withTimeout(
+        Promise.all(batches.map((batch) => fetchAniListMediaByIds(batch))),
+        'anilist.enrich',
+        2500
+      );
+      records = new Map();
+      lookups.forEach((map) => map.forEach((value, key) => records.set(key, value)));
+    } catch {
+      return items;
+    }
+
+    for (const anime of items) {
+      const full = anime.anilistId ? records.get(Number(anime.anilistId)) : undefined;
+      if (!full) continue;
+
+      if (!anime.poster && full.poster) anime.poster = full.poster;
+      if (!anime.banner && full.banner) anime.banner = full.banner;
+      if (anime.rating == null && full.rating != null) anime.rating = full.rating;
+      if (!anime.score && full.score) anime.score = full.score;
+      if (!anime.type && full.type) anime.type = full.type;
+      if (!anime.duration && full.duration) anime.duration = full.duration;
+      if (!anime.status && full.status) anime.status = full.status;
+      if (!anime.year && full.year) anime.year = full.year;
+      if (!anime.synopsis && full.synopsis) anime.synopsis = full.synopsis;
+      if ((!anime.genres || anime.genres.length === 0) && full.genres?.length) anime.genres = full.genres;
+      if (anime.studios.length === 0 && full.studios?.length) anime.studios = full.studios;
+      if (!anime.totalEpisodes && full.totalEpisodes) anime.totalEpisodes = full.totalEpisodes;
+    }
+
+    return items;
   }
 
   /**
@@ -421,21 +497,18 @@ class AnimeService {
     const wantedAlt = (details?.altTitle || '').trim().toLowerCase();
 
     try {
-      const res = await fetch(`/api/aniwixi/search?q=${encodeURIComponent(title)}`);
-      if (res.ok) {
-        const json = await res.json();
-        const items = Array.isArray(json?.data) ? json.data : [];
-        const match = items.find((it: any) => {
-          const en = String(it?.title?.english || '').trim().toLowerCase();
-          const ro = String(it?.title?.romaji || '').trim().toLowerCase();
-          return (en && (en === wanted || en === wantedAlt)) || (ro && (ro === wanted || ro === wantedAlt));
-        });
-        const id = Number(match?.anilist_id) || undefined;
-        if (id) {
-          this.anilistIdByItem.set(cacheKey, id);
-          if (details) details.anilistId = id;
-          return id;
-        }
+      const json = await requestAniwixi<any>(`search?q=${encodeURIComponent(title)}`);
+      const items = Array.isArray(json?.data) ? json.data : [];
+      const match = items.find((it: any) => {
+        const en = String(it?.title?.english || '').trim().toLowerCase();
+        const ro = String(it?.title?.romaji || '').trim().toLowerCase();
+        return (en && (en === wanted || en === wantedAlt)) || (ro && (ro === wanted || ro === wantedAlt));
+      });
+      const id = Number(match?.anilist_id) || undefined;
+      if (id) {
+        this.anilistIdByItem.set(cacheKey, id);
+        if (details) details.anilistId = id;
+        return id;
       }
     } catch {}
     return undefined;
@@ -540,36 +613,55 @@ class AnimeService {
    */
   public async getSchedules(): Promise<AiringScheduleItem[]> {
     // Source 1: AniList AiringSchedule GraphQL (posters + AniList ids).
+    // requestAniListData queries AniList directly (works on static hosts) and
+    // falls back to the cached /api/anilist/schedule proxy.
     try {
-      const res = await fetch('/api/anilist/schedule');
-      if (res.ok) {
-        const json = await res.json();
-        const schedules = json.data?.Page?.airingSchedules || [];
-        if (schedules.length > 0) {
-          // Group by day of week
-          const dayMap = new Map<string, { day: string; date: string; animes: any[] }>();
-
-          schedules.forEach((item: any) => {
-            const d = new Date(item.airingAt * 1000);
-            const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
-            const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-
-            if (!dayMap.has(dayName)) {
-              dayMap.set(dayName, { day: dayName, date: dateStr, animes: [] });
+      const now = Math.floor(Date.now() / 1000);
+      const data = await requestAniListData(
+        `query ($now: Int) {
+          Page(page: 1, perPage: 24) {
+            airingSchedules(airingAt_greater: $now, sort: TIME) {
+              id
+              airingAt
+              episode
+              media {
+                id
+                title { romaji english native }
+                coverImage { extraLarge large medium }
+                format
+              }
             }
+          }
+        }`,
+        { now },
+        '/api/anilist/schedule'
+      );
 
-            dayMap.get(dayName)!.animes.push({
-              title: item.media?.title?.english || item.media?.title?.romaji || 'Upcoming Episode',
-              episode: item.episode,
-              time: `${timeStr} UTC`,
-              anilistId: item.media?.id,
-              poster: item.media?.coverImage?.large || item.media?.coverImage?.medium,
-            });
+      const schedules: any[] = data?.Page?.airingSchedules || [];
+      if (schedules.length > 0) {
+        // Group by day of week
+        const dayMap = new Map<string, { day: string; date: string; animes: any[] }>();
+
+        schedules.forEach((item: any) => {
+          const d = new Date(item.airingAt * 1000);
+          const dayName = d.toLocaleDateString('en-US', { weekday: 'long' });
+          const dateStr = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const timeStr = d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+          if (!dayMap.has(dayName)) {
+            dayMap.set(dayName, { day: dayName, date: dateStr, animes: [] });
+          }
+
+          dayMap.get(dayName)!.animes.push({
+            title: item.media?.title?.english || item.media?.title?.romaji || 'Upcoming Episode',
+            episode: item.episode,
+            time: `${timeStr} UTC`,
+            anilistId: item.media?.id,
+            poster: item.media?.coverImage?.large || item.media?.coverImage?.medium,
           });
+        });
 
-          return Array.from(dayMap.values());
-        }
+        return Array.from(dayMap.values());
       }
     } catch (e) {
       console.warn('[AnimeService] AniList AiringSchedule fetch failed:', e);
@@ -581,59 +673,6 @@ class AnimeService {
     return [];
   }
 
-  private mapAniListMedia(item: any, rank = 1): AnimeItem {
-    const title = item.title?.english || item.title?.romaji || 'Unknown Anime';
-    // Keep the Latin (romaji) title as the visible alternate line and preserve
-    // the native Japanese title in its own field — CJK text renders as tofu on
-    // systems without Japanese fonts.
-    const japaneseTitle = item.title?.native;
-    const altTitle = item.title?.english && item.title.romaji && item.title.romaji !== item.title.english
-      ? item.title.romaji
-      : undefined;
-    const desc = (item.description || '').replace(/<[^>]*>?/gm, '').trim();
-    const score = item.averageScore ? `${item.averageScore}%` : undefined;
-    const rating = item.averageScore ? parseFloat((item.averageScore / 10).toFixed(1)) : undefined;
-    const poster = item.coverImage?.extraLarge || item.coverImage?.large || item.coverImage?.medium || undefined;
-    const banner = item.bannerImage || poster;
-    const studios = item.studios?.nodes?.map((s: any) => s.name) || [];
-    const format = String(item.format || '').toUpperCase();
-    const typeMap: Record<string, AnimeItem['type']> = {
-      TV: 'TV', TV_SHORT: 'TV', MOVIE: 'Movie', OVA: 'OVA', ONA: 'ONA', SPECIAL: 'Special',
-    };
-    const statusMap: Record<string, AnimeItem['status']> = {
-      FINISHED: 'Completed', RELEASING: 'Ongoing',
-    };
-
-    return {
-      id: String(item.id),
-      anilistId: item.id,
-      slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      title,
-      altTitle,
-      japaneseTitle,
-      // Real AniList values only; anything missing stays undefined so the UI
-      // renders "—" instead of a fabricated synopsis/score/year/genre.
-      synopsis: desc,
-      poster,
-      banner,
-      rating,
-      score,
-      quality: 'HD',
-      type: typeMap[format],
-      duration: item.duration ? `${item.duration}m` : undefined,
-      year: item.seasonYear || undefined,
-      season: item.season,
-      status: statusMap[String(item.status || '').toUpperCase()],
-      genres: item.genres && item.genres.length > 0 ? item.genres : [],
-      studios,
-      totalEpisodes: item.episodes || undefined,
-      subEpisodes: item.episodes || undefined,
-      dubEpisodes: item.dubEpisodes || undefined,
-      rank,
-      isTrending: true,
-      isPopular: true,
-    };
-  }
 }
 
 export const animeService = new AnimeService();
