@@ -117,7 +117,7 @@ export class OpenAnimeProvider implements IAnimeProvider {
     return { results, total: results.length };
   }
 
-  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster: string; rating: number }>> {
+  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster?: string; rating?: number }>> {
     const { results } = await this.search(query, 1);
     return results.slice(0, 5).map(r => ({ id: r.id, title: r.title, poster: r.poster, rating: r.rating }));
   }

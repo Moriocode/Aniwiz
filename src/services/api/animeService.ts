@@ -1,20 +1,21 @@
 import { AnimeItem, AnimeEpisode, StreamServerOption, StreamSourceResult, StreamAudioMode, AiringScheduleItem, IAnimeProvider } from './types';
+import { toHiResImage } from './imageQuality';
 import { providerRegistry } from './providerRegistry';
 import { AniListProvider } from './providers/anilistProvider';
+import { fetchAniListMediaByIds, requestAniListData } from './anilistClient';
+import { requestAniwixi } from './aniwixiClient';
 import { AniwixiProvider } from './providers/aniwixiProvider';
-import { HiAnimeProvider } from './providers/hianimeProvider';
-import { AnivexaProvider } from './providers/anivexaProvider';
-import { AnikotoProvider } from './providers/anikotoProvider';
-import { AnimeApiProvider } from './providers/animeApiProvider';
+import { AniPulseProvider } from './providers/aniPulseProvider';
 import { OpenAnimeProvider } from './providers/openAnimeProvider';
 
-// Register all live modular providers
+// Register the LIVE providers only. HiAnime/AniKoto/Anivexa/ANIME-API were
+// removed: their local endpoints served hardcoded placeholder data (fake
+// catalogs, stock images, demo streams) instead of real upstream responses.
+// The cascade is now AniList -> AniWixi -> OpenAnime — every entry backed by
+// a real upstream.
 providerRegistry.register(new AniListProvider(), true);
+providerRegistry.register(new AniPulseProvider());
 providerRegistry.register(new AniwixiProvider());
-providerRegistry.register(new HiAnimeProvider());
-providerRegistry.register(new AnivexaProvider());
-providerRegistry.register(new AnikotoProvider());
-providerRegistry.register(new AnimeApiProvider());
 // Optional self-hosted Open Anime API instance (see /api/openanime/* proxy).
 // Registered last: when no instance is running the proxy fails fast and the
 // cascade simply skips it.
@@ -27,15 +28,15 @@ class AnimeService {
 
   /**
    * Run a list-returning operation across every registered provider until one
-   * returns a non-empty result (AniList first, then AniWixi, HiAnime, AniVexa,
-   * AniKoto, ANIME-API). Empty arrays and thrown errors both advance the cascade.
+   * returns a non-empty result (AniList first, then AniWixi, OpenAnime).
+   * Empty arrays and thrown errors both advance the cascade.
    */
   /**
    * A single provider may hang for a long time when its host is blocked or
    * rate-limited on the viewer's network. Capping each attempt keeps the whole
    * cascade (and therefore first paint) bounded.
    */
-  private static readonly PROVIDER_TIMEOUT_MS = 4000;
+  private static readonly PROVIDER_TIMEOUT_MS = 6500;
   /**
    * Hard ceiling for one full provider cascade (every provider combined), so
    * a network where all upstreams hang resolves in seconds instead of a
@@ -113,16 +114,34 @@ class AnimeService {
   }
 
   /**
-   * Fetch Spotlight Releases (live cascade across all registered providers)
+   * Upgrade every image URL on an item to the high-definition `hd-4` CDN
+   * rendition (see imageQuality.ts). Single choke point: spotlight, trending,
+   * search and details all flow through here, so no low-res `hd-1` poster can
+   * reach the grid, hero banner or detail views.
+   */
+  private withHiResImages<T extends { poster?: string; banner?: string }>(item: T): T {
+    return {
+      ...item,
+      poster: toHiResImage(item.poster),
+      banner: toHiResImage(item.banner),
+    };
+  }
+
+  /**
+   * In-flight catalogue request. The spotlight banner and the trending grid are
+   * loaded together on first paint; sharing one promise means the provider
+   * cascade runs once instead of twice (which used to double every request).
+   */
+  private catalogPromise: Promise<AnimeItem[]> | null = null;
+
+  /**
+   * Fetch Spotlight Releases — the leading titles of the live catalogue, so the
+   * banner and the grid always come from a single provider round-trip.
    */
   public async getSpotlight(): Promise<AnimeItem[]> {
     if (this.spotlightCache.length > 0) return this.spotlightCache;
-
-    const items = await this.cascadeList('getSpotlight', (provider) => provider.getSpotlight());
-    if (items.length > 0) {
-      this.spotlightCache = items;
-      items.forEach(a => this.memoryCache.set(String(a.id), a));
-    }
+    const catalog = await this.getTrending();
+    if (catalog.length > 0) this.spotlightCache = catalog.slice(0, 10);
     return this.spotlightCache;
   }
 
@@ -132,12 +151,82 @@ class AnimeService {
   public async getTrending(): Promise<AnimeItem[]> {
     if (this.trendingCache.length > 0) return this.trendingCache;
 
-    const items = await this.cascadeList('getTrending', (provider) => provider.getTrending());
-    if (items.length > 0) {
-      this.trendingCache = items;
-      items.forEach(a => this.memoryCache.set(String(a.id), a));
+    if (!this.catalogPromise) {
+      this.catalogPromise = (async () => {
+        const items = await this.cascadeList('getTrending', (provider) => provider.getTrending());
+        const enriched = await this.enrichCatalogMetadata(items);
+        if (enriched.length > 0) {
+          this.trendingCache = enriched.map(a => this.withHiResImages(a));
+          this.trendingCache.forEach(a => this.memoryCache.set(String(a.id), a));
+        }
+        return this.trendingCache;
+      })().finally(() => {
+        this.catalogPromise = null;
+      });
     }
-    return this.trendingCache;
+
+    return this.catalogPromise;
+  }
+
+  /**
+   * Fill in artwork and metadata for providers with sparse listings.
+   *
+   * AniWixi answers `poster: false` and omits format/score/runtime for many
+   * titles, which used to leave the grid full of letter tiles and "—" rows.
+   * Every item carries its `anilist_id`, so one batched AniList lookup fills in
+   * posters, ratings, type, runtime, status, genres and studios. Best effort and
+   * time-boxed: when AniList is unreachable the catalogue still renders.
+   */
+  private async enrichCatalogMetadata(items: AnimeItem[]): Promise<AnimeItem[]> {
+    if (items.length === 0) return items;
+
+    const missingArtwork = items.filter((a) => !a.poster).length;
+    const missingType = items.filter((a) => !a.type).length;
+    const needsEnrichment =
+      missingArtwork >= Math.max(1, Math.ceil(items.length * 0.2)) ||
+      missingType >= Math.max(3, Math.ceil(items.length * 0.5));
+    if (!needsEnrichment) return items;
+
+    const ids = [...new Set(items.map((a) => Number(a.anilistId)).filter((id) => Number.isFinite(id) && id > 0))];
+    if (ids.length === 0) return items;
+
+    const batches: number[][] = [];
+    for (let i = 0; i < ids.length && batches.length < 3; i += 50) {
+      batches.push(ids.slice(i, i + 50));
+    }
+
+    let records: Map<number, AnimeItem>;
+    try {
+      const lookups = await this.withTimeout(
+        Promise.all(batches.map((batch) => fetchAniListMediaByIds(batch))),
+        'anilist.enrich',
+        2500
+      );
+      records = new Map();
+      lookups.forEach((map) => map.forEach((value, key) => records.set(key, value)));
+    } catch {
+      return items;
+    }
+
+    for (const anime of items) {
+      const full = anime.anilistId ? records.get(Number(anime.anilistId)) : undefined;
+      if (!full) continue;
+
+      if (!anime.poster && full.poster) anime.poster = full.poster;
+      if (!anime.banner && full.banner) anime.banner = full.banner;
+      if (anime.rating == null && full.rating != null) anime.rating = full.rating;
+      if (!anime.score && full.score) anime.score = full.score;
+      if (!anime.type && full.type) anime.type = full.type;
+      if (!anime.duration && full.duration) anime.duration = full.duration;
+      if (!anime.status && full.status) anime.status = full.status;
+      if (!anime.year && full.year) anime.year = full.year;
+      if (!anime.synopsis && full.synopsis) anime.synopsis = full.synopsis;
+      if ((!anime.genres || anime.genres.length === 0) && full.genres?.length) anime.genres = full.genres;
+      if (anime.studios.length === 0 && full.studios?.length) anime.studios = full.studios;
+      if (!anime.totalEpisodes && full.totalEpisodes) anime.totalEpisodes = full.totalEpisodes;
+    }
+
+    return items;
   }
 
   /**
@@ -165,11 +254,12 @@ class AnimeService {
       return { results: list, total: list.length };
     }
 
-    const results = await this.cascadeList('search', async (provider) => {
+    const rawResults = await this.cascadeList('search', async (provider) => {
       const outcome = await provider.search(q, page);
       return outcome?.results || [];
     });
 
+    const results = rawResults.map(a => this.withHiResImages(a));
     results.forEach((a: AnimeItem) => this.memoryCache.set(String(a.id), a));
     return { results, total: results.length };
   }
@@ -177,7 +267,7 @@ class AnimeService {
   /**
    * Autocomplete Suggestions
    */
-  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster: string; rating: number }>> {
+  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster?: string; rating?: number }>> {
     const { results } = await this.search(query, 1);
     return results.slice(0, 6).map(r => ({
       id: String(r.id),
@@ -217,8 +307,9 @@ class AnimeService {
       async (provider) => {
         const details = await provider.getAnimeDetails(id);
         if (!details) return null;
-        this.memoryCache.set(String(details.id), details);
-        return details;
+        const upgraded = this.withHiResImages(details);
+        this.memoryCache.set(String(upgraded.id), upgraded);
+        return upgraded;
       },
       'anilist'
     );
@@ -229,25 +320,39 @@ class AnimeService {
    */
   public async getEpisodes(id: string): Promise<AnimeEpisode[]> {
     const details = await this.getAnimeDetails(id);
-    const count = details?.totalEpisodes || 12;
+    const count = details?.totalEpisodes;
 
-    // Check if Aniwixi has exact episode metadata
+    // Check if Aniwixi has exact episode metadata — only for purely numeric
+    // (AniList-keyed) ids; slug ids would resolve to an unrelated title.
     try {
       const cleanId = String(id).replace(/[^0-9]/g, '');
-      if (cleanId) {
+      if (/^\d+$/.test(String(id)) && cleanId) {
         const aniwixi = new AniwixiProvider();
         const eps = await aniwixi.getEpisodes(cleanId);
         if (eps && eps.length > 0) return eps;
       }
     } catch {}
 
-    // Generate real sequential episode numbers based on official AniList episode count
+    // AniPulse (AnimeAPI) ids are its own slugs — ask it for real episode data
+    // (fails fast and skips the source when the proxy is not configured).
+    if (!/^\d+$/.test(String(id))) {
+      try {
+        const eps = await new AniPulseProvider().getEpisodes(String(id));
+        if (eps && eps.length > 0) return eps;
+      } catch {}
+    }
+
+    // No known episode count -> honest empty list (the UI shows "No episodes
+    // available"); we never invent a 12-episode catalog. With a real count,
+    // sequential numbering is structural metadata, not fabricated content.
+    if (!count) return [];
+    const minutes = parseInt(details?.duration || '') || undefined;
     return Array.from({ length: Math.min(Math.max(count, 1), 60) }, (_, i) => ({
       id: `${id}::ep=${i + 1}`,
       number: i + 1,
       title: `Episode ${i + 1}`,
       isFiller: false,
-      durationSeconds: (parseInt(details?.duration || '24') || 24) * 60,
+      durationSeconds: minutes ? minutes * 60 : undefined,
     }));
   }
 
@@ -260,7 +365,11 @@ class AnimeService {
     raw?: StreamServerOption[];
   }> {
     const details = await this.getAnimeDetails(animeId);
-    const anilistId = details?.anilistId || String(animeId).replace(/[^0-9]/g, '') || '154587';
+    const resolvedId = details?.anilistId || await this.resolveAnilistIdForStream(details, String(animeId));
+    // No resolvable AniList id -> no server URLs (a digits-from-slug guess
+    // would silently stream a different anime).
+    if (resolvedId == null) return { sub: [], dub: [] };
+    const anilistId = String(resolvedId);
     const openAnime = await this.getOpenAnimeServerOption();
 
     return {
@@ -361,23 +470,73 @@ class AnimeService {
     };
   }
 
+  /** title -> AniList id resolution cache (keyed by catalog item id). */
+  private anilistIdByItem = new Map<string, number>();
+
+  /**
+   * Resolve the AniList id that every stream server URL needs.
+   *
+   * Providers without native AniList ids (e.g. AniPulse, whose ids are its own
+   * slugs) must NOT fall back to digits scraped out of the slug — that
+   * silently streams a different anime. We resolve by exact title match
+   * against the live AniWixi search and cache the result; purely numeric ids
+   * (AniList-keyed catalogs) pass through. Returns undefined when nothing
+   * resolves so callers can surface an honest "no source" state.
+   */
+  private async resolveAnilistIdForStream(details: AnimeItem | null, animeId: string): Promise<number | undefined> {
+    if (details?.anilistId) return details.anilistId;
+    if (/^\d+$/.test(animeId)) return Number(animeId) || undefined;
+
+    const cacheKey = String(details?.id || animeId);
+    const cached = this.anilistIdByItem.get(cacheKey);
+    if (cached) return cached;
+
+    const title = (details?.title || '').trim();
+    if (!title) return undefined;
+    const wanted = title.toLowerCase();
+    const wantedAlt = (details?.altTitle || '').trim().toLowerCase();
+
+    try {
+      const json = await requestAniwixi<any>(`search?q=${encodeURIComponent(title)}`);
+      const items = Array.isArray(json?.data) ? json.data : [];
+      const match = items.find((it: any) => {
+        const en = String(it?.title?.english || '').trim().toLowerCase();
+        const ro = String(it?.title?.romaji || '').trim().toLowerCase();
+        return (en && (en === wanted || en === wantedAlt)) || (ro && (ro === wanted || ro === wantedAlt));
+      });
+      const id = Number(match?.anilist_id) || undefined;
+      if (id) {
+        this.anilistIdByItem.set(cacheKey, id);
+        if (details) details.anilistId = id;
+        return id;
+      }
+    } catch {}
+    return undefined;
+  }
+
   /**
    * Real Stream Source Resolver (Zero Fake Intros, Zero Mock Videos)
    */
   public async getStreamSource(animeId: string, episodeNumber: number, serverId: number, audio: StreamAudioMode): Promise<StreamSourceResult> {
     const rawId = String(animeId);
-    const cleanId = rawId.replace(/[^0-9]/g, '');
     // Catalog titles are already cached in memory — never block the player on
-    // a provider cascade just to rebuild ids we already have. Unknown ids fall
-    // back to digit derivation below (same as before when nothing resolved).
+    // a provider cascade just to rebuild ids we already have.
     const details = this.memoryCache.get(rawId) || null;
-    const anilistId = details?.anilistId || cleanId || '154587';
     const slug = details?.slug || (details?.title ? details.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'anime');
 
     if (serverId === 6) {
       // Self-hosted Open Anime API — resolves a fresh link per episode
       return new OpenAnimeProvider().getStreamSource(details?.title || slug, episodeNumber, 6, audio);
     }
+
+    // Every remaining server builds its URL from a real AniList id — resolve
+    // it (title match via live AniWixi search for non-AniList catalogs) and
+    // fail honestly instead of streaming an unrelated anime.
+    const resolved = details?.anilistId || await this.resolveAnilistIdForStream(details, rawId);
+    if (resolved == null) {
+      throw new Error(`No stream source: no AniList id resolves for "${details?.title || rawId}".`);
+    }
+    const anilistId = String(resolved);
 
     if (serverId === 3) {
       // AniRaku — the public Aniraku API resolves a direct HLS source that the
@@ -453,12 +612,33 @@ class AnimeService {
    * Real Weekly Airing Schedules (Live from AniList AiringSchedule GraphQL)
    */
   public async getSchedules(): Promise<AiringScheduleItem[]> {
+    // Source 1: AniList AiringSchedule GraphQL (posters + AniList ids).
+    // requestAniListData queries AniList directly (works on static hosts) and
+    // falls back to the cached /api/anilist/schedule proxy.
     try {
-      const res = await fetch('/api/anilist/schedule');
-      if (res.ok) {
-        const json = await res.json();
-        const schedules = json.data?.Page?.airingSchedules || [];
+      const now = Math.floor(Date.now() / 1000);
+      const data = await requestAniListData(
+        `query ($now: Int) {
+          Page(page: 1, perPage: 24) {
+            airingSchedules(airingAt_greater: $now, sort: TIME) {
+              id
+              airingAt
+              episode
+              media {
+                id
+                title { romaji english native }
+                coverImage { extraLarge large medium }
+                format
+              }
+            }
+          }
+        }`,
+        { now },
+        '/api/anilist/schedule'
+      );
 
+      const schedules: any[] = data?.Page?.airingSchedules || [];
+      if (schedules.length > 0) {
         // Group by day of week
         const dayMap = new Map<string, { day: string; date: string; animes: any[] }>();
 
@@ -484,56 +664,15 @@ class AnimeService {
         return Array.from(dayMap.values());
       }
     } catch (e) {
-      console.warn('[AnimeService] Live AiringSchedule fetch failed:', e);
+      console.warn('[AnimeService] AniList AiringSchedule fetch failed:', e);
     }
 
+    // Source 2: no other live schedule upstream is configured — return an
+    // honest empty list (never fabricated entries) so the UI can say so.
+    console.warn('[AnimeService] Airing schedule unavailable: the AniList schedule source failed or returned no data.');
     return [];
   }
 
-  private mapAniListMedia(item: any, rank = 1): AnimeItem {
-    const title = item.title?.english || item.title?.romaji || 'Unknown Anime';
-    // Keep the Latin (romaji) title as the visible alternate line and preserve
-    // the native Japanese title in its own field — CJK text renders as tofu on
-    // systems without Japanese fonts.
-    const japaneseTitle = item.title?.native;
-    const altTitle = item.title?.english && item.title.romaji && item.title.romaji !== item.title.english
-      ? item.title.romaji
-      : undefined;
-    const desc = (item.description || '').replace(/<[^>]*>?/gm, '').trim();
-    const score = item.averageScore ? `${item.averageScore}%` : '89%';
-    const rating = item.averageScore ? parseFloat((item.averageScore / 10).toFixed(1)) : 8.9;
-    const poster = item.coverImage?.extraLarge || item.coverImage?.large || item.coverImage?.medium || '';
-    const banner = item.bannerImage || poster;
-    const studios = item.studios?.nodes?.map((s: any) => s.name) || [];
-
-    return {
-      id: String(item.id),
-      anilistId: item.id,
-      slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-      title,
-      altTitle,
-      japaneseTitle,
-      synopsis: desc || 'Stream popular episodes in high definition.',
-      poster,
-      banner,
-      rating,
-      score,
-      quality: 'HD',
-      type: item.format || 'TV',
-      duration: item.duration ? `${item.duration}m` : '24m',
-      year: item.seasonYear || new Date().getFullYear(),
-      season: item.season,
-      status: item.status === 'FINISHED' ? 'Completed' : 'Ongoing',
-      genres: item.genres && item.genres.length > 0 ? item.genres : ['Action'],
-      studios,
-      totalEpisodes: item.episodes || 12,
-      subEpisodes: item.episodes || 12,
-      dubEpisodes: Math.max(1, (item.episodes || 12) - 2),
-      rank,
-      isTrending: true,
-      isPopular: true,
-    };
-  }
 }
 
 export const animeService = new AnimeService();

@@ -1,78 +1,75 @@
 import { IAnimeProvider, AnimeItem, AnimeEpisode, StreamServerOption, StreamSourceResult, StreamAudioMode } from '../types';
+import { ANILIST_MEDIA_FIELDS, mapAniListMedia, requestAniListData } from '../anilistClient';
 
 export class AniListProvider implements IAnimeProvider {
   public readonly name = 'AniList GraphQL Service';
   public readonly id = 'anilist';
-  public readonly version = '2.0.0';
+  public readonly version = '2.1.0';
   public readonly website = 'https://anilist.co';
 
-  /** Map a raw AniList media node onto the shared AnimeItem contract. */
-  private mapMedia(item: any, rank = 1): AnimeItem | null {
-    if (!item || !item.id) return null;
+  /**
+   * The catalogue query feeds both the spotlight banner and the trending grid
+   * in one round-trip. The request is shared so the two callers can never fire
+   * the same 150-title query twice (and burn the AniList rate limit).
+   */
+  private browseInFlight: Promise<AnimeItem[]> | null = null;
 
-    const english = item.title?.english;
-    const romaji = item.title?.romaji;
+  /** Top trending, popular and top-rated titles, deduped by AniList id. */
+  public async getTrending(): Promise<AnimeItem[]> {
+    if (!this.browseInFlight) {
+      this.browseInFlight = this.fetchBrowse().finally(() => {
+        this.browseInFlight = null;
+      });
+    }
+    return this.browseInFlight;
+  }
 
-    return {
-      id: String(item.id),
-      anilistId: item.id,
-      title: english || romaji || 'Unknown Anime',
-      // Show the romaji line only when it differs from the displayed title,
-      // and keep the native Japanese title in its own field (CJK glyphs are
-      // not guaranteed to be available on the viewer's system).
-      altTitle: english && romaji && romaji !== english ? romaji : undefined,
-      japaneseTitle: item.title?.native,
-      synopsis: (item.description || '').replace(/<[^>]*>?/gm, ''),
-      poster: item.coverImage?.extraLarge || item.coverImage?.large,
-      banner: item.bannerImage,
-      rating: item.averageScore ? parseFloat((item.averageScore / 10).toFixed(1)) : 8.9,
-      score: item.averageScore ? `${item.averageScore}%` : '89%',
-      quality: 'HD',
-      type: item.format || 'TV',
-      duration: item.duration ? `${item.duration}m` : '24m',
-      year: item.seasonYear || 2024,
-      season: item.season,
-      status: item.status === 'FINISHED' ? 'Completed' : 'Ongoing',
-      genres: item.genres && item.genres.length > 0 ? item.genres : ['Action'],
-      studios: item.studios?.nodes?.map((s: any) => s.name) || [],
-      totalEpisodes: item.episodes || 12,
-      subEpisodes: item.episodes || 12,
-      dubEpisodes: Math.max(1, (item.episodes || 12) - 2),
-      rank,
-      isTrending: true,
-      isPopular: true,
-    };
+  private async fetchBrowse(): Promise<AnimeItem[]> {
+    const data = await requestAniListData(
+      `query {
+        trending: Page(page: 1, perPage: 50) {
+          media(sort: TRENDING_DESC, type: ANIME, isAdult: false) { ${ANILIST_MEDIA_FIELDS} }
+        }
+        popular: Page(page: 1, perPage: 50) {
+          media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) { ${ANILIST_MEDIA_FIELDS} }
+        }
+        topRated: Page(page: 1, perPage: 50) {
+          media(sort: SCORE_DESC, type: ANIME, isAdult: false) { ${ANILIST_MEDIA_FIELDS} }
+        }
+      }`,
+      undefined,
+      '/api/anilist/browse'
+    );
+
+    // The proxy answers the same alias shape; older payloads used { Page }.
+    const lists: any[][] = [
+      data?.trending?.media || [],
+      data?.popular?.media || [],
+      data?.topRated?.media || [],
+      data?.Page?.media || [],
+    ];
+
+    const seen = new Set<string>();
+    const media: any[] = [];
+    for (const list of lists) {
+      for (const item of list) {
+        if (!item?.id || seen.has(String(item.id))) continue;
+        seen.add(String(item.id));
+        media.push(item);
+      }
+    }
+
+    return media
+      .map((item, idx) => mapAniListMedia(item, idx + 1))
+      .filter((item): item is AnimeItem => item !== null);
   }
 
   public async getSpotlight(): Promise<AnimeItem[]> {
-    return this.getTrending();
-  }
-
-  public async getTrending(): Promise<AnimeItem[]> {
-    const res = await fetch('/api/anilist/browse?sort=TRENDING_DESC&perPage=30');
-    if (!res.ok) throw new Error('AniList trending failed');
-    const data = await res.json();
-    // The browse proxy returns three ranked lists ({ data: { trending,
-    // popular, topRated } }); merge trending + popular (deduped by id) so the
-    // grid shows a full catalog instead of the first page only. The paginated
-    // { data: { Page: { media } } } shape is still accepted as a fallback.
-    const trending = data.data?.trending?.media || [];
-    const popular = data.data?.popular?.media || [];
-    const seen = new Set();
-    const merged = [...trending, ...popular].filter((item: any) => {
-      if (!item?.id || seen.has(item.id)) return false;
-      seen.add(item.id);
-      return true;
-    });
-    const media = merged.length > 0 ? merged : (data.data?.Page?.media || []);
-
-    return media
-      .map((item: any, idx: number) => this.mapMedia(item, idx + 1))
-      .filter((item: AnimeItem | null): item is AnimeItem => item !== null);
+    return (await this.getTrending()).slice(0, 10);
   }
 
   public async getTopAiring(): Promise<AnimeItem[]> {
-    return this.getTrending();
+    return (await this.getTrending()).filter((item) => item.status === 'Ongoing');
   }
 
   public async getLatestEpisodes(): Promise<AnimeItem[]> {
@@ -80,21 +77,28 @@ export class AniListProvider implements IAnimeProvider {
   }
 
   public async search(query: string, page = 1): Promise<{ results: AnimeItem[]; total: number }> {
-    const res = await fetch(`/api/anilist/search?q=${encodeURIComponent(query)}&page=${page}&perPage=20`);
-    if (!res.ok) throw new Error('AniList search failed');
-    const data = await res.json();
-    const media = data.data?.Page?.media || [];
+    const data = await requestAniListData(
+      `query ($search: String, $page: Int) {
+        Page(page: $page, perPage: 24) {
+          pageInfo { total }
+          media(search: $search, type: ANIME, isAdult: false) { ${ANILIST_MEDIA_FIELDS} }
+        }
+      }`,
+      { search: query, page },
+      `/api/anilist/search?q=${encodeURIComponent(query)}&page=${page}`
+    );
 
+    const media: any[] = data?.Page?.media || [];
     const results = media
-      .map((item: any, idx: number) => this.mapMedia(item, idx + 1))
-      .filter((item: AnimeItem | null): item is AnimeItem => item !== null);
+      .map((item, idx) => mapAniListMedia(item, idx + 1))
+      .filter((item): item is AnimeItem => item !== null);
 
-    return { results, total: data.data?.Page?.pageInfo?.total || results.length };
+    return { results, total: data?.Page?.pageInfo?.total || results.length };
   }
 
-  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster: string; rating: number }>> {
+  public async getSuggestions(query: string): Promise<Array<{ id: string; title: string; poster?: string; rating?: number }>> {
     const { results } = await this.search(query, 1);
-    return results.slice(0, 5).map(r => ({
+    return results.slice(0, 6).map((r) => ({
       id: r.id,
       title: r.title,
       poster: r.poster,
@@ -105,36 +109,35 @@ export class AniListProvider implements IAnimeProvider {
   public async getAnimeDetails(id: string): Promise<AnimeItem | null> {
     const cleanId = String(id).replace(/[^0-9]/g, '');
 
-    // Numeric IDs resolve through the dedicated details endpoint (richer than
-    // search: studios, duration, characters); everything else falls back to a
-    // title/slug search.
     if (cleanId) {
-      try {
-        const res = await fetch(`/api/anilist/details/${cleanId}`);
-        if (res.ok) {
-          const json = await res.json();
-          const media = json.data?.Media;
-          if (media) {
-            const mapped = this.mapMedia(media);
-            if (mapped) return mapped;
-          }
-        }
-      } catch {
-        // fall through to the search-based lookup below
-      }
+      const data = await requestAniListData(
+        `query ($id: Int) {
+          Media(id: $id, type: ANIME) { ${ANILIST_MEDIA_FIELDS} }
+        }`,
+        { id: Number(cleanId) },
+        `/api/anilist/details/${cleanId}`
+      );
+      const mapped = mapAniListMedia(data?.Media);
+      if (mapped) return mapped;
     }
 
+    // Non-numeric ids fall back to a title search.
     const { results } = await this.search(id, 1);
     return results[0] || null;
   }
 
   public async getEpisodes(id: string): Promise<AnimeEpisode[]> {
-    return Array.from({ length: 12 }, (_, i) => ({
+    const details = await this.getAnimeDetails(id);
+    const count = details?.totalEpisodes;
+    if (!count) return [];
+
+    const minutes = parseInt(details?.duration || '') || undefined;
+    return Array.from({ length: Math.min(Math.max(count, 1), 60) }, (_, i) => ({
       id: `${id}::ep=${i + 1}`,
       number: i + 1,
       title: `Episode ${i + 1}`,
       isFiller: false,
-      durationSeconds: 1440,
+      durationSeconds: minutes ? minutes * 60 : undefined,
     }));
   }
 

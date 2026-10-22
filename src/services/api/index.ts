@@ -1,10 +1,8 @@
 export * from './types';
 export * from './providerRegistry';
 export * from './animeService';
-export { FALLBACK_ANIME_CATALOG } from './fallbackCatalog';
-export { HiAnimeProvider } from './providers/hianimeProvider';
+export { toHiResImage } from './imageQuality';
 export { AniListProvider } from './providers/anilistProvider';
-export { AnivexaProvider } from './providers/anivexaProvider';
-export { AnikotoProvider } from './providers/anikotoProvider';
-export { AnimeApiProvider } from './providers/animeApiProvider';
+export { AniPulseProvider } from './providers/aniPulseProvider';
 export { AniwixiProvider } from './providers/aniwixiProvider';
+export { OpenAnimeProvider } from './providers/openAnimeProvider';
