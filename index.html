@@ -107,10 +107,17 @@
   <!-- TOP NAVIGATION HEADER                      -->
   <!-- ========================================== -->
   <header class="sticky top-0 z-40 w-full bg-dark-900/95 backdrop-blur-md border-b border-dark-800 transition-colors">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3 sm:gap-6">
-      
-      <!-- Brand Logo -->
-      <a href="#browse-section" onclick="resetFiltersAndSearch()" class="flex items-center gap-2.5 shrink-0 group">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <!--
+        Row 1 holds the brand, the actions and (on desktop) the search field.
+        On phones the search breaks onto its own full-width row below them via
+        flex-wrap + order, so it can be as wide and as tall as the screen
+        allows instead of sharing a 64px row with two other controls.
+      -->
+      <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-6 py-3 md:py-0 md:h-16 md:flex-nowrap">
+        
+        <!-- Brand Logo -->
+        <a href="#browse-section" onclick="resetFiltersAndSearch()" class="order-1 flex items-center gap-2.5 shrink-0 group">
         <div class="w-9 h-9 rounded-xl bg-brand flex items-center justify-center text-white shadow-lg shadow-brand/20 transition-transform group-hover:scale-105">
           <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24">
             <path d="M8 5.14v14l11-7-11-7z"/>
@@ -125,20 +132,20 @@
       </a>
 
       <!-- Functional Search Bar with Instant Autocomplete -->
-      <div class="flex-1 max-w-md relative" role="search">
+      <div class="order-3 md:order-2 w-full md:w-auto md:flex-1 md:max-w-md relative" role="search">
         <div class="relative flex items-center">
           <input
             id="search-input"
             type="text"
-            placeholder="Search anime, genres, studios (Press '/' to focus)..."
+            placeholder="Search anime, genres, studios..."
             autocomplete="off"
             oninput="handleSearchAutocomplete(this.value)"
             onfocus="if(this.value.trim()) handleSearchAutocomplete(this.value)"
             onkeydown="if(event.key === 'Enter'){ event.preventDefault(); hideSearchSuggestions(); } else if(event.key === 'Escape'){ hideSearchSuggestions(); this.blur(); }"
-            class="w-full h-10 pl-9 pr-9 rounded-xl bg-dark-800 text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
+            class="w-full h-12 md:h-10 pl-11 pr-11 rounded-xl bg-dark-800 text-base md:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
           />
-          <div class="absolute left-3 text-zinc-500 pointer-events-none">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="absolute left-3.5 md:left-3 text-zinc-500 pointer-events-none">
+            <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
           </div>
@@ -146,10 +153,10 @@
             id="search-clear-btn"
             type="button"
             onclick="clearSearchInput()"
-            class="absolute right-2.5 text-zinc-500 hover:text-zinc-200 hidden p-1 transition"
+            class="absolute right-3 md:right-2.5 text-zinc-500 hover:text-zinc-200 hidden p-1.5 md:p-1 transition"
             title="Clear search"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-[18px] h-[18px] md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
@@ -165,7 +172,7 @@
       </div>
 
       <!-- Header Navigation & User Actions -->
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="order-2 md:order-3 flex items-center gap-2 sm:gap-3 shrink-0">
         <!-- Multi-API Redundancy Status Indicator -->
         <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-750 text-xs text-zinc-300 shadow-sm" title="Streams & metadata backed by 5 independent APIs (HiAnime, Anivexa, AnimeWixi, ANIME-API, AniList) with automatic fallback">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -200,6 +207,144 @@
         </button>
       </div>
 
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MOBILE FILTER BAR & COLLAPSIBLE FILTER PANEL -->
+    <!-- Shown only at <= 768px (md:hidden). Desktop keeps the search field -->
+    <!-- in the header row and the horizontal genre pill bar below.        -->
+    <!-- ========================================== -->
+    <div class="md:hidden px-4 pb-3 space-y-2.5">
+      <!-- Filter actions: primary "Filter" toggle + advanced settings icon -->
+      <div class="flex items-center gap-2">
+        <button
+          id="mobile-filter-toggle"
+          type="button"
+          onclick="toggleMobileFilterPanel()"
+          aria-expanded="false"
+          aria-controls="mobile-filter-panel"
+          class="h-11 flex-1 inline-flex items-center justify-center gap-2 px-4 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-sm font-bold text-zinc-100 transition active:scale-95"
+        >
+          <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+          <span>Filter</span>
+          <span id="mobile-filter-count" class="hidden px-1.5 py-0.5 rounded-full bg-brand text-[10px] leading-none font-bold text-white font-mono">0</span>
+          <svg id="mobile-filter-chevron" class="w-3.5 h-3.5 text-zinc-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+
+        <button
+          id="mobile-advanced-toggle"
+          type="button"
+          onclick="toggleAdvancedFilters()"
+          title="Advanced filters"
+          aria-expanded="false"
+          aria-controls="mobile-advanced-filters"
+          class="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-zinc-300 hover:text-white transition active:scale-95"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+          </svg>
+          <span class="sr-only">Advanced filters</span>
+        </button>
+
+        <p id="mobile-filter-summary" class="flex-1 min-w-0 text-right text-xs text-zinc-500 truncate">All titles</p>
+      </div>
+
+      <!-- Collapsible filter form -->
+      <div id="mobile-filter-panel" class="hidden rounded-2xl bg-dark-900 border border-dark-750 p-4 space-y-4">
+
+        <div class="mobile-filter-grid">
+          <div class="mobile-filter-field">
+            <label for="mobile-filter-type">Type</label>
+            <select id="mobile-filter-type" onchange="applyMobileFilterField('type', this.value)">
+              <option value="All">All types</option>
+              <option value="TV">TV</option>
+              <option value="Movie">Movie</option>
+              <option value="OVA">OVA</option>
+              <option value="ONA">ONA</option>
+              <option value="Special">Special</option>
+            </select>
+          </div>
+
+          <div class="mobile-filter-field">
+            <label for="mobile-filter-genre">Genre</label>
+            <select id="mobile-filter-genre" onchange="applyMobileFilterField('genre', this.value)">
+              <option value="All">All genres</option>
+            </select>
+          </div>
+
+          <div class="mobile-filter-field">
+            <label for="mobile-filter-status">Status</label>
+            <select id="mobile-filter-status" onchange="applyMobileFilterField('status', this.value)">
+              <option value="All">Any status</option>
+              <option value="Ongoing">Ongoing</option>
+              <option value="Completed">Completed</option>
+              <option value="Upcoming">Upcoming</option>
+            </select>
+          </div>
+
+          <div class="mobile-filter-field">
+            <label for="mobile-filter-sort">Sort by</label>
+            <select id="mobile-filter-sort" onchange="applyMobileFilterField('sort', this.value)">
+              <option value="trending">Trending</option>
+              <option value="rating">Top rated</option>
+              <option value="newest">Newest first</option>
+              <option value="az">A – Z</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Advanced: revealed by the sliders icon next to the Filter button -->
+        <div id="mobile-advanced-filters" class="hidden space-y-4 pt-4 border-t border-dark-800">
+          <div class="mobile-filter-grid">
+            <div class="mobile-filter-field">
+              <label for="mobile-filter-rating">Minimum rating</label>
+              <select id="mobile-filter-rating" onchange="applyMobileFilterField('minRating', this.value)">
+                <option value="0">Any rating</option>
+                <option value="6">6.0 and up</option>
+                <option value="7">7.0 and up</option>
+                <option value="8">8.0 and up</option>
+                <option value="9">9.0 and up</option>
+              </select>
+            </div>
+
+            <div class="mobile-filter-field">
+              <label for="mobile-filter-era">Release era</label>
+              <select id="mobile-filter-era" onchange="applyMobileFilterField('era', this.value)">
+                <option value="Any">Any year</option>
+                <option value="2020s">2020s</option>
+                <option value="2010s">2010s</option>
+                <option value="2000s">2000s</option>
+                <option value="classic">Before 2000</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submission row: apply everything and close the sheet -->
+        <div class="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            onclick="applyMobileFilters()"
+            class="h-11 flex-1 inline-flex items-center justify-center gap-2 px-4 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-bold shadow-lg shadow-brand/25 transition active:scale-95"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Show results</span>
+          </button>
+          <button
+            type="button"
+            onclick="resetMobileFilters()"
+            class="h-11 px-4 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-sm font-semibold text-zinc-300 hover:text-white transition active:scale-95"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -562,6 +707,16 @@
     let fullCatalog = [];
     let activeGenre = 'All';
     let activeQuery = '';
+    // Facet state driven by the mobile filter panel (Type / Status / Sort /
+    // rating / era). Desktop keeps the genre pill bar, which shares activeGenre.
+    let activeType = 'All';
+    let activeStatus = 'All';
+    let activeSort = 'trending';
+    let activeMinRating = 0;
+    let activeEra = 'Any';
+    let mobileFilterPanelOpen = false;
+    let advancedFiltersOpen = false;
+    const MOBILE_FILTER_DEFAULTS = { type: 'All', genre: 'All', status: 'All', sort: 'trending', minRating: '0', era: 'Any' };
     // Results of the last server-side search: { query, items }
     let searchResults = null;
     let searchRequestSeq = 0;
@@ -576,6 +731,14 @@
       // provider data — never bundled placeholder cards.
       showCatalogLoadingState();
       updateHistoryBadge();
+
+      // Mobile vs desktop search placeholder (the '/' hint only fits on desktop).
+      syncSearchPlaceholder();
+      if (typeof window.matchMedia === 'function') {
+        const mobileQuery = window.matchMedia('(max-width: 768px)');
+        if (mobileQuery.addEventListener) mobileQuery.addEventListener('change', syncSearchPlaceholder);
+        else if (mobileQuery.addListener) mobileQuery.addListener(syncSearchPlaceholder);
+      }
 
       // Live data swaps in whenever it is ready — it must never block the UI.
       initializeCatalog();
@@ -702,6 +865,9 @@
 
         fullCatalog = trending.length > 0 ? trending : spotlights;
         renderHeroBanner(spotlights[0] || trending[0]);
+        // The mobile filter sheet offers the genres the live catalogue reports.
+        populateGenreOptions();
+        updateMobileFilterSummary();
         applyCatalogFilters();
       } catch (err) {
         console.error('[AniStream] Failed to initialize the live catalogue:', err);
@@ -1518,33 +1684,229 @@
         list = list.filter(a => (a.genres || []).includes(activeGenre));
       }
 
+      // Facets from the mobile filter panel (Type / Status / rating / era)
+      // apply to whatever list the query produced, search results included.
+      if (activeType !== 'All') {
+        list = list.filter(a => (a.type || '') === activeType);
+      }
+      if (activeStatus !== 'All') {
+        list = list.filter(a => (a.status || '') === activeStatus);
+      }
+      if (activeMinRating > 0) {
+        list = list.filter(a => (a.rating ?? 0) >= activeMinRating);
+      }
+      if (activeEra !== 'Any') {
+        list = list.filter(a => yearInEra(a.year, activeEra));
+      }
+
+      list = sortCatalogList(list, activeSort);
+
       const badge = document.getElementById('catalog-count-badge');
+      const facetParts = describeActiveFacets();
       if (badge) {
         if (query) {
           badge.textContent = `${list.length} result${list.length === 1 ? '' : 's'} for "${rawQuery}"`;
-        } else if (activeGenre !== 'All') {
-          badge.textContent = catalogHasGenres
-            ? `Filtered by ${activeGenre}`
-            : 'Genre data unavailable — showing all releases';
+        } else if (facetParts.length > 0) {
+          badge.textContent = list.length === 0
+            ? 'No titles match these filters'
+            : `Filtered by ${facetParts.join(', ')}`;
+        } else if (activeGenre !== 'All' && !catalogHasGenres) {
+          badge.textContent = 'Genre data unavailable — showing all releases';
         } else {
           badge.textContent = 'Showing all releases';
         }
       }
 
-      // A query/genre that matches nothing gets the "adjust filters" empty
+      // A query/facet that matches nothing gets the "adjust filters" empty
       // state. When the catalogue itself is empty (loading/error), the state
       // message was already set by showCatalogLoadingState/showCatalogErrorState.
-      const filtering = Boolean(query) || activeGenre !== 'All';
+      const filtering = Boolean(query) || facetParts.length > 0;
       if (list.length === 0 && filtering && fullCatalog.length > 0) {
         setCatalogState(
           'No Anime Found',
-          "We couldn't find any anime matching your criteria. Try adjusting your search query or reset your genre filters.",
+          "We couldn't find any anime matching your criteria. Try adjusting your search query or reset your filters.",
           'Reset Filters',
           () => resetFiltersAndSearch()
         );
       }
 
       renderCatalogGrid(list);
+    }
+
+    /**
+     * Mobile filter panel (AnimeKAI-style sheet under the search bar)
+     * ================================================================
+     * The form holds up to six facets. Selects apply live so a thumb tap
+     * always shows the result immediately; "Show results" submits and
+     * collapses the sheet, and the sliders icon reveals the advanced pair.
+     */
+
+    /** Human-readable labels for every active facet, in display order. */
+    function describeActiveFacets() {
+      const parts = [];
+      if (activeGenre !== 'All') parts.push(activeGenre);
+      if (activeType !== 'All') parts.push(activeType);
+      if (activeStatus !== 'All') parts.push(activeStatus);
+      if (activeMinRating > 0) parts.push(`★ ${activeMinRating}+`);
+      if (activeEra !== 'Any') parts.push(activeEra);
+      return parts;
+    }
+
+    function yearInEra(year, era) {
+      if (era === 'Any') return true;
+      const y = Number(year) || 0;
+      if (era === '2020s') return y >= 2020;
+      if (era === '2010s') return y >= 2010 && y < 2020;
+      if (era === '2000s') return y >= 2000 && y < 2010;
+      if (era === 'classic') return y > 0 && y < 2000;
+      return true;
+    }
+
+    /** Stable ordering for the catalog facets; 'trending' keeps provider rank. */
+    function sortCatalogList(items, sortKey) {
+      if (sortKey === 'trending') return items;
+      const list = [...items];
+      if (sortKey === 'rating') list.sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1));
+      else if (sortKey === 'newest') list.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+      else if (sortKey === 'az') list.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      return list;
+    }
+
+    function updateMobileFilterSummary() {
+      const count = describeActiveFacets().length;
+
+      const countEl = document.getElementById('mobile-filter-count');
+      if (countEl) {
+        countEl.textContent = String(count);
+        countEl.classList.toggle('hidden', count === 0);
+      }
+
+      const summary = document.getElementById('mobile-filter-summary');
+      if (summary) {
+        summary.textContent = count > 0 ? describeActiveFacets().join(' · ') : 'All titles';
+      }
+    }
+
+    /** Keep the panel's selects in sync with the applied facet state. */
+    function syncMobileFilterSelects() {
+      const set = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+      };
+      set('mobile-filter-type', activeType);
+      set('mobile-filter-genre', activeGenre);
+      set('mobile-filter-status', activeStatus);
+      set('mobile-filter-sort', activeSort);
+      set('mobile-filter-rating', String(activeMinRating));
+      set('mobile-filter-era', activeEra);
+    }
+
+    /** Rebuild the Genre select from whatever the live catalogue reports. */
+    function populateGenreOptions() {
+      const select = document.getElementById('mobile-filter-genre');
+      if (!select) return;
+
+      const genres = new Set();
+      fullCatalog.forEach(a => (a.genres || []).forEach(g => genres.add(g)));
+      if (activeGenre && activeGenre !== 'All') genres.add(activeGenre);
+
+      const sorted = [...genres].sort((a, b) => a.localeCompare(b));
+      select.innerHTML = [`<option value="All">All genres</option>`]
+        .concat(sorted.map(g => `<option value="${escapeHtml(g)}">${escapeHtml(g)}</option>`))
+        .join('');
+      select.value = activeGenre;
+    }
+
+    function setMobileFilterPanelOpen(open) {
+      mobileFilterPanelOpen = open;
+      document.getElementById('mobile-filter-panel')?.classList.toggle('hidden', !open);
+      document.getElementById('mobile-filter-toggle')?.setAttribute('aria-expanded', String(open));
+      document.getElementById('mobile-filter-chevron')?.classList.toggle('rotate-180', open);
+      if (!open) {
+        setAdvancedFiltersOpen(false);
+      } else {
+        // The genre list grows as more providers answer, so refresh on open.
+        populateGenreOptions();
+        hideSearchSuggestions();
+      }
+    }
+
+    function toggleMobileFilterPanel() {
+      setMobileFilterPanelOpen(!mobileFilterPanelOpen);
+    }
+    window.toggleMobileFilterPanel = toggleMobileFilterPanel;
+
+    function setAdvancedFiltersOpen(open) {
+      advancedFiltersOpen = open;
+      document.getElementById('mobile-advanced-filters')?.classList.toggle('hidden', !open);
+      document.getElementById('mobile-advanced-toggle')?.setAttribute('aria-expanded', String(open));
+      const btn = document.getElementById('mobile-advanced-toggle');
+      btn?.classList.toggle('border-brand', open);
+      btn?.classList.toggle('text-brand', open);
+      // The advanced pair lives inside the sheet — make sure it is visible.
+      if (open && !mobileFilterPanelOpen) setMobileFilterPanelOpen(true);
+    }
+
+    function toggleAdvancedFilters() {
+      setAdvancedFiltersOpen(!advancedFiltersOpen);
+    }
+    window.toggleAdvancedFilters = toggleAdvancedFilters;
+
+    function applyMobileFilterField(field, value) {
+      switch (field) {
+        case 'type': activeType = value; break;
+        case 'genre':
+          activeGenre = value;
+          updateGenreButtons();
+          break;
+        case 'status': activeStatus = value; break;
+        case 'sort': activeSort = value; break;
+        case 'minRating': activeMinRating = Number(value) || 0; break;
+        case 'era': activeEra = value; break;
+        default: return;
+      }
+      updateMobileFilterSummary();
+      applyCatalogFilters();
+    }
+    window.applyMobileFilterField = applyMobileFilterField;
+
+    /** Submission action: keep the selections and collapse the sheet. */
+    function applyMobileFilters() {
+      updateMobileFilterSummary();
+      applyCatalogFilters();
+      setMobileFilterPanelOpen(false);
+      document.getElementById('search-input')?.blur();
+    }
+    window.applyMobileFilters = applyMobileFilters;
+
+    function resetMobileFilterState() {
+      activeType = MOBILE_FILTER_DEFAULTS.type;
+      activeGenre = MOBILE_FILTER_DEFAULTS.genre;
+      activeStatus = MOBILE_FILTER_DEFAULTS.status;
+      activeSort = MOBILE_FILTER_DEFAULTS.sort;
+      activeMinRating = Number(MOBILE_FILTER_DEFAULTS.minRating);
+      activeEra = MOBILE_FILTER_DEFAULTS.era;
+      updateGenreButtons();
+      syncMobileFilterSelects();
+      updateMobileFilterSummary();
+    }
+
+    function resetMobileFilters() {
+      resetMobileFilterState();
+      applyCatalogFilters();
+    }
+    window.resetMobileFilters = resetMobileFilters;
+
+    /**
+     * 16px input text stops iOS Safari from auto-zooming the page on focus,
+     * and the desktop placeholder can afford to mention the '/' shortcut.
+     */
+    function syncSearchPlaceholder() {
+      const input = document.getElementById('search-input');
+      if (!input) return;
+      input.placeholder = window.matchMedia('(max-width: 768px)').matches
+        ? 'Search anime, genres, studios…'
+        : "Search anime, genres, studios (Press '/' to focus)...";
     }
 
     function updateGenreButtons() {
@@ -1559,6 +1921,10 @@
     function filterByGenre(genre) {
       activeGenre = genre;
       updateGenreButtons();
+      // Keep the mobile filter sheet in step with the desktop pill bar.
+      const genreSelect = document.getElementById('mobile-filter-genre');
+      if (genreSelect && genreSelect.value !== genre) genreSelect.value = genre;
+      updateMobileFilterSummary();
       applyCatalogFilters();
     }
     window.filterByGenre = filterByGenre;
@@ -1574,7 +1940,8 @@
       if (suggestBox) suggestBox.classList.add('hidden');
 
       activeQuery = '';
-      filterByGenre('All');
+      resetMobileFilterState();
+      applyCatalogFilters();
     }
     window.resetFiltersAndSearch = resetFiltersAndSearch;
 

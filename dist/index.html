@@ -38,8 +38,8 @@
   </script>
 
   <style>*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}html{scroll-behavior:smooth;background-color:#07090e}body{color:#e2e8f0;background-color:#07090e;font-family:Plus Jakarta Sans,system-ui,-apple-system,sans-serif;overflow-x:hidden}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0b0e14}::-webkit-scrollbar-thumb{background:#232a3b;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#343e54}.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}@keyframes shimmer{to{transform:translate(100%)}}.skeleton-box{background-color:#11151f;position:relative;overflow:hidden}.skeleton-box:after{content:"";background-image:linear-gradient(90deg,#fff0 0,#ffffff0d 20%,#ffffff1a 60%,#fff0);animation:1.8s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}</style>
-  <script type="module" crossorigin src="/assets/index-DXKikyMB.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-De9kkROJ.css">
+  <script type="module" crossorigin src="/assets/index-BKeuu1cv.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-t0qSo2-N.css">
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-white">
 
@@ -47,10 +47,17 @@
   <!-- TOP NAVIGATION HEADER                      -->
   <!-- ========================================== -->
   <header class="sticky top-0 z-40 w-full bg-dark-900/95 backdrop-blur-md border-b border-dark-800 transition-colors">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3 sm:gap-6">
-      
-      <!-- Brand Logo -->
-      <a href="#browse-section" onclick="resetFiltersAndSearch()" class="flex items-center gap-2.5 shrink-0 group">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+      <!--
+        Row 1 holds the brand, the actions and (on desktop) the search field.
+        On phones the search breaks onto its own full-width row below them via
+        flex-wrap + order, so it can be as wide and as tall as the screen
+        allows instead of sharing a 64px row with two other controls.
+      -->
+      <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-6 py-3 md:py-0 md:h-16 md:flex-nowrap">
+        
+        <!-- Brand Logo -->
+        <a href="#browse-section" onclick="resetFiltersAndSearch()" class="order-1 flex items-center gap-2.5 shrink-0 group">
         <div class="w-9 h-9 rounded-xl bg-brand flex items-center justify-center text-white shadow-lg shadow-brand/20 transition-transform group-hover:scale-105">
           <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24">
             <path d="M8 5.14v14l11-7-11-7z"/>
@@ -65,20 +72,20 @@
       </a>
 
       <!-- Functional Search Bar with Instant Autocomplete -->
-      <div class="flex-1 max-w-md relative" role="search">
+      <div class="order-3 md:order-2 w-full md:w-auto md:flex-1 md:max-w-md relative" role="search">
         <div class="relative flex items-center">
           <input
             id="search-input"
             type="text"
-            placeholder="Search anime, genres, studios (Press '/' to focus)..."
+            placeholder="Search anime, genres, studios..."
             autocomplete="off"
             oninput="handleSearchAutocomplete(this.value)"
             onfocus="if(this.value.trim()) handleSearchAutocomplete(this.value)"
             onkeydown="if(event.key === 'Enter'){ event.preventDefault(); hideSearchSuggestions(); } else if(event.key === 'Escape'){ hideSearchSuggestions(); this.blur(); }"
-            class="w-full h-10 pl-9 pr-9 rounded-xl bg-dark-800 text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
+            class="w-full h-12 md:h-10 pl-11 pr-11 rounded-xl bg-dark-800 text-base md:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
           />
-          <div class="absolute left-3 text-zinc-500 pointer-events-none">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="absolute left-3.5 md:left-3 text-zinc-500 pointer-events-none">
+            <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
           </div>
@@ -86,10 +93,10 @@
             id="search-clear-btn"
             type="button"
             onclick="clearSearchInput()"
-            class="absolute right-2.5 text-zinc-500 hover:text-zinc-200 hidden p-1 transition"
+            class="absolute right-3 md:right-2.5 text-zinc-500 hover:text-zinc-200 hidden p-1.5 md:p-1 transition"
             title="Clear search"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-[18px] h-[18px] md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
@@ -105,7 +112,7 @@
       </div>
 
       <!-- Header Navigation & User Actions -->
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="order-2 md:order-3 flex items-center gap-2 sm:gap-3 shrink-0">
         <!-- Multi-API Redundancy Status Indicator -->
         <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-750 text-xs text-zinc-300 shadow-sm" title="Streams & metadata backed by 5 independent APIs (HiAnime, Anivexa, AnimeWixi, ANIME-API, AniList) with automatic fallback">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -140,6 +147,144 @@
         </button>
       </div>
 
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MOBILE FILTER BAR & COLLAPSIBLE FILTER PANEL -->
+    <!-- Shown only at <= 768px (md:hidden). Desktop keeps the search field -->
+    <!-- in the header row and the horizontal genre pill bar below.        -->
+    <!-- ========================================== -->
+    <div class="md:hidden px-4 pb-3 space-y-2.5">
+      <!-- Filter actions: primary "Filter" toggle + advanced settings icon -->
+      <div class="flex items-center gap-2">
+        <button
+          id="mobile-filter-toggle"
+          type="button"
+          onclick="toggleMobileFilterPanel()"
+          aria-expanded="false"
+          aria-controls="mobile-filter-panel"
+          class="h-11 flex-1 inline-flex items-center justify-center gap-2 px-4 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-sm font-bold text-zinc-100 transition active:scale-95"
+        >
+          <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+          <span>Filter</span>
+          <span id="mobile-filter-count" class="hidden px-1.5 py-0.5 rounded-full bg-brand text-[10px] leading-none font-bold text-white font-mono">0</span>
+          <svg id="mobile-filter-chevron" class="w-3.5 h-3.5 text-zinc-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+          </svg>
+        </button>
+
+        <button
+          id="mobile-advanced-toggle"
+          type="button"
+          onclick="toggleAdvancedFilters()"
+          title="Advanced filters"
+          aria-expanded="false"
+          aria-controls="mobile-advanced-filters"
+          class="h-11 w-11 shrink-0 inline-flex items-center justify-center rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-zinc-300 hover:text-white transition active:scale-95"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+          </svg>
+          <span class="sr-only">Advanced filters</span>
+        </button>
+
+        <p id="mobile-filter-summary" class="flex-1 min-w-0 text-right text-xs text-zinc-500 truncate">All titles</p>
+      </div>
+
+      <!-- Collapsible filter form -->
+      <div id="mobile-filter-panel" class="hidden rounded-2xl bg-dark-900 border border-dark-750 p-4 space-y-4">
+
+        <div class="mobile-filter-grid">
+          <div class="mobile-filter-field">
+            <label for="mobile-filter-type">Type</label>
+            <select id="mobile-filter-type" onchange="applyMobileFilterField('type', this.value)">
+              <option value="All">All types</option>
+              <option value="TV">TV</option>
+              <option value="Movie">Movie</option>
+              <option value="OVA">OVA</option>
+              <option value="ONA">ONA</option>
+              <option value="Special">Special</option>
+            </select>
+          </div>
+
+          <div class="mobile-filter-field">
+            <label for="mobile-filter-genre">Genre</label>
+            <select id="mobile-filter-genre" onchange="applyMobileFilterField('genre', this.value)">
+              <option value="All">All genres</option>
+            </select>
+          </div>
+
+          <div class="mobile-filter-field">
+            <label for="mobile-filter-status">Status</label>
+            <select id="mobile-filter-status" onchange="applyMobileFilterField('status', this.value)">
+              <option value="All">Any status</option>
+              <option value="Ongoing">Ongoing</option>
+              <option value="Completed">Completed</option>
+              <option value="Upcoming">Upcoming</option>
+            </select>
+          </div>
+
+          <div class="mobile-filter-field">
+            <label for="mobile-filter-sort">Sort by</label>
+            <select id="mobile-filter-sort" onchange="applyMobileFilterField('sort', this.value)">
+              <option value="trending">Trending</option>
+              <option value="rating">Top rated</option>
+              <option value="newest">Newest first</option>
+              <option value="az">A – Z</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Advanced: revealed by the sliders icon next to the Filter button -->
+        <div id="mobile-advanced-filters" class="hidden space-y-4 pt-4 border-t border-dark-800">
+          <div class="mobile-filter-grid">
+            <div class="mobile-filter-field">
+              <label for="mobile-filter-rating">Minimum rating</label>
+              <select id="mobile-filter-rating" onchange="applyMobileFilterField('minRating', this.value)">
+                <option value="0">Any rating</option>
+                <option value="6">6.0 and up</option>
+                <option value="7">7.0 and up</option>
+                <option value="8">8.0 and up</option>
+                <option value="9">9.0 and up</option>
+              </select>
+            </div>
+
+            <div class="mobile-filter-field">
+              <label for="mobile-filter-era">Release era</label>
+              <select id="mobile-filter-era" onchange="applyMobileFilterField('era', this.value)">
+                <option value="Any">Any year</option>
+                <option value="2020s">2020s</option>
+                <option value="2010s">2010s</option>
+                <option value="2000s">2000s</option>
+                <option value="classic">Before 2000</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submission row: apply everything and close the sheet -->
+        <div class="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            onclick="applyMobileFilters()"
+            class="h-11 flex-1 inline-flex items-center justify-center gap-2 px-4 rounded-xl bg-brand hover:bg-brand-hover text-white text-sm font-bold shadow-lg shadow-brand/25 transition active:scale-95"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            <span>Show results</span>
+          </button>
+          <button
+            type="button"
+            onclick="resetMobileFilters()"
+            class="h-11 px-4 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-sm font-semibold text-zinc-300 hover:text-white transition active:scale-95"
+          >
+            Reset
+          </button>
+        </div>
+      </div>
     </div>
   </header>
 

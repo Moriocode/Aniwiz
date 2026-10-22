@@ -41,3 +41,89 @@
     font-family: var(--font-sans);
   }
 }
+
+/* ============================================================================
+ * MOBILE SEARCH & FILTER LAYOUT (<= 768px)
+ *
+ * The header keeps its original single-row desktop layout above 768px: the
+ * search field sits beside the logo and the genre pills stay a horizontal
+ * bar. Everything below only rearranges the same markup on phones, where the
+ * header stacks into: brand row -> full-width search row -> filter action row
+ * -> collapsible filter sheet.
+ * ========================================================================== */
+
+/* Balanced two-column grid for the filter selectors — the phone-sized layout
+   is the default because these controls only ever render inside the mobile
+   sheet. Below 320px it collapses to one column so no value is clipped.     */
+.mobile-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 319px) {
+  .mobile-filter-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* One labelled control in the sheet: stacked label + select, equal width.   */
+.mobile-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.mobile-filter-field > label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #71717a;
+}
+
+/* The select itself. 48px tall and 16px text: the minimum comfortable thumb
+   target, and large enough that iOS Safari does not zoom the page on focus. */
+.mobile-filter-field > select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 2.25rem 0 0.75rem;
+  font-size: 16px;
+  line-height: 1.25rem;
+  color: #e4e4e7;
+  background-color: #171c28;
+  border: 1px solid #232a3b;
+  border-radius: 0.75rem;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem 1rem;
+}
+
+.mobile-filter-field > select:focus {
+  outline: none;
+  border-color: var(--color-brand, #e50914);
+  box-shadow: 0 0 0 1px var(--color-brand, #e50914);
+}
+
+/* The open sheet is taller than the sticky header's normal band, so cap and
+   scroll it instead of pushing the page out of reach.                       */
+@media (max-width: 768px) {
+  #mobile-filter-panel {
+    max-height: min(60vh, 26rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Desktop (>= 768px): the mobile-only filter chrome never renders, and the
+   genre pill bar returns as the horizontal desktop filter control.          */
+@media (min-width: 769px) {
+  #mobile-filter-panel {
+    display: none !important;
+  }
+}
