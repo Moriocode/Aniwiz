@@ -133,7 +133,8 @@
             placeholder="Search anime, genres, studios (Press '/' to focus)..."
             autocomplete="off"
             oninput="handleSearchAutocomplete(this.value)"
-            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('search-autocomplete-box').classList.add('hidden'); }"
+            onfocus="if(this.value.trim()) handleSearchAutocomplete(this.value)"
+            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); hideSearchSuggestions(); } else if(event.key === 'Escape'){ hideSearchSuggestions(); this.blur(); }"
             class="w-full h-10 pl-9 pr-9 rounded-xl bg-dark-800 text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
           />
           <div class="absolute left-3 text-zinc-500 pointer-events-none">
@@ -579,6 +580,15 @@
       // Live data swaps in whenever it is ready — it must never block the UI.
       initializeCatalog();
 
+      // Close the suggestion dropdown when clicking anywhere outside it.
+      document.addEventListener('click', (event) => {
+        const box = document.getElementById('search-autocomplete-box');
+        const input = document.getElementById('search-input');
+        if (!box || box.classList.contains('hidden')) return;
+        if (box.contains(event.target) || input === event.target) return;
+        hideSearchSuggestions();
+      });
+
       // Listen to postMessage events from embedded player for auto-progress tracking
       window.addEventListener('message', (event) => {
         const msg = event.data;
@@ -804,9 +814,8 @@
               <!-- Quick sub/dub badge -->
               <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-semibold text-zinc-300">
                 <div class="flex items-center gap-1 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded">
-                  <span class="text-brand">SUB</span> ${subCount}
-                  <span class="text-zinc-500">·</span>
-                  <span class="text-blue-400">DUB</span> ${dubCount}
+                  <span class="text-brand">SUB</span>${subCount === '—' ? '' : ` ${subCount}`}
+                  ${dubCount === '—' ? '' : `<span class="text-zinc-500">·</span><span class="text-blue-400">DUB</span> ${dubCount}`}
                 </div>
                 <div class="flex items-center gap-0.5 bg-black/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-amber-400 font-bold">
                   ★ ${rating}
@@ -1333,6 +1342,73 @@
     /**
      * Search & Filter Handling
      */
+
+    /** Titles already loaded on this page that match the query (instant, no network). */
+    function localSearchMatches(query, limit = 6) {
+      const q = query.trim().toLowerCase();
+      if (!q) return [];
+
+      const scored = [];
+      for (const anime of fullCatalog) {
+        const title = (anime.title || '').toLowerCase();
+        const alt = (anime.altTitle || '').toLowerCase();
+        let score = -1;
+        if (title.startsWith(q) || alt.startsWith(q)) score = 0;
+        else if (title.includes(q) || alt.includes(q)) score = 1;
+        else if ((anime.genres || []).some(g => g.toLowerCase().includes(q)) ||
+                 (anime.studios || []).some(s => s.toLowerCase().includes(q))) score = 2;
+        if (score >= 0) scored.push({ anime, score });
+      }
+
+      return scored.sort((a, b) => a.score - b.score).slice(0, limit).map(s => s.anime);
+    }
+
+    function renderSearchSuggestionRow(item) {
+      const meta = [item.type, item.year, item.rating != null ? `★ ${item.rating}` : '']
+        .filter(Boolean)
+        .join(' · ');
+      return `
+        <div
+          onclick="openAnimeFromCard('${item.id}'); hideSearchSuggestions();"
+          class="p-2.5 flex items-center gap-3 hover:bg-dark-800 cursor-pointer transition"
+        >
+          ${safeImg(item.poster, 'w-9 h-12 object-cover rounded bg-dark-950 shrink-0')}
+          <div class="flex-1 min-w-0">
+            <p class="font-bold text-zinc-100 truncate">${escapeHtml(item.title)}</p>
+            <p class="text-[10px] text-zinc-500 truncate">${escapeHtml(meta || 'Anime')}</p>
+          </div>
+          <span class="text-[10px] text-zinc-600 shrink-0">Open</span>
+        </div>
+      `;
+    }
+
+    /**
+     * Paint the suggestion dropdown. Local matches render at once, so typing
+     * never shows an empty panel while the provider search is in flight.
+     */
+    function renderSearchSuggestions(items, statusText) {
+      const box = document.getElementById('search-autocomplete-box');
+      if (!box) return;
+
+      const rows = (items || []).slice(0, 8).map(renderSearchSuggestionRow).join('');
+      const footer = statusText
+        ? `<div class="px-3 py-2 text-[10px] text-zinc-500 bg-dark-950/60">${escapeHtml(statusText)}</div>`
+        : '';
+
+      if (!rows && !footer) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      box.innerHTML = rows + footer;
+      box.classList.remove('hidden');
+    }
+
+    function hideSearchSuggestions() {
+      document.getElementById('search-autocomplete-box')?.classList.add('hidden');
+    }
+    window.hideSearchSuggestions = hideSearchSuggestions;
+
     function handleSearchAutocomplete(query) {
       const clearBtn = document.getElementById('search-clear-btn');
       const suggestBox = document.getElementById('search-autocomplete-box');
@@ -1361,6 +1437,10 @@
       }
       applyCatalogFilters();
 
+      // Instant local suggestions first, then the live provider results.
+      const localMatches = localSearchMatches(query);
+      renderSearchSuggestions(localMatches, localMatches.length ? '' : 'Searching all anime…');
+
       const requestedQuery = query.trim();
       const requestSeq = ++searchRequestSeq;
 
@@ -1373,32 +1453,18 @@
           results = Array.isArray(outcome?.results) ? outcome.results : [];
         } catch (e) {}
 
-        if (suggestBox) {
-          if (results.length > 0) {
-            suggestBox.innerHTML = results.slice(0, 6).map(s => `
-              <div
-                onclick="openAnimeFromCard('${s.id}'); document.getElementById('search-autocomplete-box').classList.add('hidden');"
-                class="p-2.5 flex items-center gap-3 hover:bg-dark-800 cursor-pointer transition"
-              >
-                ${safeImg(s.poster, 'w-8 h-11 object-cover rounded bg-dark-950 shrink-0')}
-                <div class="flex-1 min-w-0">
-                  <p class="font-bold text-zinc-100 truncate">${escapeHtml(s.title)}</p>
-                  <p class="text-[10px] text-zinc-500">★ ${s.rating != null ? s.rating : '—'}</p>
-                </div>
-              </div>
-            `).join('');
-            suggestBox.classList.remove('hidden');
-          } else {
-            suggestBox.classList.add('hidden');
-          }
+        // A newer keystroke (or a cleared box) already replaced this request.
+        if (requestSeq !== searchRequestSeq) return;
+
+        const suggestions = results.length > 0 ? results : localMatches;
+        if (suggestions.length > 0) {
+          renderSearchSuggestions(suggestions, '');
+        } else {
+          renderSearchSuggestions([], `No anime found for “${requestedQuery}”`);
         }
 
         // Surface titles beyond the currently loaded catalog on the grid
-        if (
-          requestSeq === searchRequestSeq &&
-          activeQuery.trim() === requestedQuery &&
-          results.length > 0
-        ) {
+        if (activeQuery.trim() === requestedQuery && results.length > 0) {
           searchResults = { query: requestedQuery, items: results };
           applyCatalogFilters();
         }

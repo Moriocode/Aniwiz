@@ -19,6 +19,85 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
  * unchanged under Connect, `vite preview` and Vercel's Node.js runtime.
  */
 
+/**
+ * AniList GraphQL helpers.
+ *
+ * The public API rate-limits by IP (roughly 90 requests/minute) and every page
+ * load asks for the catalogue, so successful responses are cached for a short
+ * window. That keeps the proxy a dependable fallback for viewers whose browser
+ * cannot reach graphql.anilist.co directly.
+ */
+const ANILIST_ENDPOINT = 'https://graphql.anilist.co';
+const ANILIST_PROXY_TIMEOUT_MS = 9000;
+const ANILIST_CACHE_LIMIT = 120;
+const anilistCache = new Map<string, { at: number; status: number; body: string }>();
+
+/** Media selection shared by every query below (mirrors ANILIST_MEDIA_FIELDS). */
+const ANILIST_MEDIA_SELECTION = `
+  id
+  idMal
+  title { romaji english native }
+  coverImage { extraLarge large medium color }
+  bannerImage
+  description
+  episodes
+  duration
+  status
+  seasonYear
+  season
+  format
+  averageScore
+  genres
+  studios(isMain: true) { nodes { name } }
+`;
+
+async function proxyAniList(
+  query: string,
+  variables: Record<string, unknown> | undefined,
+  cacheKey: string,
+  ttlMs: number
+): Promise<{ status: number; body: string }> {
+  const cached = anilistCache.get(cacheKey);
+  if (cached && Date.now() - cached.at < ttlMs) {
+    return { status: cached.status, body: cached.body };
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ANILIST_PROXY_TIMEOUT_MS);
+  try {
+    const upstream = await fetch(ANILIST_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ query, variables }),
+      signal: controller.signal,
+    });
+    const body = await upstream.text();
+    const status = upstream.ok ? 200 : upstream.status;
+
+    if (upstream.ok) {
+      // Drop the oldest entry once the cache is full so searches cannot grow it
+      // without bound.
+      if (anilistCache.size >= ANILIST_CACHE_LIMIT) {
+        const oldest = anilistCache.keys().next().value;
+        if (oldest !== undefined) anilistCache.delete(oldest);
+      }
+      anilistCache.set(cacheKey, { at: Date.now(), status, body });
+    }
+
+    return { status, body };
+  } catch (err: any) {
+    return {
+      status: 502,
+      body: JSON.stringify({
+        error: 'anilist_unreachable',
+        detail: err?.name === 'AbortError' ? 'timeout' : String(err?.message || err),
+      }),
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export type AnipmApiNext = (err?: unknown) => void;
 
 export type AnipmApiMiddleware = (
@@ -254,130 +333,89 @@ export const anipmApiMiddleware: AnipmApiMiddleware = (req, res, next) => {
   }
 
   // ==========================================
-  // ANIMEFLIX ANILIST GRAPHQL API PROXY
+  // ANIMEFLIX ANILIST GRAPHQL API PROXY — cached fallback for the direct client
   // Repository: https://github.com/chirag-droid/animeflix
+  //
+  // The browser queries AniList directly (src/services/api/anilistClient.ts,
+  // AniList sends Access-Control-Allow-Origin: *) and only uses these routes
+  // when that fails. Every media selection mirrors ANILIST_MEDIA_FIELDS so the
+  // poster, score, type, runtime, status and studio always arrive.
   // ==========================================
   if (url.pathname.startsWith('/api/anilist/')) {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', '*');
 
+    const sendAniList = (promise: Promise<{ status: number; body: string }>) => {
+      promise.then(({ status, body }) => {
+        res.statusCode = status;
+        res.end(body);
+      });
+    };
+
     if (url.pathname === '/api/anilist/browse') {
-      const query = `
+      const browseQuery = `
         query {
-          trending: Page(page: 1, perPage: 30) {
-            media(sort: TRENDING_DESC, type: ANIME, isAdult: false) {
-              id
-              idMal
-              title { romaji english native }
-              coverImage { extraLarge large medium color }
-              bannerImage
-              description
-              episodes
-              seasonYear
-              season
-              format
-              averageScore
-              genres
-            }
+          trending: Page(page: 1, perPage: 50) {
+            media(sort: TRENDING_DESC, type: ANIME, isAdult: false) { ${ANILIST_MEDIA_SELECTION} }
           }
-          popular: Page(page: 1, perPage: 30) {
-            media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) {
-              id
-              idMal
-              title { romaji english native }
-              coverImage { extraLarge large medium color }
-              bannerImage
-              description
-              episodes
-              seasonYear
-              season
-              format
-              averageScore
-              genres
-            }
+          popular: Page(page: 1, perPage: 50) {
+            media(sort: POPULARITY_DESC, type: ANIME, isAdult: false) { ${ANILIST_MEDIA_SELECTION} }
           }
-          topRated: Page(page: 1, perPage: 30) {
-            media(sort: SCORE_DESC, type: ANIME, isAdult: false) {
-              id
-              idMal
-              title { romaji english native }
-              coverImage { extraLarge large medium color }
-              bannerImage
-              description
-              episodes
-              seasonYear
-              season
-              format
-              averageScore
-              genres
-            }
+          topRated: Page(page: 1, perPage: 50) {
+            media(sort: SCORE_DESC, type: ANIME, isAdult: false) { ${ANILIST_MEDIA_SELECTION} }
           }
         }
       `;
-
-            upstreamFetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ query })
-      })
-        .then(aniRes => aniRes.json())
-        .then(data => {
-          res.end(JSON.stringify(data));
-        })
-        .catch(err => {
-          console.debug('[AniList GraphQL Proxy fallback]:', err?.message);
-          res.statusCode = 502;
-          res.end(JSON.stringify({ error: 'Fallback to offline catalog', fallback: true }));
-        });
+      sendAniList(proxyAniList(browseQuery, undefined, 'browse', 60_000));
       return;
     }
 
     if (url.pathname === '/api/anilist/search') {
       const q = url.searchParams.get('q') || '';
+      const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
       const searchQuery = `
-        query ($search: String) {
-          Page(page: 1, perPage: 18) {
-            media(search: $search, type: ANIME, isAdult: false) {
-              id
-              idMal
-              title { romaji english native }
-              coverImage { extraLarge large medium color }
-              bannerImage
-              description
-              episodes
-              seasonYear
-              season
-              format
-              averageScore
-              genres
-            }
+        query ($search: String, $page: Int) {
+          Page(page: $page, perPage: 24) {
+            pageInfo { total }
+            media(search: $search, type: ANIME, isAdult: false) { ${ANILIST_MEDIA_SELECTION} }
           }
         }
       `;
+      sendAniList(proxyAniList(searchQuery, { search: q, page }, `search:${page}:${q.toLowerCase()}`, 60_000));
+      return;
+    }
 
-            upstreamFetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ query: searchQuery, variables: { search: q } })
-      })
-        .then(aniRes => aniRes.json())
-        .then(data => {
-          res.end(JSON.stringify(data));
-        })
-        .catch(err => {
-          res.statusCode = 502;
-          res.end(JSON.stringify({ error: err?.message, fallback: true }));
-        });
+    if (url.pathname === '/api/anilist/by-ids') {
+      const ids = (url.searchParams.get('ids') || '')
+        .split(',')
+        .map((value) => Number(value.trim()))
+        .filter((id) => Number.isInteger(id) && id > 0)
+        .slice(0, 50);
+
+      if (ids.length === 0) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: 'ids_required', detail: 'Pass ?ids=1,2,3 with up to 50 AniList ids.' }));
+        return;
+      }
+
+      const byIdsQuery = `
+        query ($ids: [Int]) {
+          Page(page: 1, perPage: 50) {
+            media(id_in: $ids, type: ANIME, isAdult: false) { ${ANILIST_MEDIA_SELECTION} }
+          }
+        }
+      `;
+      sendAniList(proxyAniList(byIdsQuery, { ids }, `by-ids:${ids.join(',')}`, 10 * 60_000));
       return;
     }
 
     if (url.pathname === '/api/anilist/schedule') {
       const now = Math.floor(Date.now() / 1000);
       const scheduleQuery = `
-        query {
+        query ($now: Int) {
           Page(page: 1, perPage: 24) {
-            airingSchedules(airingAt_greater: ${now}, sort: TIME) {
+            airingSchedules(airingAt_greater: $now, sort: TIME) {
               id
               airingAt
               episode
@@ -393,44 +431,22 @@ export const anipmApiMiddleware: AnipmApiMiddleware = (req, res, next) => {
           }
         }
       `;
-
-            upstreamFetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ query: scheduleQuery })
-      })
-        .then(aniRes => aniRes.json())
-        .then(data => {
-          res.end(JSON.stringify(data));
-        })
-        .catch(err => {
-          res.statusCode = 502;
-          res.end(JSON.stringify({ error: err?.message, data: { Page: { airingSchedules: [] } } }));
-        });
+      sendAniList(proxyAniList(scheduleQuery, { now }, 'schedule', 120_000));
       return;
     }
 
     if (url.pathname.startsWith('/api/anilist/details/')) {
-      const rawId = url.pathname.replace('/api/anilist/details/', '').trim();
-      const id = Number(rawId);
+      const cleanId = url.pathname.replace('/api/anilist/details/', '').replace(/[^0-9]/g, '');
+      if (!cleanId) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: 'numeric_id_required' }));
+        return;
+      }
+
       const detailsQuery = `
         query ($id: Int) {
           Media(id: $id, type: ANIME) {
-            id
-            idMal
-            title { romaji english native }
-            coverImage { extraLarge large medium }
-            bannerImage
-            description
-            episodes
-            duration
-            status
-            seasonYear
-            season
-            format
-            averageScore
-            genres
-            studios(isMain: true) { nodes { name } }
+            ${ANILIST_MEDIA_SELECTION}
             trailer { id site }
             characters(perPage: 8, sort: ROLE) {
               nodes {
@@ -441,22 +457,13 @@ export const anipmApiMiddleware: AnipmApiMiddleware = (req, res, next) => {
           }
         }
       `;
-
-            upstreamFetch('https://graphql.anilist.co', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({ query: detailsQuery, variables: { id } })
-      })
-        .then(aniRes => aniRes.json())
-        .then(data => {
-          res.end(JSON.stringify(data));
-        })
-        .catch(err => {
-          res.statusCode = 502;
-          res.end(JSON.stringify({ error: err?.message }));
-        });
+      sendAniList(proxyAniList(detailsQuery, { id: Number(cleanId) }, `details:${cleanId}`, 10 * 60_000));
       return;
     }
+
+    res.statusCode = 404;
+    res.end(JSON.stringify({ error: 'unknown_anilist_route', path: url.pathname }));
+    return;
   }
 
   // ==========================================
