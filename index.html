@@ -107,25 +107,50 @@
   <!-- TOP NAVIGATION HEADER                      -->
   <!-- ========================================== -->
   <header class="sticky top-0 z-40 w-full bg-dark-900/95 backdrop-blur-md border-b border-dark-800 transition-colors">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3 sm:gap-6">
-      
-      <!-- Brand Logo -->
-      <a href="#browse-section" onclick="resetFiltersAndSearch()" class="flex items-center gap-2.5 shrink-0 group">
-        <div class="w-9 h-9 rounded-xl bg-brand flex items-center justify-center text-white shadow-lg shadow-brand/20 transition-transform group-hover:scale-105">
+    <!-- Mobile: 3-slot grid so the brand is optically centred between the
+         drawer trigger and the search shortcut. Desktop: single flex row. -->
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 lg:flex lg:gap-6">
+
+      <!-- Side-drawer trigger (mobile / tablet only) -->
+      <button
+        id="drawer-open-btn"
+        type="button"
+        onclick="toggleSideDrawer(true)"
+        aria-label="Open navigation menu"
+        aria-controls="side-drawer"
+        aria-expanded="false"
+        class="lg:hidden justify-self-start -ml-1 w-10 h-10 flex items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-dark-800 transition active:scale-95"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/>
+        </svg>
+      </button>
+
+      <!-- Brand Logo: centred on mobile, leading edge on desktop -->
+      <a href="#browse-section" onclick="resetFiltersAndSearch()" class="justify-self-center lg:justify-self-auto flex items-center gap-2.5 shrink-0 group">
+        <!-- The mark is dropped below lg so the wordmark itself (not the
+             icon + wordmark unit) sits exactly on the header centreline. -->
+        <div class="hidden lg:flex w-9 h-9 rounded-xl bg-brand items-center justify-center text-white shadow-lg shadow-brand/20 transition-transform group-hover:scale-105">
           <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24">
             <path d="M8 5.14v14l11-7-11-7z"/>
           </svg>
         </div>
         <div class="flex flex-col">
-          <span class="text-lg sm:text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
+          <span class="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
             Ani<span class="text-brand">Stream</span>
-            <span class="text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded bg-dark-800 text-zinc-400 border border-dark-750 font-mono font-semibold">HD</span>
+            <span class="hidden lg:inline text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded bg-dark-800 text-zinc-400 border border-dark-750 font-mono font-semibold">HD</span>
           </span>
         </div>
       </a>
 
-      <!-- Functional Search Bar with Instant Autocomplete -->
-      <div class="flex-1 max-w-md relative" role="search">
+      <!-- Search: a full-width row under the header on mobile (toggled by the
+           magnifier), inline in the bar from lg up. One input, one autocomplete. -->
+      <div
+        id="search-shell"
+        class="hidden lg:block fixed left-0 right-0 top-16 z-40 px-3 pb-3 bg-dark-900 border-b border-dark-800 shadow-xl lg:static lg:flex-1 lg:max-w-md lg:px-0 lg:pb-0 lg:border-0 lg:bg-transparent lg:shadow-none"
+        role="search"
+      >
+        <div class="relative">
         <div class="relative flex items-center">
           <input
             id="search-input"
@@ -133,7 +158,7 @@
             placeholder="Search anime, genres, studios (Press '/' to focus)..."
             autocomplete="off"
             oninput="handleSearchAutocomplete(this.value)"
-            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('search-autocomplete-box').classList.add('hidden'); }"
+            onkeydown="if(event.key === 'Enter'){ event.preventDefault(); document.getElementById('search-autocomplete-box').classList.add('hidden'); } else if(event.key === 'Escape'){ toggleMobileSearch(false); this.blur(); }"
             class="w-full h-10 pl-9 pr-9 rounded-xl bg-dark-800 text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
           />
           <div class="absolute left-3 text-zinc-500 pointer-events-none">
@@ -161,12 +186,28 @@
         >
           <!-- Autocomplete results rendered dynamically -->
         </div>
+        </div>
       </div>
 
       <!-- Header Navigation & User Actions -->
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="justify-self-end lg:justify-self-auto flex items-center gap-2 sm:gap-3">
+        <!-- Standalone search shortcut (mobile / tablet) -->
+        <button
+          id="mobile-search-btn"
+          type="button"
+          onclick="toggleMobileSearch()"
+          aria-label="Search anime"
+          aria-controls="search-shell"
+          aria-expanded="false"
+          class="lg:hidden -mr-1 w-10 h-10 flex items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-dark-800 transition active:scale-95"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </button>
+
         <!-- Multi-API Redundancy Status Indicator -->
-        <div class="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-750 text-xs text-zinc-300 shadow-sm" title="Streams & metadata backed by 5 independent APIs (HiAnime, Anivexa, AnimeWixi, ANIME-API, AniList) with automatic fallback">
+        <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-750 text-xs text-zinc-300 shadow-sm" title="Streams & metadata backed by 5 independent APIs (HiAnime, Anivexa, AnimeWixi, ANIME-API, AniList) with automatic fallback">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
           <span class="font-medium text-zinc-300">Multi-API Cascade</span>
           <span class="text-[10px] px-1.5 py-0.5 bg-dark-900 border border-dark-700/60 rounded text-emerald-400 font-mono font-semibold">Active</span>
@@ -175,7 +216,7 @@
         <!-- Quick Schedule Button -->
         <button
           onclick="toggleScheduleModal()"
-          class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-300 transition shrink-0 hover:text-white active:scale-95"
+          class="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-300 transition shrink-0 hover:text-white active:scale-95"
           title="Weekly Airing Schedule"
         >
           <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,11 +225,24 @@
           <span>Schedule</span>
         </button>
 
+        <!-- My List (desktop entry point; mobile uses the bottom bar) -->
+        <button
+          type="button"
+          onclick="toggleMyListModal(true)"
+          title="My List"
+          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-200 transition shrink-0 active:scale-95"
+        >
+          <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+          <span>My List</span>
+        </button>
+
         <!-- Watch History Button with Count -->
         <button
           id="history-btn"
           onclick="toggleHistoryModal()"
-          class="relative flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-200 transition shrink-0 active:scale-95"
+          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-200 transition shrink-0 active:scale-95"
           title="Watch History & Continue Watching"
         >
           <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -203,14 +257,97 @@
   </header>
 
   <!-- ========================================== -->
+  <!-- MOBILE SIDE DRAWER                          -->
+  <!-- ========================================== -->
+  <div id="side-drawer" class="fixed inset-0 z-50 hidden lg:hidden" aria-hidden="true">
+    <!-- Scrim: tap outside to close -->
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onclick="toggleSideDrawer(false)"></div>
+
+    <aside
+      id="side-drawer-panel"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Main menu"
+      class="absolute inset-y-0 left-0 w-[82%] max-w-xs -translate-x-full transition-transform duration-300 ease-out bg-dark-900 border-r border-dark-800 shadow-2xl flex flex-col"
+    >
+      <div class="h-16 px-4 flex items-center justify-between border-b border-dark-800 shrink-0">
+        <a href="#browse-section" onclick="toggleSideDrawer(false); resetFiltersAndSearch();" class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-brand flex items-center justify-center text-white">
+            <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5.14v14l11-7-11-7z"/></svg>
+          </div>
+          <span class="text-lg font-extrabold tracking-tight text-white">Ani<span class="text-brand">Stream</span></span>
+        </a>
+        <button
+          type="button"
+          onclick="toggleSideDrawer(false)"
+          aria-label="Close navigation menu"
+          class="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-400 hover:text-white hover:bg-dark-800 transition"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Drawer navigation">
+        <button type="button" onclick="handleBottomNav('home')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
+          <svg class="w-4.5 h-4.5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg>
+          Home
+        </button>
+        <button type="button" onclick="handleBottomNav('explore')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
+          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.5 8.5l-2 5-5 2 2-5 5-2z"/></svg>
+          Explore
+        </button>
+        <button type="button" onclick="toggleSideDrawer(false); focusSearch();" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
+          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          Search
+        </button>
+        <button type="button" onclick="handleBottomNav('mylist')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
+          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          My List
+        </button>
+        <button type="button" onclick="handleBottomNav('history')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
+          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          History
+        </button>
+
+        <div class="pt-3 mt-3 border-t border-dark-800">
+          <button type="button" onclick="toggleSideDrawer(false); toggleScheduleModal();" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
+            <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            Weekly Schedule
+          </button>
+        </div>
+      </nav>
+
+      <div class="p-4 border-t border-dark-800 text-[11px] text-zinc-500 flex items-center gap-2 shrink-0">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        Multi-API cascade active · HD streaming
+      </div>
+    </aside>
+  </div>
+
+  <!-- ========================================== -->
   <!-- MAIN APPLICATION CONTENT                   -->
   <!-- ========================================== -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 w-full py-6 flex-1">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 w-full pt-4 sm:pt-6 pb-6 flex-1 nav-spacer">
 
     <!-- ========================================== -->
     <!-- BROWSE SECTION: Spotlight & Catalog        -->
     <!-- ========================================== -->
-    <section id="browse-section" class="space-y-8">
+    <section id="browse-section" class="space-y-7">
+
+      <!-- Horizontal content-type switcher (MyKisah pattern) -->
+      <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-800/80 -mt-1">
+        <div id="category-tabs-track" class="flex items-center gap-6 sm:gap-8 overflow-x-auto scrollbar-none">
+          <button
+            type="button"
+            data-category="all"
+            onclick="setCategory('all')"
+            aria-current="true"
+            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors border-brand text-white"
+          >Anime</button>
+        </div>
+      </nav>
 
       <!-- Hero Spotlight Banner -->
       <div id="hero-banner" class="relative rounded-2xl overflow-hidden bg-dark-900 border border-dark-800 min-h-[300px] sm:min-h-[380px] flex items-end p-6 sm:p-10 shadow-2xl">
@@ -268,13 +405,61 @@
         </div>
       </div>
 
-      <!-- Interactive Genre Category Bar -->
-      <div class="space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Filter by Category</h2>
-          <span id="catalog-count-badge" class="text-xs font-medium text-zinc-500">Showing all releases</span>
+      <!-- CONTINUE WATCHING: broad landscape thumbnails -->
+      <section id="continue-watching-section" class="hidden space-y-3">
+        <div class="flex items-end justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Lanjutkan Menonton</h2>
+            <p class="text-[11px] text-zinc-500 mt-0.5">Pick up exactly where you left off</p>
+          </div>
+          <button
+            type="button"
+            onclick="toggleHistoryModal()"
+            class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
+          >
+            History
+          </button>
         </div>
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none" id="genre-filter-bar">
+        <div
+          id="continue-watching-row"
+          class="flex gap-3 overflow-x-auto pb-1 scrollbar-none snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0"
+        >
+          <!-- Populated dynamically via renderContinueWatching -->
+        </div>
+      </section>
+
+      <!-- RECENT EPISODES: compact labelled row (3 across on phones) -->
+      <section id="recent-episodes-section" class="space-y-3">
+        <div class="flex items-end justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Episode Terbaru</h2>
+            <p id="recent-episodes-subtitle" class="text-[11px] text-zinc-500 mt-0.5">Trending episodes across the catalogue</p>
+          </div>
+          <button
+            type="button"
+            onclick="scrollToAllAnime()"
+            class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
+          >
+            Semua
+          </button>
+        </div>
+        <div id="recent-episodes-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3">
+          <!-- Populated dynamically via renderRecentEpisodes -->
+        </div>
+      </section>
+
+      <!-- ALL ANIME: searchable / filterable full catalogue -->
+      <section id="all-anime" class="space-y-4 scroll-mt-20">
+        <div class="flex items-end justify-between gap-3">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Semua Anime</h2>
+            <p class="text-[11px] text-zinc-500 mt-0.5">Browse the full catalogue</p>
+          </div>
+          <span id="catalog-count-badge" class="text-[11px] sm:text-xs font-medium text-zinc-500 shrink-0">Showing all releases</span>
+        </div>
+
+        <!-- Interactive Genre Category Bar -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="genre-filter-bar">
           <button onclick="filterByGenre('All')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand text-white transition shrink-0 active:scale-95">All</button>
           <button onclick="filterByGenre('Action')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Action</button>
           <button onclick="filterByGenre('Adventure')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Adventure</button>
@@ -284,17 +469,12 @@
           <button onclick="filterByGenre('Supernatural')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Supernatural</button>
           <button onclick="filterByGenre('Drama')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Drama</button>
         </div>
-      </div>
 
-      <!-- Main Anime Grid Section -->
-      <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 id="catalog-section-heading" class="text-lg sm:text-xl font-bold text-white tracking-tight flex items-center gap-2">
-            <span>Trending Anime Releases</span>
+        <div class="flex items-center justify-between gap-3 pt-1">
+          <h3 id="catalog-section-heading" class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+            Trending Releases
           </h3>
-          <div class="flex items-center gap-2 text-xs text-zinc-400">
-            <span>HD Quality Guaranteed</span>
-          </div>
+          <span class="hidden sm:inline text-[11px] text-zinc-500">HD Quality Guaranteed</span>
         </div>
 
         <!-- Anime Cards Grid -->
@@ -311,7 +491,7 @@
           <p class="text-xs text-zinc-400 max-w-sm mx-auto">We couldn't find any anime matching your criteria. Try adjusting your search query or reset your genre filters.</p>
           <button onclick="resetFiltersAndSearch()" class="px-4 py-2 rounded-xl bg-brand text-white text-xs font-semibold shadow transition active:scale-95">Reset Filters</button>
         </div>
-      </div>
+      </section>
 
     </section>
 
@@ -468,6 +648,84 @@
   </main>
 
   <!-- ========================================== -->
+  <!-- MOBILE BOTTOM NAVIGATION (5 shortcuts)     -->
+  <!-- ========================================== -->
+  <nav
+    id="bottom-nav"
+    aria-label="Mobile primary navigation"
+    class="fixed inset-x-0 bottom-0 z-40 lg:hidden px-3 pb-safe pointer-events-none"
+  >
+    <div class="pointer-events-auto mx-auto max-w-md h-16 grid grid-cols-5 rounded-2xl border border-dark-800 bg-dark-900/95 backdrop-blur-xl shadow-2xl shadow-black/70 overflow-hidden">
+      <!-- Home -->
+      <button
+        type="button"
+        data-nav="home"
+        onclick="handleBottomNav('home')"
+        aria-current="page"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-brand transition-colors active:scale-95"
+      >
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/>
+        </svg>
+        <span class="text-[11px] font-medium leading-none">Home</span>
+      </button>
+
+      <!-- Explore -->
+      <button
+        type="button"
+        data-nav="explore"
+        onclick="handleBottomNav('explore')"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+      >
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" stroke-width="2"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.5 8.5l-2 5-5 2 2-5 5-2z"/>
+        </svg>
+        <span class="text-[11px] font-medium leading-none">Explore</span>
+      </button>
+
+      <!-- Search -->
+      <button
+        type="button"
+        data-nav="search"
+        onclick="handleBottomNav('search')"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+      >
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <span class="text-[11px] font-medium leading-none">Search</span>
+      </button>
+
+      <!-- My List -->
+      <button
+        type="button"
+        data-nav="mylist"
+        onclick="handleBottomNav('mylist')"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+      >
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+        <span class="text-[11px] font-medium leading-none">My List</span>
+      </button>
+
+      <!-- History -->
+      <button
+        type="button"
+        data-nav="history"
+        onclick="handleBottomNav('history')"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+      >
+        <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-[11px] font-medium leading-none">History</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ========================================== -->
   <!-- WATCH HISTORY & CONTINUE WATCHING MODAL    -->
   <!-- ========================================== -->
   <div id="history-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -489,6 +747,35 @@
       <div class="p-3 border-t border-dark-800 bg-dark-950 flex items-center justify-between text-xs">
         <button onclick="clearAllWatchHistory()" class="text-red-400 hover:text-red-300 font-medium">Clear History</button>
         <button onclick="toggleHistoryModal()" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-white font-semibold">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MY LIST MODAL (saved titles)               -->
+  <!-- ========================================== -->
+  <div id="mylist-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-900 border border-dark-750 rounded-2xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden text-zinc-200">
+      <div class="p-4 sm:p-5 border-b border-dark-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-brand/15 text-brand flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-white">My List</h3>
+            <p id="mylist-count" class="text-[11px] text-zinc-500">0 saved titles</p>
+          </div>
+        </div>
+        <button onclick="toggleMyListModal(false)" class="text-zinc-400 hover:text-white p-1" aria-label="Close My List">✕</button>
+      </div>
+
+      <div id="mylist-modal-list" class="p-4 sm:p-5 max-h-96 overflow-y-auto divide-y divide-dark-800 text-xs space-y-2">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="p-3 border-t border-dark-800 bg-dark-950 flex items-center justify-between text-xs">
+        <button onclick="clearMyList()" class="text-red-400 hover:text-red-300 font-medium">Clear List</button>
+        <button onclick="toggleMyListModal(false)" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-white font-semibold">Done</button>
       </div>
     </div>
   </div>
@@ -524,7 +811,7 @@
   <!-- ========================================== -->
   <!-- CLEAN ENTERTAINMENT FOOTER                 -->
   <!-- ========================================== -->
-  <footer class="mt-auto border-t border-dark-800 bg-dark-950 py-8 text-xs text-zinc-500">
+  <footer class="mt-auto border-t border-dark-800 bg-dark-950 pt-8 pb-28 md:pb-8 text-xs text-zinc-500">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2.5">
         <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white text-xs font-bold">AS</div>
@@ -562,7 +849,9 @@
     // Catalog filter state (genre + free-text search) shared by the hero, grid and badges
     let fullCatalog = [];
     let activeGenre = 'All';
+    let activeCategory = 'all';
     let activeQuery = '';
+    const MY_LIST_KEY = 'anistream_mylist_v1';
     // Results of the last server-side search: { query, items }
     let searchResults = null;
     let searchRequestSeq = 0;
@@ -576,6 +865,8 @@
       // is visible (this is what made slow upstreams feel like a minute-long load).
       paintOfflineCatalog();
       updateHistoryBadge();
+      renderContinueWatching();
+      setBottomNavActive('home');
 
       // Live data swaps in whenever it is ready — it must never block the UI.
       initializeCatalog();
@@ -602,9 +893,12 @@
         const tag = document.activeElement?.tagName?.toLowerCase();
         if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 
-        if (e.key === '/') {
+        if (e.key === 'Escape') {
+          toggleSideDrawer(false);
+          toggleMobileSearch(false);
+        } else if (e.key === '/') {
           e.preventDefault();
-          document.getElementById('search-input')?.focus();
+          focusSearch();
         } else if (e.key === 's' || e.key === 'S') {
           skipOpeningCredits();
         } else if (e.key === '1') {
@@ -629,6 +923,7 @@
     function paintOfflineCatalog() {
       fullCatalog = FALLBACK_ANIME_CATALOG;
       renderHeroBanner(FALLBACK_ANIME_CATALOG[0]);
+      renderCategoryTabs();
       applyCatalogFilters();
 
       const badge = document.getElementById('catalog-count-badge');
@@ -645,7 +940,9 @@
         const hero = spotlights[0] || trending[0] || FALLBACK_ANIME_CATALOG[0];
         fullCatalog = trending.length > 0 ? trending : FALLBACK_ANIME_CATALOG;
         renderHeroBanner(hero);
+        renderCategoryTabs();
         applyCatalogFilters();
+        renderContinueWatching();
       } catch (err) {
         fullCatalog = FALLBACK_ANIME_CATALOG;
         renderHeroBanner(FALLBACK_ANIME_CATALOG[0]);
@@ -718,6 +1015,7 @@
         const subCount = anime.subEpisodes || anime.totalEpisodes || 12;
         const dubCount = anime.dubEpisodes || Math.max(1, subCount - 2);
         const rating = anime.rating || 9.0;
+        const saved = isInMyList(anime.id);
 
         return `
           <div
@@ -741,6 +1039,19 @@
                   ${anime.quality || 'HD'}
                 </span>
               </div>
+
+              <!-- Save / remove shortcut (feeds My List) -->
+              <button
+                type="button"
+                onclick="event.stopPropagation(); toggleMyList('${anime.id}')"
+                title="${saved ? 'Remove from My List' : 'Save to My List'}"
+                aria-label="${saved ? 'Remove from My List' : 'Save to My List'}"
+                class="absolute top-2 right-2 z-10 w-7 h-7 rounded-lg bg-black/70 backdrop-blur-sm flex items-center justify-center ${saved ? 'text-brand' : 'text-zinc-300 hover:text-brand'} transition active:scale-90"
+              >
+                <svg class="w-3.5 h-3.5" fill="${saved ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </button>
 
               <!-- Quick sub/dub badge -->
               <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-semibold text-zinc-300">
@@ -826,6 +1137,10 @@
       window.currentEpisode = currentEpisode;
       window._hasAutoSkippedThisEp = false;
 
+      // A mobile search overlay must not float above the player.
+      toggleMobileSearch(false);
+      toggleSideDrawer(false);
+
       // Update Views
       document.getElementById('browse-section')?.classList.add('hidden');
       document.getElementById('watch-section')?.classList.remove('hidden');
@@ -881,6 +1196,7 @@
       if (window._activeHls) { try { window._activeHls.destroy(); } catch (e) {} window._activeHls = null; }
       const player = document.getElementById('player');
       if (player) player.innerHTML = '';
+      renderContinueWatching();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     window.closeWatchPage = closeWatchPage;
@@ -1316,7 +1632,7 @@
           if (results.length > 0) {
             suggestBox.innerHTML = results.slice(0, 6).map(s => `
               <div
-                onclick="openAnimeFromCard('${s.id}'); document.getElementById('search-autocomplete-box').classList.add('hidden');"
+                onclick="toggleMobileSearch(false); openAnimeFromCard('${s.id}'); document.getElementById('search-autocomplete-box').classList.add('hidden');"
                 class="p-2.5 flex items-center gap-3 hover:bg-dark-800 cursor-pointer transition"
               >
                 <img src="${escapeHtml(s.poster)}" class="w-8 h-11 object-cover rounded bg-dark-950 shrink-0" />
@@ -1387,18 +1703,27 @@
         list = list.filter(a => (a.genres || []).includes(activeGenre));
       }
 
+      // Content-type tabs (Anime = all, then Series / Movies / ONA / OVA from
+      // the provider format field) scope both rows and the catalogue grid.
+      if (activeCategory !== 'all') {
+        list = list.filter(a => normalizeCategory(a.type) === activeCategory);
+      }
+
       const badge = document.getElementById('catalog-count-badge');
       if (badge) {
         if (query) {
           badge.textContent = `${list.length} result${list.length === 1 ? '' : 's'} for "${rawQuery}"`;
         } else if (activeGenre !== 'All') {
           badge.textContent = `Filtered by ${activeGenre}`;
+        } else if (activeCategory !== 'all') {
+          badge.textContent = `${CATEGORY_LABELS[activeCategory] || 'Category'} · ${list.length} releases`;
         } else {
           badge.textContent = 'Showing all releases';
         }
       }
 
       renderCatalogGrid(list);
+      renderRecentEpisodes(list);
     }
 
     function updateGenreButtons() {
@@ -1428,6 +1753,8 @@
       if (suggestBox) suggestBox.classList.add('hidden');
 
       activeQuery = '';
+      activeCategory = 'all';
+      renderCategoryTabs();
       filterByGenre('All');
     }
     window.resetFiltersAndSearch = resetFiltersAndSearch;
@@ -1444,11 +1771,13 @@
           id: anime.id,
           title: anime.title,
           poster: anime.poster,
+          banner: anime.banner || null,
           episode: episodeNumber,
           watchedAt: Date.now(),
         });
         localStorage.setItem(WATCH_HISTORY_KEY, JSON.stringify(list.slice(0, 30)));
         updateHistoryBadge();
+        renderContinueWatching();
       } catch (e) {}
     }
 
@@ -1509,8 +1838,11 @@
       if (isHidden) {
         renderHistoryModal();
         modal.classList.remove('hidden');
+        setBottomNavActive('history');
       } else {
         modal.classList.add('hidden');
+        setBottomNavActive('home');
+        renderContinueWatching();
       }
     }
     window.toggleHistoryModal = toggleHistoryModal;
@@ -1519,6 +1851,7 @@
       localStorage.removeItem(WATCH_HISTORY_KEY);
       renderHistoryModal();
       updateHistoryBadge();
+      renderContinueWatching();
     }
     window.clearAllWatchHistory = clearAllWatchHistory;
 
@@ -1557,6 +1890,407 @@
       }
     }
     window.toggleScheduleModal = toggleScheduleModal;
+
+    /**
+     * Responsive navigation
+     * ------------------------------------------------------------------
+     * Mobile: left drawer, centred logo, search shortcut, floating bottom
+     * bar with five labelled shortcuts. Desktop keeps the original inline
+     * search + header actions.
+     */
+    let drawerCloseTimer = null;
+
+    function toggleSideDrawer(open) {
+      const wrap = document.getElementById('side-drawer');
+      const panel = document.getElementById('side-drawer-panel');
+      const trigger = document.getElementById('drawer-open-btn');
+      if (!wrap || !panel) return;
+
+      const shouldOpen = typeof open === 'boolean' ? open : wrap.classList.contains('hidden');
+      clearTimeout(drawerCloseTimer);
+
+      if (shouldOpen) {
+        wrap.classList.remove('hidden');
+        wrap.setAttribute('aria-hidden', 'false');
+        trigger?.setAttribute('aria-expanded', 'true');
+        document.body.classList.add('overflow-hidden');
+        requestAnimationFrame(() => panel.classList.remove('-translate-x-full'));
+      } else {
+        wrap.setAttribute('aria-hidden', 'true');
+        trigger?.setAttribute('aria-expanded', 'false');
+        panel.classList.add('-translate-x-full');
+        document.body.classList.remove('overflow-hidden');
+        drawerCloseTimer = setTimeout(() => wrap.classList.add('hidden'), 260);
+      }
+    }
+    window.toggleSideDrawer = toggleSideDrawer;
+
+    function toggleMobileSearch(force) {
+      const shell = document.getElementById('search-shell');
+      const trigger = document.getElementById('mobile-search-btn');
+      if (!shell) return;
+
+      const shouldOpen = typeof force === 'boolean' ? force : shell.classList.contains('hidden');
+      shell.classList.toggle('hidden', !shouldOpen);
+      trigger?.setAttribute('aria-expanded', String(shouldOpen));
+
+      if (shouldOpen) {
+        setBottomNavActive('search');
+        setTimeout(() => document.getElementById('search-input')?.focus(), 40);
+      }
+    }
+    window.toggleMobileSearch = toggleMobileSearch;
+
+    function focusSearch() {
+      toggleSideDrawer(false);
+      toggleMobileSearch(true);
+      setBottomNavActive('search');
+      setTimeout(() => document.getElementById('search-input')?.focus(), 60);
+    }
+    window.focusSearch = focusSearch;
+
+    function setBottomNavActive(id) {
+      document.querySelectorAll('.bottom-nav-item').forEach((btn) => {
+        const active = btn.dataset.nav === id;
+        btn.classList.toggle('text-brand', active);
+        btn.classList.toggle('text-zinc-500', !active);
+        if (active) btn.setAttribute('aria-current', 'page');
+        else btn.removeAttribute('aria-current');
+      });
+    }
+
+    function scrollToAllAnime() {
+      document.getElementById('all-anime')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    window.scrollToAllAnime = scrollToAllAnime;
+
+    function handleBottomNav(id) {
+      toggleSideDrawer(false);
+
+      toggleMobileSearch(false);
+
+      if (id === 'home') {
+        closeWatchPage();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        setBottomNavActive('home');
+      } else if (id === 'explore') {
+        closeWatchPage();
+        setBottomNavActive('explore');
+        setTimeout(() => {
+          document.getElementById('recent-episodes-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+      } else if (id === 'search') {
+        focusSearch();
+      } else if (id === 'mylist') {
+        toggleMyListModal(true);
+      } else if (id === 'history') {
+        toggleHistoryModal();
+      }
+    }
+    window.handleBottomNav = handleBottomNav;
+
+    /**
+     * Content-type tabs (the MyKisah "Anime / Donghua" switcher, driven by the
+     * formats this catalogue actually contains instead of an empty feed).
+     */
+    const CATEGORY_LABELS = { TV: 'Series', Movie: 'Movies', ONA: 'ONA', OVA: 'OVA', Special: 'Special' };
+    const CATEGORY_ORDER = ['TV', 'Movie', 'ONA', 'OVA', 'Special'];
+
+    function normalizeCategory(rawType) {
+      const type = String(rawType || '').toUpperCase();
+      if (type === 'MOVIE') return 'Movie';
+      if (type === 'OVA') return 'OVA';
+      if (type === 'ONA') return 'ONA';
+      if (type === 'SPECIAL') return 'Special';
+      return 'TV'; // TV, TV_SHORT and anything unknown browse as series
+    }
+
+    function renderCategoryTabs() {
+      const track = document.getElementById('category-tabs-track');
+      if (!track) return;
+
+      const source = fullCatalog.length > 0 ? fullCatalog : FALLBACK_ANIME_CATALOG;
+      const counts = new Map();
+      source.forEach((anime) => {
+        const key = normalizeCategory(anime.type);
+        counts.set(key, (counts.get(key) || 0) + 1);
+      });
+
+      const tabs = [{ key: 'all', label: 'Anime' }];
+      CATEGORY_ORDER.forEach((type) => {
+        if (counts.get(type)) tabs.push({ key: type, label: CATEGORY_LABELS[type] });
+      });
+
+      // A live refresh can drop the format the viewer is filtering on.
+      if (!tabs.some((tab) => tab.key === activeCategory)) activeCategory = 'all';
+
+      track.innerHTML = tabs.map((tab) => {
+        const active = tab.key === activeCategory;
+        return `
+          <button
+            type="button"
+            data-category="${tab.key}"
+            onclick="setCategory('${tab.key}')"
+            aria-current="${active ? 'true' : 'false'}"
+            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${active ? 'border-brand text-white' : 'border-transparent text-zinc-400 hover:text-white'}"
+          >${tab.label}</button>
+        `;
+      }).join('');
+    }
+
+    function setCategory(category) {
+      activeCategory = category || 'all';
+      renderCategoryTabs();
+      applyCatalogFilters();
+    }
+    window.setCategory = setCategory;
+
+    /**
+     * Episode Terbaru row: compact landscape cards built from the filtered
+     * catalogue (newest five carry the NEW ribbon, like the reference layout).
+     */
+    function renderRecentEpisodes(list) {
+      const grid = document.getElementById('recent-episodes-grid');
+      if (!grid) return;
+
+      const items = (list || []).slice(0, 12);
+      if (items.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-6 text-center text-xs text-zinc-500">No releases in this category yet.</div>';
+      } else {
+        grid.innerHTML = items.map((anime, index) => {
+          const image = anime.banner || anime.poster;
+          const latest = Math.max(1, Number(anime.subEpisodes || anime.totalEpisodes || 1));
+          const label = normalizeCategory(anime.type) === 'Movie' ? 'Movie' : `EP ${latest}`;
+
+          return `
+            <button type="button" onclick="openAnimeFromCard('${anime.id}')" class="group text-left min-w-0">
+              <div class="relative aspect-video rounded-xl overflow-hidden bg-dark-950 border border-dark-800 group-hover:border-brand/40 transition-colors">
+                <img
+                  src="${escapeHtml(image)}"
+                  alt="${escapeHtml(anime.title)}"
+                  loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent"></div>
+                ${index < 5 ? '<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-brand text-white text-[9px] font-bold tracking-wide shadow">NEW</span>' : ''}
+                <span class="absolute bottom-1.5 left-2 text-[10px] font-semibold text-white">${label}</span>
+                <span class="absolute bottom-1.5 right-2 text-[10px] font-semibold text-amber-400">★ ${anime.rating || '9.0'}</span>
+              </div>
+              <p class="mt-1.5 text-[11px] sm:text-xs font-semibold text-zinc-200 line-clamp-1 group-hover:text-brand transition-colors">
+                ${escapeHtml(anime.title)}
+              </p>
+            </button>
+          `;
+        }).join('');
+      }
+
+      const subtitle = document.getElementById('recent-episodes-subtitle');
+      if (subtitle) {
+        subtitle.textContent = activeQuery
+          ? `${items.length} result${items.length === 1 ? '' : 's'} for "${activeQuery}"`
+          : activeCategory !== 'all'
+            ? `${CATEGORY_LABELS[activeCategory] || 'Category'} releases`
+            : 'Trending episodes across the catalogue';
+      }
+    }
+
+    /**
+     * Lanjutkan Menonton: history entries as 16:9 cards with a progress bar.
+     */
+    function readSavedProgress(animeId, episode) {
+      try {
+        const raw = localStorage.getItem(`prog-${animeId}-${episode}`);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function renderContinueWatching() {
+      const section = document.getElementById('continue-watching-section');
+      const row = document.getElementById('continue-watching-row');
+      if (!section || !row) return;
+
+      let history = [];
+      try {
+        const raw = localStorage.getItem(WATCH_HISTORY_KEY);
+        history = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        history = [];
+      }
+
+      if (!Array.isArray(history) || history.length === 0) {
+        section.classList.add('hidden');
+        row.innerHTML = '';
+        return;
+      }
+
+      section.classList.remove('hidden');
+      const seen = new Set();
+      const items = history
+        .filter((item) => item && item.id && !seen.has(String(item.id)) && seen.add(String(item.id)))
+        .slice(0, 10);
+
+      row.innerHTML = items.map((item) => {
+        const local = findLocalAnime(item.id);
+        const image = item.banner || local?.banner || item.poster || local?.poster || '';
+        const episode = Number(item.episode) || 1;
+        const progress = readSavedProgress(item.id, episode);
+        const percent = progress && progress.duration
+          ? Math.min(100, Math.max(2, Math.round((progress.currentTime / progress.duration) * 100)))
+          : 0;
+
+        return `
+          <button
+            type="button"
+            onclick="openAnimeFromCard('${item.id}', ${episode})"
+            class="snap-start shrink-0 w-60 sm:w-64 text-left group"
+          >
+            <div class="relative aspect-video rounded-xl overflow-hidden bg-dark-950 border border-dark-800 group-hover:border-brand/40 transition-colors">
+              <img
+                src="${escapeHtml(image)}"
+                alt="${escapeHtml(item.title)}"
+                loading="lazy"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent"></div>
+              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <span class="w-9 h-9 rounded-full bg-brand/90 text-white flex items-center justify-center shadow-lg">
+                  <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                </span>
+              </div>
+              <div class="absolute inset-x-0 bottom-0 p-2.5">
+                <p class="text-[10px] font-bold text-brand">Episode ${episode}</p>
+                <p class="text-xs font-bold text-white line-clamp-1">${escapeHtml(item.title)}</p>
+                <div class="mt-1.5 h-1 rounded-full bg-white/25 overflow-hidden">
+                  <div class="h-full bg-brand rounded-full" style="width:${percent}%"></div>
+                </div>
+              </div>
+            </div>
+          </button>
+        `;
+      }).join('');
+    }
+    window.renderContinueWatching = renderContinueWatching;
+
+    /**
+     * My List (bookmarks) — backs the heart shortcut in the bottom bar and the
+     * save button on every catalogue card.
+     */
+    function getMyList() {
+      try {
+        const raw = localStorage.getItem(MY_LIST_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function isInMyList(animeId) {
+      return getMyList().some((item) => String(item.id) === String(animeId));
+    }
+
+    function toggleMyList(animeId) {
+      const key = String(animeId);
+      const list = getMyList();
+      const exists = list.some((item) => String(item.id) === key);
+
+      let next;
+      if (exists) {
+        next = list.filter((item) => String(item.id) !== key);
+      } else {
+        const spotlight = window._spotlightAnime && String(window._spotlightAnime.id) === key
+          ? window._spotlightAnime
+          : null;
+        const anime = findLocalAnime(key) || spotlight;
+        if (!anime) return;
+        next = [{
+          id: anime.id,
+          title: anime.title,
+          poster: anime.poster,
+          banner: anime.banner || null,
+          type: anime.type || 'TV',
+          year: anime.year,
+          rating: anime.rating,
+        }, ...list];
+      }
+
+      try {
+        localStorage.setItem(MY_LIST_KEY, JSON.stringify(next.slice(0, 100)));
+      } catch (e) {
+        return;
+      }
+
+      applyCatalogFilters();
+      renderMyListModal();
+    }
+    window.toggleMyList = toggleMyList;
+
+    function renderMyListModal() {
+      const listEl = document.getElementById('mylist-modal-list');
+      const countEl = document.getElementById('mylist-count');
+      const list = getMyList();
+
+      if (countEl) countEl.textContent = `${list.length} saved title${list.length === 1 ? '' : 's'}`;
+      if (!listEl) return;
+
+      if (list.length === 0) {
+        listEl.innerHTML = '<div class="py-8 text-center text-xs text-zinc-500">Nothing saved yet. Tap the heart on any card to add it here.</div>';
+        return;
+      }
+
+      listEl.innerHTML = list.map((item) => `
+        <div class="py-2.5 flex items-center justify-between gap-3 group">
+          <div class="flex items-center gap-3 min-w-0">
+            <img src="${escapeHtml(item.poster)}" alt="" class="w-9 h-12 object-cover rounded bg-dark-950 shrink-0" />
+            <div class="min-w-0">
+              <p class="font-bold text-xs text-zinc-200 truncate group-hover:text-brand">${escapeHtml(item.title)}</p>
+              <p class="text-[10px] text-zinc-500">${escapeHtml(item.type || 'Anime')}${item.year ? ` · ${item.year}` : ''}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button
+              onclick="toggleMyList('${item.id}')"
+              title="Remove from My List"
+              aria-label="Remove from My List"
+              class="w-8 h-8 rounded-lg bg-dark-800 hover:bg-dark-750 text-brand flex items-center justify-center transition active:scale-95"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            </button>
+            <button
+              onclick="toggleMyListModal(false); openAnimeFromCard('${item.id}')"
+              class="px-3 py-1 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white font-semibold text-xs transition"
+            >Watch</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleMyListModal(force) {
+      const modal = document.getElementById('mylist-modal');
+      if (!modal) return;
+
+      const shouldOpen = typeof force === 'boolean' ? force : modal.classList.contains('hidden');
+      if (shouldOpen) {
+        renderMyListModal();
+        modal.classList.remove('hidden');
+        setBottomNavActive('mylist');
+      } else {
+        modal.classList.add('hidden');
+        setBottomNavActive('home');
+      }
+    }
+    window.toggleMyListModal = toggleMyListModal;
+
+    function clearMyList() {
+      try {
+        localStorage.removeItem(MY_LIST_KEY);
+      } catch (e) {}
+      renderMyListModal();
+      applyCatalogFilters();
+    }
+    window.clearMyList = clearMyList;
 
     function escapeHtml(str) {
       if (!str) return '';

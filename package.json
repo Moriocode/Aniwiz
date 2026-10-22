@@ -10,6 +10,7 @@
     "clean": "rm -rf dist",
     "lint": "tsc --noEmit",
     "test:smoke": "node scripts/smoke-test.mjs",
+    "test:layout": "node scripts/layout-check.mjs",
     "verify": "npm run lint && npm run build"
   },
   "dependencies": {

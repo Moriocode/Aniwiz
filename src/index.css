@@ -26,6 +26,20 @@
   /* Type */
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Motion (used by the side drawer and row animations) */
+  --animate-fade-in: fade-in 0.25s ease-out both;
+  --animate-slide-up: slide-up 0.3s ease-out both;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @layer base {
@@ -41,3 +55,29 @@
     font-family: var(--font-sans);
   }
 }
+
+/*
+ * Mobile layout utilities (Tailwind v4 first-party utilities cannot express
+ * safe-area insets). The bottom navigation floats above the home indicator,
+ * and content reserves room for it so the last row is never covered.
+ */
+@layer utilities {
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+  }
+
+  .bottom-safe {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+  }
+
+  .nav-spacer {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5.5rem);
+  }
+
+  @media (min-width: 768px) {
+    .nav-spacer {
+      padding-bottom: 0;
+    }
+  }
+}
+

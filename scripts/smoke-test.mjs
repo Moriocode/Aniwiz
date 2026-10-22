@@ -91,7 +91,8 @@ check('search queries the API and returns results',
   `${searchBadge}, ${searchCards} cards`);
 
 // 5. Reset (logo link) restores the full catalog
-await page.locator('a[href="#browse-section"]').click();
+// Header brand link (the drawer has its own copy of this link).
+await page.locator('header a[href="#browse-section"]').click();
 await page.waitForTimeout(400);
 const resetBadge = (await page.locator('#catalog-count-badge').textContent())?.trim() || '';
 const resetCards = await page.locator('#anime-grid > div').count();
