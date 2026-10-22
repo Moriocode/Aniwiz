@@ -140,26 +140,34 @@
             placeholder="Search anime, genres, studios..."
             autocomplete="off"
             oninput="handleSearchAutocomplete(this.value)"
-            onfocus="if(this.value.trim()) handleSearchAutocomplete(this.value)"
+            onfocus="handleSearchFocus()"
             onkeydown="if(event.key === 'Enter'){ event.preventDefault(); hideSearchSuggestions(); } else if(event.key === 'Escape'){ hideSearchSuggestions(); this.blur(); }"
-            class="w-full h-12 md:h-10 pl-11 pr-11 rounded-xl bg-dark-800 text-base md:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
+            class="w-full h-12 md:h-10 px-4 md:px-3.5 pr-[4.25rem] md:pr-[3.4rem] rounded-xl bg-dark-800 text-base md:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
           />
-          <div class="absolute left-3.5 md:left-3 text-zinc-500 pointer-events-none">
-            <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
+          <!--
+            AnimeKAI-style trailing icon group: the clear affordance (only when
+            there is text) and the brand-accent magnifier share the right edge,
+            so the field reads as one wide, clean pill of input space.
+          -->
+          <div class="absolute right-3 md:right-2.5 flex items-center gap-1 pointer-events-none">
+            <button
+              id="search-clear-btn"
+              type="button"
+              onclick="clearSearchInput()"
+              onmousedown="event.preventDefault()"
+              class="pointer-events-auto hidden text-zinc-500 hover:text-zinc-200 p-1.5 md:p-1 transition"
+              title="Clear search"
+            >
+              <svg class="w-[18px] h-[18px] md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+            <span class="text-brand">
+              <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </span>
           </div>
-          <button
-            id="search-clear-btn"
-            type="button"
-            onclick="clearSearchInput()"
-            class="absolute right-3 md:right-2.5 text-zinc-500 hover:text-zinc-200 hidden p-1.5 md:p-1 transition"
-            title="Clear search"
-          >
-            <svg class="w-[18px] h-[18px] md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
         </div>
 
         <!-- Realtime Suggestion Dropdown -->
@@ -413,7 +421,9 @@
       </div>
 
       <!-- Interactive Genre Category Bar -->
-      <div class="space-y-3">
+      <!-- Desktop-only: on phones the filter sheet in the header owns genre
+           filtering, so this duplicate control stays hidden below 768px. -->
+      <div class="hidden md:block space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Filter by Category</h2>
           <span id="catalog-count-badge" class="text-xs font-medium text-zinc-500">Showing all releases</span>
@@ -748,7 +758,10 @@
         const box = document.getElementById('search-autocomplete-box');
         const input = document.getElementById('search-input');
         if (!box || box.classList.contains('hidden')) return;
-        if (box.contains(event.target) || input === event.target) return;
+        // Anything inside the search field itself (input, clear button,
+        // magnifier) is part of the search interaction, not "outside".
+        const searchWrap = input?.closest('[role="search"]');
+        if (box.contains(event.target) || (searchWrap && searchWrap.contains(event.target))) return;
         hideSearchSuggestions();
       });
 
@@ -1509,6 +1522,78 @@
      * Search & Filter Handling
      */
 
+    /**
+     * Recent searches (AnimeKAI-style): the last five successful queries are
+     * kept locally and offered as tappable chips whenever the search field is
+     * focused while empty — the empty state becomes an action, not a blank.
+     */
+    const RECENT_SEARCHES_KEY = 'anistream.recentSearches';
+
+    function getRecentSearches() {
+      try {
+        const list = JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || '[]');
+        return Array.isArray(list)
+          ? list.filter(s => typeof s === 'string' && s.trim().length >= 2).slice(0, 5)
+          : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function rememberSearch(query) {
+      const q = (query || '').trim();
+      if (q.length < 2) return;
+      try {
+        const list = [q, ...getRecentSearches().filter(s => s.toLowerCase() !== q.toLowerCase())].slice(0, 5);
+        localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(list));
+      } catch (e) {}
+    }
+
+    function renderRecentSearches() {
+      const box = document.getElementById('search-autocomplete-box');
+      if (!box) return;
+
+      const recents = getRecentSearches();
+      const hint = `<div class="px-3.5 py-3 text-[11px] text-zinc-500">Type at least 2 characters to search every anime.</div>`;
+
+      if (recents.length === 0) {
+        box.innerHTML = hint;
+      } else {
+        box.innerHTML = `
+          <div class="px-3.5 pt-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Recent searches</div>
+          <div class="flex flex-wrap gap-2 px-3.5 pb-3.5">
+            ${recents.map(q => `
+              <button
+                type="button"
+                onclick="runRecentSearch(this.getAttribute('data-q'))"
+                data-q="${escapeHtml(q)}"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs text-zinc-300 hover:text-white transition active:scale-95"
+              >
+                <svg class="w-3 h-3 text-zinc-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="truncate max-w-[10rem]">${escapeHtml(q)}</span>
+              </button>`).join('')}
+          </div>`;
+      }
+      box.classList.remove('hidden');
+    }
+
+    function handleSearchFocus() {
+      const input = document.getElementById('search-input');
+      const value = input ? input.value : '';
+      if (value.trim().length === 0) renderRecentSearches();
+      else handleSearchAutocomplete(value);
+    }
+    window.handleSearchFocus = handleSearchFocus;
+
+    function runRecentSearch(query) {
+      const input = document.getElementById('search-input');
+      if (input) input.value = query;
+      handleSearchAutocomplete(query);
+    }
+    window.runRecentSearch = runRecentSearch;
+
     /** Titles already loaded on this page that match the query (instant, no network). */
     function localSearchMatches(query, limit = 6) {
       const q = query.trim().toLowerCase();
@@ -1590,7 +1675,13 @@
         searchResults = null;
         searchRequestSeq++;
         applyCatalogFilters();
-        if (suggestBox) suggestBox.classList.add('hidden');
+        // Deleting the text while focused swaps the dropdown to recent-search
+        // chips instead of blinking it away.
+        if (document.activeElement === document.getElementById('search-input')) {
+          renderRecentSearches();
+        } else if (suggestBox) {
+          suggestBox.classList.add('hidden');
+        }
         return;
       }
 
@@ -1622,6 +1713,9 @@
         // A newer keystroke (or a cleared box) already replaced this request.
         if (requestSeq !== searchRequestSeq) return;
 
+        // Only searches that actually found something are remembered.
+        if (results.length > 0) rememberSearch(requestedQuery);
+
         const suggestions = results.length > 0 ? results : localMatches;
         if (suggestions.length > 0) {
           renderSearchSuggestions(suggestions, '');
@@ -1644,9 +1738,14 @@
       const suggestBox = document.getElementById('search-autocomplete-box');
       if (input) input.value = '';
       if (clearBtn) clearBtn.classList.add('hidden');
-      if (suggestBox) suggestBox.classList.add('hidden');
       activeQuery = '';
       applyCatalogFilters();
+      // A focused, emptied field offers the recent searches again.
+      if (document.activeElement === input) {
+        renderRecentSearches();
+      } else if (suggestBox) {
+        suggestBox.classList.add('hidden');
+      }
     }
     window.clearSearchInput = clearSearchInput;
 
@@ -1819,7 +1918,16 @@
 
     function setMobileFilterPanelOpen(open) {
       mobileFilterPanelOpen = open;
-      document.getElementById('mobile-filter-panel')?.classList.toggle('hidden', !open);
+      const panel = document.getElementById('mobile-filter-panel');
+      if (panel) {
+        panel.classList.toggle('hidden', !open);
+        if (open) {
+          // AnimeKAI-style entrance: the sheet settles in instead of popping.
+          panel.classList.remove('sheet-in');
+          void panel.offsetWidth;
+          panel.classList.add('sheet-in');
+        }
+      }
       document.getElementById('mobile-filter-toggle')?.setAttribute('aria-expanded', String(open));
       document.getElementById('mobile-filter-chevron')?.classList.toggle('rotate-180', open);
       if (!open) {

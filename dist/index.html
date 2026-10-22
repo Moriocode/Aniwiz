@@ -38,8 +38,8 @@
   </script>
 
   <style>*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}html{scroll-behavior:smooth;background-color:#07090e}body{color:#e2e8f0;background-color:#07090e;font-family:Plus Jakarta Sans,system-ui,-apple-system,sans-serif;overflow-x:hidden}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0b0e14}::-webkit-scrollbar-thumb{background:#232a3b;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#343e54}.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}@keyframes shimmer{to{transform:translate(100%)}}.skeleton-box{background-color:#11151f;position:relative;overflow:hidden}.skeleton-box:after{content:"";background-image:linear-gradient(90deg,#fff0 0,#ffffff0d 20%,#ffffff1a 60%,#fff0);animation:1.8s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}</style>
-  <script type="module" crossorigin src="/assets/index-BKeuu1cv.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-t0qSo2-N.css">
+  <script type="module" crossorigin src="/assets/index-CSaVpXZK.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DiuFrq6L.css">
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-white">
 
@@ -80,26 +80,34 @@
             placeholder="Search anime, genres, studios..."
             autocomplete="off"
             oninput="handleSearchAutocomplete(this.value)"
-            onfocus="if(this.value.trim()) handleSearchAutocomplete(this.value)"
+            onfocus="handleSearchFocus()"
             onkeydown="if(event.key === 'Enter'){ event.preventDefault(); hideSearchSuggestions(); } else if(event.key === 'Escape'){ hideSearchSuggestions(); this.blur(); }"
-            class="w-full h-12 md:h-10 pl-11 pr-11 rounded-xl bg-dark-800 text-base md:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
+            class="w-full h-12 md:h-10 px-4 md:px-3.5 pr-[4.25rem] md:pr-[3.4rem] rounded-xl bg-dark-800 text-base md:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
           />
-          <div class="absolute left-3.5 md:left-3 text-zinc-500 pointer-events-none">
-            <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-            </svg>
+          <!--
+            AnimeKAI-style trailing icon group: the clear affordance (only when
+            there is text) and the brand-accent magnifier share the right edge,
+            so the field reads as one wide, clean pill of input space.
+          -->
+          <div class="absolute right-3 md:right-2.5 flex items-center gap-1 pointer-events-none">
+            <button
+              id="search-clear-btn"
+              type="button"
+              onclick="clearSearchInput()"
+              onmousedown="event.preventDefault()"
+              class="pointer-events-auto hidden text-zinc-500 hover:text-zinc-200 p-1.5 md:p-1 transition"
+              title="Clear search"
+            >
+              <svg class="w-[18px] h-[18px] md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+            <span class="text-brand">
+              <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+              </svg>
+            </span>
           </div>
-          <button
-            id="search-clear-btn"
-            type="button"
-            onclick="clearSearchInput()"
-            class="absolute right-3 md:right-2.5 text-zinc-500 hover:text-zinc-200 hidden p-1.5 md:p-1 transition"
-            title="Clear search"
-          >
-            <svg class="w-[18px] h-[18px] md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-          </button>
         </div>
 
         <!-- Realtime Suggestion Dropdown -->
@@ -353,7 +361,9 @@
       </div>
 
       <!-- Interactive Genre Category Bar -->
-      <div class="space-y-3">
+      <!-- Desktop-only: on phones the filter sheet in the header owns genre
+           filtering, so this duplicate control stays hidden below 768px. -->
+      <div class="hidden md:block space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-400">Filter by Category</h2>
           <span id="catalog-count-badge" class="text-xs font-medium text-zinc-500">Showing all releases</span>
