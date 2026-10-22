@@ -1,7 +1,8 @@
 /**
- * Layout regression check for the MyKisah-style shell:
- * centred mobile logo, drawer, horizontal category tabs, floating bottom nav,
- * Lanjutkan Menonton row and Episode Terbaru row.
+ * Layout regression check for the cleaned-up shell:
+ * centred mobile wordmark, search shortcut, ONE bottom navigation bar,
+ * horizontal category tabs, one card grid under an English "Latest Episodes"
+ * heading, and the Continue Watching row.
  *
  * Usage: npm run dev   (in another shell)   then   node scripts/layout-check.mjs
  */
@@ -36,26 +37,23 @@ const logoCentre = logoBox.x + logoBox.width / 2;
 check('mobile logo is horizontally centred', Math.abs(logoCentre - viewport.width / 2) <= 2,
   `logo centre ${logoCentre.toFixed(1)} vs viewport centre ${(viewport.width / 2).toFixed(1)}`);
 
-const drawerBox = await page.locator('#drawer-open-btn').boundingBox();
-check('drawer trigger sits on the far left', drawerBox.x < 16, `x=${drawerBox.x}`);
 const searchBtnBox = await page.locator('#mobile-search-btn').boundingBox();
 check('search shortcut sits on the far right', searchBtnBox.x + searchBtnBox.width > viewport.width - 16,
   `right edge ${(searchBtnBox.x + searchBtnBox.width).toFixed(1)}`);
 
-// Drawer opens, lists the five shortcuts, closes on Escape
-await page.locator('#drawer-open-btn').click();
-await page.waitForTimeout(350);
-const drawerVisible = await page.locator('#side-drawer').evaluate((el) => !el.classList.contains('hidden'));
-const drawerLinks = (await page.locator('#side-drawer nav').innerText()).replace(/\s+/g, ' ');
-check('side drawer opens with navigation', drawerVisible && /Home/.test(drawerLinks) && /My List/.test(drawerLinks), drawerLinks.slice(0, 60));
-await page.keyboard.press('Escape');
-await page.waitForTimeout(400);
-const drawerHidden = await page.locator('#side-drawer').evaluate((el) => el.classList.contains('hidden'));
-check('side drawer closes on Escape', drawerHidden);
+// No second menu: the drawer and its trigger must be gone entirely.
+const drawerCount = await page.locator('#side-drawer, #drawer-open-btn').count();
+check('no side drawer / drawer trigger in the DOM', drawerCount === 0, `${drawerCount} nodes`);
+const navCount = await page.locator('nav[aria-label]').count();
+const navLabelsList = await page.evaluate(() => [...document.querySelectorAll('nav[aria-label]')].map((n) => n.getAttribute('aria-label')));
+check('bottom bar is the only navigation menu',
+  (await page.locator('#bottom-nav').count()) === 1 && navCount === 3 &&
+  navLabelsList.includes('Mobile primary navigation') && !navLabelsList.some((l) => /drawer/i.test(l)),
+  navLabelsList.join(' | '));
 
 // Category tabs
 const tabs = await page.locator('.category-tab').allTextContents();
-check('category tabs render vertical content types', tabs.length >= 1 && tabs.some((t) => /Anime/i.test(t)), tabs.join(' | '));
+check('category tabs render content types', tabs.length >= 1 && tabs.some((t) => /Anime/i.test(t)), tabs.join(' | '));
 const activeTabBorder = await page.locator('.category-tab[aria-current="true"]').evaluate((el) => getComputedStyle(el).borderBottomColor);
 check('active category tab has the accent underline', /rgb\(229,\s*9,\s*20\)/.test(activeTabBorder), activeTabBorder);
 
@@ -88,11 +86,35 @@ const iconAboveLabel = await page.locator('.bottom-nav-item').first().evaluate((
 });
 check('bottom nav shows small labels under the icons', parseFloat(labelFont) <= 11 && iconAboveLabel, labelFont);
 
-// Content sections
-check('Episode Terbaru section renders cards',
-  (await page.locator('#recent-episodes-grid > button').count()) > 0,
-  `${await page.locator('#recent-episodes-grid > button').count()} cards`);
-check('Lanjutkan Menonton stays hidden with no history',
+// Single content section: one grid, English headings only
+const gridIds = await page.evaluate(() => [...document.querySelectorAll('[id$="-grid"]')].map((el) => el.id));
+check('exactly one card grid renders the anime',
+  gridIds.length === 1 && gridIds[0] === 'anime-grid', gridIds.join(', ') || 'none');
+check('single catalogue section', (await page.locator('section#all-anime').count()) === 1);
+const bodyText = (await page.locator('body').innerText()).replace(/\s+/g, ' ');
+// textContent (not innerText) so the hidden Continue Watching heading still counts
+const allText = (await page.evaluate(() => document.body.textContent || '')).replace(/\s+/g, ' ');
+const indoHit = allText.match(/Episode Terbaru|Lanjutkan Menonton|Semua\b/);
+check('headings are English-only',
+  /Latest Episodes/.test(allText) && /Continue Watching/.test(allText) && !indoHit,
+  indoHit ? `found "${indoHit[0]}" near ${JSON.stringify(allText.slice(Math.max(0, indoHit.index - 40), indoHit.index + 40))}`
+    : (/Latest Episodes/.test(bodyText) && /Continue Watching/.test(allText) ? 'Latest Episodes + Continue Watching present' : 'heading missing'));
+check('View All button exists', (await page.getByRole('button', { name: 'View All' }).count()) === 1);
+
+// View All clears an active scope and restores the full grid
+await page.locator('.genre-btn', { hasText: 'Action' }).first().click();
+await page.waitForTimeout(400);
+const filteredCount = await page.locator('#anime-grid > div').count();
+await page.getByRole('button', { name: 'View All' }).click();
+await page.waitForTimeout(600);
+const viewAllBadge = (await page.locator('#catalog-count-badge').textContent())?.trim() || '';
+const fullCount = await page.locator('#anime-grid > div').count();
+check('View All clears filters and shows the whole grid',
+  /Showing all releases/.test(viewAllBadge) && fullCount >= filteredCount,
+  `${viewAllBadge}, ${filteredCount} → ${fullCount} cards`);
+
+// Continue Watching is history-driven
+check('Continue Watching stays hidden with no history',
   await page.locator('#continue-watching-section').evaluate((el) => el.classList.contains('hidden')));
 
 // Seed history + progress, reload, verify the landscape row
@@ -109,13 +131,16 @@ await page.waitForTimeout(800);
 const cwVisible = await page.locator('#continue-watching-section').evaluate((el) => !el.classList.contains('hidden'));
 const cwCard = page.locator('#continue-watching-row > button').first();
 const cwBox = await cwCard.boundingBox();
-check('Lanjutkan Menonton shows saved history', cwVisible && (await page.locator('#continue-watching-row > button').count()) > 0);
-check('Lanjutkan Menonton uses broad landscape thumbnails', cwBox && cwBox.width / cwBox.height > 1.5,
+check('Continue Watching shows saved history', cwVisible && (await page.locator('#continue-watching-row > button').count()) > 0);
+check('Continue Watching uses broad landscape thumbnails', cwBox && cwBox.width / cwBox.height > 1.5,
   cwBox ? `${cwBox.width.toFixed(0)}x${cwBox.height.toFixed(0)}` : 'missing');
 const progressWidth = await cwCard.locator('div[style*="width"]').first().evaluate((el) => el.style.width).catch(() => '');
-check('Lanjutkan Menonton shows saved progress', /%$/.test(progressWidth), progressWidth);
+check('Continue Watching shows saved progress', /%$/.test(progressWidth), progressWidth);
 
-// My List: save from a catalogue card, open via bottom nav
+// My List: save from a catalogue card, open via bottom nav (centre the card
+// first — the sticky header covers the very top of the viewport)
+await page.locator('#anime-grid > div').first().evaluate((el) => el.scrollIntoView({ block: 'center' }));
+await page.waitForTimeout(300);
 await page.locator('#anime-grid > div').first().locator('button[title="Save to My List"]').click();
 await page.waitForTimeout(300);
 const savedCount = await page.evaluate(() => JSON.parse(localStorage.getItem('anistream_mylist_v1') || '[]').length);
@@ -144,6 +169,32 @@ const tabsVisibleAgain = await page.locator('#category-tabs').isVisible();
 check('Home shortcut closes the search overlay', searchClosedAfterHome && tabsVisibleAgain);
 await page.screenshot({ path: 'artifacts/mobile-home.png' });
 
+// Regression: the logo/link returns to the main page. Nothing may stay parked
+// over the hero — the sticky header must not cover it, and an open search row
+// must be closed by the click.
+await page.evaluate(() => window.scrollTo(0, 700));
+await page.waitForTimeout(200);
+await page.locator('#mobile-search-btn').click();
+await page.waitForTimeout(300);
+await page.locator('header a[href="#browse-section"]').click();
+await page.waitForTimeout(800);
+const heroState = await page.evaluate(() => {
+  const hero = document.getElementById('hero-banner').getBoundingClientRect();
+  const header = document.querySelector('header').getBoundingClientRect();
+  return {
+    heroTop: Math.round(hero.top),
+    headerBottom: Math.round(header.bottom),
+    shellHidden: document.getElementById('search-shell').classList.contains('hidden'),
+    navHomeActive: document.querySelector('.bottom-nav-item[data-nav="home"]')?.classList.contains('text-brand') || false,
+  };
+});
+check('logo link closes the search overlay and marks Home active',
+  heroState.shellHidden && heroState.navHomeActive,
+  `shellHidden=${heroState.shellHidden} navHome=${heroState.navHomeActive}`);
+check('hero banner sits clear of the sticky header after the logo link',
+  heroState.heroTop >= heroState.headerBottom,
+  `hero top ${heroState.heroTop} vs header bottom ${heroState.headerBottom}`);
+
 check('no uncaught mobile page errors', mobileErrors.length === 0, mobileErrors.join(' | '));
 await mobile.close();
 
@@ -161,8 +212,8 @@ await deskPage.waitForTimeout(900);
 check('desktop hides the mobile bottom nav', await deskPage.locator('#bottom-nav').isHidden());
 check('desktop shows the inline search bar', await deskPage.locator('#search-input').isVisible());
 check('desktop shows the history action', await deskPage.locator('#history-counter').isVisible());
-// The offline fallback (4 presets) is a valid first-paint state; wait briefly
-// for the live catalogue, then accept whichever is on screen.
+check('desktop has no drawer', (await deskPage.locator('#side-drawer, #drawer-open-btn').count()) === 0);
+// The offline fallback was removed upstream; wait for the live catalogue.
 await deskPage.waitForFunction(() => document.querySelectorAll('#anime-grid > div').length > 4, null, { timeout: 8000 }).catch(() => {});
 check('desktop renders the catalogue grid',
   (await deskPage.locator('#anime-grid > div').count()) >= 4,

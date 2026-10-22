@@ -70,6 +70,8 @@ const heroTitle = (await page.locator('#hero-title').textContent())?.trim() || '
 check('hero title populated', heroTitle.length > 0, heroTitle);
 
 // 3. Genre filter
+await page.locator('.genre-btn', { hasText: 'Action' }).first().evaluate((el) => el.scrollIntoView({ block: 'center' }));
+await page.waitForTimeout(300);
 await page.locator('.genre-btn', { hasText: 'Action' }).first().click();
 await page.waitForTimeout(300);
 const actionBadge = (await page.locator('#catalog-count-badge').textContent())?.trim() || '';
@@ -97,7 +99,9 @@ check('search queries the API and returns results',
   `${searchBadge}, ${searchCards} cards`);
 
 // 5. Reset (logo link) restores the full catalog
-// Header brand link (the drawer has its own copy of this link).
+// The header brand link is the only copy of this link (no drawer anymore).
+await page.locator('header a[href="#browse-section"]').evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+await page.waitForTimeout(300);
 await page.locator('header a[href="#browse-section"]').click();
 await page.waitForTimeout(400);
 const resetBadge = (await page.locator('#catalog-count-badge').textContent())?.trim() || '';
@@ -108,6 +112,8 @@ check('reset restores catalog', /Showing all releases/.test(resetBadge) && reset
 // 6. "Anime Info" hero button (previously an undefined function)
 let infoError = null;
 page.once('pageerror', (e) => { infoError = String(e); });
+await page.locator('#hero-info-btn').evaluate((el) => el.scrollIntoView({ block: 'center' }));
+await page.waitForTimeout(300);
 await page.locator('#hero-info-btn').click();
 await page.waitForTimeout(300);
 check('hero "Anime Info" button works', infoError === null, infoError || 'no error');
@@ -118,7 +124,10 @@ await page.waitForTimeout(200);
 
 await page.screenshot({ path: 'artifacts/01-home.png', fullPage: false });
 
-// 7. Open a title -> watch page
+// 7. Open a title -> watch page (centre the card first: the header is
+//    sticky, so a card at the very top would sit underneath it)
+await page.locator('#anime-grid > div').first().evaluate((el) => el.scrollIntoView({ block: 'center' }));
+await page.waitForTimeout(300);
 await page.locator('#anime-grid > div').first().click();
 await page.waitForTimeout(2500);
 const watchVisible = await page.locator('#watch-section').evaluate((el) => !el.classList.contains('hidden'));

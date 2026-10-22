@@ -107,24 +107,13 @@
   <!-- TOP NAVIGATION HEADER                      -->
   <!-- ========================================== -->
   <header class="sticky top-0 z-40 w-full bg-dark-900/95 backdrop-blur-md border-b border-dark-800 transition-colors">
-    <!-- Mobile: 3-slot grid so the brand is optically centred between the
-         drawer trigger and the search shortcut. Desktop: single flex row. -->
+    <!-- Mobile: 3-slot grid so the wordmark stays centred (the left slot is
+         deliberately empty — the bottom bar is the only navigation now).
+         Desktop: single flex row. -->
     <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 lg:flex lg:gap-6">
 
-      <!-- Side-drawer trigger (mobile / tablet only) -->
-      <button
-        id="drawer-open-btn"
-        type="button"
-        onclick="toggleSideDrawer(true)"
-        aria-label="Open navigation menu"
-        aria-controls="side-drawer"
-        aria-expanded="false"
-        class="lg:hidden justify-self-start -ml-1 w-10 h-10 flex items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-dark-800 transition active:scale-95"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/>
-        </svg>
-      </button>
+      <!-- Empty left slot (mobile / tablet only) keeps the logo on the centreline -->
+      <div class="lg:hidden" aria-hidden="true"></div>
 
       <!-- Brand Logo: centred on mobile, leading edge on desktop -->
       <a href="#browse-section" onclick="resetFiltersAndSearch()" class="justify-self-center lg:justify-self-auto flex items-center gap-2.5 shrink-0 group">
@@ -258,76 +247,6 @@
   </header>
 
   <!-- ========================================== -->
-  <!-- MOBILE SIDE DRAWER                          -->
-  <!-- ========================================== -->
-  <div id="side-drawer" class="fixed inset-0 z-50 hidden lg:hidden" aria-hidden="true">
-    <!-- Scrim: tap outside to close -->
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onclick="toggleSideDrawer(false)"></div>
-
-    <aside
-      id="side-drawer-panel"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Main menu"
-      class="absolute inset-y-0 left-0 w-[82%] max-w-xs -translate-x-full transition-transform duration-300 ease-out bg-dark-900 border-r border-dark-800 shadow-2xl flex flex-col"
-    >
-      <div class="h-16 px-4 flex items-center justify-between border-b border-dark-800 shrink-0">
-        <a href="#browse-section" onclick="toggleSideDrawer(false); resetFiltersAndSearch();" class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-brand flex items-center justify-center text-white">
-            <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5.14v14l11-7-11-7z"/></svg>
-          </div>
-          <span class="text-lg font-extrabold tracking-tight text-white">Ani<span class="text-brand">Stream</span></span>
-        </a>
-        <button
-          type="button"
-          onclick="toggleSideDrawer(false)"
-          aria-label="Close navigation menu"
-          class="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-400 hover:text-white hover:bg-dark-800 transition"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <nav class="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Drawer navigation">
-        <button type="button" onclick="handleBottomNav('home')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg>
-          Home
-        </button>
-        <button type="button" onclick="handleBottomNav('explore')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.5 8.5l-2 5-5 2 2-5 5-2z"/></svg>
-          Explore
-        </button>
-        <button type="button" onclick="toggleSideDrawer(false); focusSearch();" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          Search
-        </button>
-        <button type="button" onclick="handleBottomNav('mylist')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-          My List
-        </button>
-        <button type="button" onclick="handleBottomNav('history')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          History
-        </button>
-
-        <div class="pt-3 mt-3 border-t border-dark-800">
-          <button type="button" onclick="toggleSideDrawer(false); toggleScheduleModal();" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-            <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            Weekly Schedule
-          </button>
-        </div>
-      </nav>
-
-      <div class="p-4 border-t border-dark-800 text-[11px] text-zinc-500 flex items-center gap-2 shrink-0">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        Multi-API cascade active · HD streaming
-      </div>
-    </aside>
-  </div>
-
-  <!-- ========================================== -->
   <!-- MAIN APPLICATION CONTENT                   -->
   <!-- ========================================== -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 w-full pt-4 sm:pt-6 pb-6 flex-1 nav-spacer">
@@ -335,7 +254,7 @@
     <!-- ========================================== -->
     <!-- BROWSE SECTION: Spotlight & Catalog        -->
     <!-- ========================================== -->
-    <section id="browse-section" class="space-y-7">
+    <section id="browse-section" class="space-y-7 scroll-mt-16">
 
       <!-- Horizontal content-type switcher (MyKisah pattern) -->
       <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-800/80 -mt-1">
@@ -408,7 +327,7 @@
       <section id="continue-watching-section" class="hidden space-y-3">
         <div class="flex items-end justify-between gap-3">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Lanjutkan Menonton</h2>
+            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Continue Watching</h2>
             <p class="text-[11px] text-zinc-500 mt-0.5">Pick up exactly where you left off</p>
           </div>
           <button
@@ -427,34 +346,24 @@
         </div>
       </section>
 
-      <!-- RECENT EPISODES: compact labelled row (3 across on phones) -->
-      <section id="recent-episodes-section" class="space-y-3">
-        <div class="flex items-end justify-between gap-3">
-          <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Episode Terbaru</h2>
-            <p id="recent-episodes-subtitle" class="text-[11px] text-zinc-500 mt-0.5">Trending episodes across the catalogue</p>
-          </div>
-          <button
-            type="button"
-            onclick="scrollToAllAnime()"
-            class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
-          >
-            Semua
-          </button>
-        </div>
-        <div id="recent-episodes-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3">
-          <!-- Populated dynamically via renderRecentEpisodes -->
-        </div>
-      </section>
-
-      <!-- ALL ANIME: searchable / filterable full catalogue -->
+      <!-- LATEST EPISODES: the single card grid (search, genre, tabs and
+           badges all scope this one list — cards are rendered exactly once) -->
       <section id="all-anime" class="space-y-4 scroll-mt-20">
         <div class="flex items-end justify-between gap-3">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Semua Anime</h2>
-            <p class="text-[11px] text-zinc-500 mt-0.5">Browse the full catalogue</p>
+            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Latest Episodes</h2>
+            <p id="catalog-subtitle" class="text-[11px] text-zinc-500 mt-0.5">Trending episodes across the catalogue</p>
           </div>
-          <span id="catalog-count-badge" class="text-[11px] sm:text-xs font-medium text-zinc-500 shrink-0">Showing all releases</span>
+          <div class="flex items-center gap-3 shrink-0">
+            <span id="catalog-count-badge" class="text-[11px] sm:text-xs font-medium text-zinc-500 hidden sm:inline">Showing all releases</span>
+            <button
+              type="button"
+              onclick="viewAllReleases()"
+              class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
+            >
+              View All
+            </button>
+          </div>
         </div>
 
         <!-- Interactive Genre Category Bar -->
@@ -903,7 +812,6 @@
         if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
 
         if (e.key === 'Escape') {
-          toggleSideDrawer(false);
           toggleMobileSearch(false);
         } else if (e.key === '/') {
           e.preventDefault();
@@ -1206,7 +1114,6 @@
 
       // A mobile search overlay must not float above the player.
       toggleMobileSearch(false);
-      toggleSideDrawer(false);
 
       // Update Views
       document.getElementById('browse-section')?.classList.add('hidden');
@@ -1868,7 +1775,25 @@
       }
 
       renderCatalogGrid(list);
-      renderRecentEpisodes(list);
+      updateCatalogSubtitle(list, rawQuery, catalogHasGenres);
+    }
+
+    /**
+     * The one status line under the "Latest Episodes" heading — the same
+     * state as the count badge, readable on phones where the badge is hidden.
+     */
+    function updateCatalogSubtitle(list, rawQuery, catalogHasGenres) {
+      const subtitle = document.getElementById('catalog-subtitle');
+      if (!subtitle) return;
+      if (rawQuery) {
+        subtitle.textContent = `${list.length} result${list.length === 1 ? '' : 's'} for "${rawQuery}"`;
+      } else if (activeGenre !== 'All' && catalogHasGenres) {
+        subtitle.textContent = `Filtered by ${activeGenre}`;
+      } else if (activeCategory !== 'all') {
+        subtitle.textContent = `${CATEGORY_LABELS[activeCategory] || 'Category'} releases`;
+      } else {
+        subtitle.textContent = 'Trending episodes across the catalogue';
+      }
     }
 
     function updateGenreButtons() {
@@ -1889,6 +1814,11 @@
 
     function resetFiltersAndSearch() {
       closeWatchPage();
+
+      // Returning to the main page must never leave an overlay parked over the
+      // hero: close the mobile search row and its suggestion dropdown too.
+      toggleMobileSearch(false);
+      setBottomNavActive('home');
 
       const input = document.getElementById('search-input');
       const clearBtn = document.getElementById('search-clear-btn');
@@ -2043,37 +1973,10 @@
     /**
      * Responsive navigation
      * ------------------------------------------------------------------
-     * Mobile: left drawer, centred logo, search shortcut, floating bottom
-     * bar with five labelled shortcuts. Desktop keeps the original inline
-     * search + header actions.
+     * Mobile: centred logo, search shortcut and a floating bottom bar with
+     * five labelled shortcuts — the only navigation (no drawer, no second
+     * menu). Desktop keeps the original inline search + header actions.
      */
-    let drawerCloseTimer = null;
-
-    function toggleSideDrawer(open) {
-      const wrap = document.getElementById('side-drawer');
-      const panel = document.getElementById('side-drawer-panel');
-      const trigger = document.getElementById('drawer-open-btn');
-      if (!wrap || !panel) return;
-
-      const shouldOpen = typeof open === 'boolean' ? open : wrap.classList.contains('hidden');
-      clearTimeout(drawerCloseTimer);
-
-      if (shouldOpen) {
-        wrap.classList.remove('hidden');
-        wrap.setAttribute('aria-hidden', 'false');
-        trigger?.setAttribute('aria-expanded', 'true');
-        document.body.classList.add('overflow-hidden');
-        requestAnimationFrame(() => panel.classList.remove('-translate-x-full'));
-      } else {
-        wrap.setAttribute('aria-hidden', 'true');
-        trigger?.setAttribute('aria-expanded', 'false');
-        panel.classList.add('-translate-x-full');
-        document.body.classList.remove('overflow-hidden');
-        drawerCloseTimer = setTimeout(() => wrap.classList.add('hidden'), 260);
-      }
-    }
-    window.toggleSideDrawer = toggleSideDrawer;
-
     function toggleMobileSearch(force) {
       const shell = document.getElementById('search-shell');
       const trigger = document.getElementById('mobile-search-btn');
@@ -2091,7 +1994,6 @@
     window.toggleMobileSearch = toggleMobileSearch;
 
     function focusSearch() {
-      toggleSideDrawer(false);
       toggleMobileSearch(true);
       setBottomNavActive('search');
       setTimeout(() => document.getElementById('search-input')?.focus(), 60);
@@ -2108,14 +2010,17 @@
       });
     }
 
-    function scrollToAllAnime() {
-      document.getElementById('all-anime')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    /**
+     * "View All": clear the search / genre / tab scope so the grid shows the
+     * full catalogue, then bring the (single) grid into view.
+     */
+    function viewAllReleases() {
+      resetFiltersAndSearch();
+      document.getElementById('anime-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    window.scrollToAllAnime = scrollToAllAnime;
+    window.viewAllReleases = viewAllReleases;
 
     function handleBottomNav(id) {
-      toggleSideDrawer(false);
-
       toggleMobileSearch(false);
 
       if (id === 'home') {
@@ -2126,7 +2031,7 @@
         closeWatchPage();
         setBottomNavActive('explore');
         setTimeout(() => {
-          document.getElementById('recent-episodes-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          document.getElementById('all-anime')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 120);
       } else if (id === 'search') {
         focusSearch();
@@ -2195,56 +2100,7 @@
     window.setCategory = setCategory;
 
     /**
-     * Episode Terbaru row: compact landscape cards built from the filtered
-     * catalogue (newest five carry the NEW ribbon, like the reference layout).
-     */
-    function renderRecentEpisodes(list) {
-      const grid = document.getElementById('recent-episodes-grid');
-      if (!grid) return;
-
-      const items = (list || []).slice(0, 12);
-      if (items.length === 0) {
-        grid.innerHTML = '<div class="col-span-full py-6 text-center text-xs text-zinc-500">No releases in this category yet.</div>';
-      } else {
-        grid.innerHTML = items.map((anime, index) => {
-          const image = anime.banner || anime.poster;
-          const latest = Math.max(1, Number(anime.subEpisodes || anime.totalEpisodes || 1));
-          const label = normalizeCategory(anime.type) === 'Movie' ? 'Movie' : `EP ${latest}`;
-
-          return `
-            <button type="button" onclick="openAnimeFromCard('${anime.id}')" class="group text-left min-w-0">
-              <div class="relative aspect-video rounded-xl overflow-hidden bg-dark-950 border border-dark-800 group-hover:border-brand/40 transition-colors">
-                <img
-                  src="${escapeHtml(image)}"
-                  alt="${escapeHtml(anime.title)}"
-                  loading="lazy"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/15 to-transparent"></div>
-                ${index < 5 ? '<span class="absolute top-1.5 left-1.5 px-1.5 py-0.5 rounded bg-brand text-white text-[9px] font-bold tracking-wide shadow">NEW</span>' : ''}
-                <span class="absolute bottom-1.5 left-2 text-[10px] font-semibold text-white">${label}</span>
-                <span class="absolute bottom-1.5 right-2 text-[10px] font-semibold text-amber-400">★ ${anime.rating || '9.0'}</span>
-              </div>
-              <p class="mt-1.5 text-[11px] sm:text-xs font-semibold text-zinc-200 line-clamp-1 group-hover:text-brand transition-colors">
-                ${escapeHtml(anime.title)}
-              </p>
-            </button>
-          `;
-        }).join('');
-      }
-
-      const subtitle = document.getElementById('recent-episodes-subtitle');
-      if (subtitle) {
-        subtitle.textContent = activeQuery
-          ? `${items.length} result${items.length === 1 ? '' : 's'} for "${activeQuery}"`
-          : activeCategory !== 'all'
-            ? `${CATEGORY_LABELS[activeCategory] || 'Category'} releases`
-            : 'Trending episodes across the catalogue';
-      }
-    }
-
-    /**
-     * Lanjutkan Menonton: history entries as 16:9 cards with a progress bar.
+     * Continue Watching: history entries as 16:9 cards with a progress bar.
      */
     function readSavedProgress(animeId, episode) {
       try {

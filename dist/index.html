@@ -38,8 +38,8 @@
   </script>
 
   <style>*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}html{scroll-behavior:smooth;background-color:#07090e}body{color:#e2e8f0;background-color:#07090e;font-family:Plus Jakarta Sans,system-ui,-apple-system,sans-serif;overflow-x:hidden}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0b0e14}::-webkit-scrollbar-thumb{background:#232a3b;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#343e54}.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}@keyframes shimmer{to{transform:translate(100%)}}.skeleton-box{background-color:#11151f;position:relative;overflow:hidden}.skeleton-box:after{content:"";background-image:linear-gradient(90deg,#fff0 0,#ffffff0d 20%,#ffffff1a 60%,#fff0);animation:1.8s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}</style>
-  <script type="module" crossorigin src="/assets/index-Crg-f41M.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-Z6_yzGC7.css">
+  <script type="module" crossorigin src="/assets/index-BlPY5m-1.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DGt_JKC_.css">
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-white">
 
@@ -47,24 +47,13 @@
   <!-- TOP NAVIGATION HEADER                      -->
   <!-- ========================================== -->
   <header class="sticky top-0 z-40 w-full bg-dark-900/95 backdrop-blur-md border-b border-dark-800 transition-colors">
-    <!-- Mobile: 3-slot grid so the brand is optically centred between the
-         drawer trigger and the search shortcut. Desktop: single flex row. -->
+    <!-- Mobile: 3-slot grid so the wordmark stays centred (the left slot is
+         deliberately empty — the bottom bar is the only navigation now).
+         Desktop: single flex row. -->
     <div class="max-w-7xl mx-auto px-3 sm:px-6 h-16 grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-2 lg:flex lg:gap-6">
 
-      <!-- Side-drawer trigger (mobile / tablet only) -->
-      <button
-        id="drawer-open-btn"
-        type="button"
-        onclick="toggleSideDrawer(true)"
-        aria-label="Open navigation menu"
-        aria-controls="side-drawer"
-        aria-expanded="false"
-        class="lg:hidden justify-self-start -ml-1 w-10 h-10 flex items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-dark-800 transition active:scale-95"
-      >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/>
-        </svg>
-      </button>
+      <!-- Empty left slot (mobile / tablet only) keeps the logo on the centreline -->
+      <div class="lg:hidden" aria-hidden="true"></div>
 
       <!-- Brand Logo: centred on mobile, leading edge on desktop -->
       <a href="#browse-section" onclick="resetFiltersAndSearch()" class="justify-self-center lg:justify-self-auto flex items-center gap-2.5 shrink-0 group">
@@ -198,76 +187,6 @@
   </header>
 
   <!-- ========================================== -->
-  <!-- MOBILE SIDE DRAWER                          -->
-  <!-- ========================================== -->
-  <div id="side-drawer" class="fixed inset-0 z-50 hidden lg:hidden" aria-hidden="true">
-    <!-- Scrim: tap outside to close -->
-    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onclick="toggleSideDrawer(false)"></div>
-
-    <aside
-      id="side-drawer-panel"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Main menu"
-      class="absolute inset-y-0 left-0 w-[82%] max-w-xs -translate-x-full transition-transform duration-300 ease-out bg-dark-900 border-r border-dark-800 shadow-2xl flex flex-col"
-    >
-      <div class="h-16 px-4 flex items-center justify-between border-b border-dark-800 shrink-0">
-        <a href="#browse-section" onclick="toggleSideDrawer(false); resetFiltersAndSearch();" class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-brand flex items-center justify-center text-white">
-            <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5.14v14l11-7-11-7z"/></svg>
-          </div>
-          <span class="text-lg font-extrabold tracking-tight text-white">Ani<span class="text-brand">Stream</span></span>
-        </a>
-        <button
-          type="button"
-          onclick="toggleSideDrawer(false)"
-          aria-label="Close navigation menu"
-          class="w-9 h-9 flex items-center justify-center rounded-xl text-zinc-400 hover:text-white hover:bg-dark-800 transition"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </button>
-      </div>
-
-      <nav class="flex-1 overflow-y-auto p-3 space-y-1" aria-label="Drawer navigation">
-        <button type="button" onclick="handleBottomNav('home')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg>
-          Home
-        </button>
-        <button type="button" onclick="handleBottomNav('explore')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.5 8.5l-2 5-5 2 2-5 5-2z"/></svg>
-          Explore
-        </button>
-        <button type="button" onclick="toggleSideDrawer(false); focusSearch();" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          Search
-        </button>
-        <button type="button" onclick="handleBottomNav('mylist')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-          My List
-        </button>
-        <button type="button" onclick="handleBottomNav('history')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-          <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          History
-        </button>
-
-        <div class="pt-3 mt-3 border-t border-dark-800">
-          <button type="button" onclick="toggleSideDrawer(false); toggleScheduleModal();" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-zinc-200 hover:bg-dark-800 hover:text-white transition text-left">
-            <svg class="w-4.5 h-4.5 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            Weekly Schedule
-          </button>
-        </div>
-      </nav>
-
-      <div class="p-4 border-t border-dark-800 text-[11px] text-zinc-500 flex items-center gap-2 shrink-0">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        Multi-API cascade active · HD streaming
-      </div>
-    </aside>
-  </div>
-
-  <!-- ========================================== -->
   <!-- MAIN APPLICATION CONTENT                   -->
   <!-- ========================================== -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 w-full pt-4 sm:pt-6 pb-6 flex-1 nav-spacer">
@@ -275,7 +194,7 @@
     <!-- ========================================== -->
     <!-- BROWSE SECTION: Spotlight & Catalog        -->
     <!-- ========================================== -->
-    <section id="browse-section" class="space-y-7">
+    <section id="browse-section" class="space-y-7 scroll-mt-16">
 
       <!-- Horizontal content-type switcher (MyKisah pattern) -->
       <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-800/80 -mt-1">
@@ -348,7 +267,7 @@
       <section id="continue-watching-section" class="hidden space-y-3">
         <div class="flex items-end justify-between gap-3">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Lanjutkan Menonton</h2>
+            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Continue Watching</h2>
             <p class="text-[11px] text-zinc-500 mt-0.5">Pick up exactly where you left off</p>
           </div>
           <button
@@ -367,34 +286,24 @@
         </div>
       </section>
 
-      <!-- RECENT EPISODES: compact labelled row (3 across on phones) -->
-      <section id="recent-episodes-section" class="space-y-3">
-        <div class="flex items-end justify-between gap-3">
-          <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Episode Terbaru</h2>
-            <p id="recent-episodes-subtitle" class="text-[11px] text-zinc-500 mt-0.5">Trending episodes across the catalogue</p>
-          </div>
-          <button
-            type="button"
-            onclick="scrollToAllAnime()"
-            class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
-          >
-            Semua
-          </button>
-        </div>
-        <div id="recent-episodes-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3">
-          <!-- Populated dynamically via renderRecentEpisodes -->
-        </div>
-      </section>
-
-      <!-- ALL ANIME: searchable / filterable full catalogue -->
+      <!-- LATEST EPISODES: the single card grid (search, genre, tabs and
+           badges all scope this one list — cards are rendered exactly once) -->
       <section id="all-anime" class="space-y-4 scroll-mt-20">
         <div class="flex items-end justify-between gap-3">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Semua Anime</h2>
-            <p class="text-[11px] text-zinc-500 mt-0.5">Browse the full catalogue</p>
+            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Latest Episodes</h2>
+            <p id="catalog-subtitle" class="text-[11px] text-zinc-500 mt-0.5">Trending episodes across the catalogue</p>
           </div>
-          <span id="catalog-count-badge" class="text-[11px] sm:text-xs font-medium text-zinc-500 shrink-0">Showing all releases</span>
+          <div class="flex items-center gap-3 shrink-0">
+            <span id="catalog-count-badge" class="text-[11px] sm:text-xs font-medium text-zinc-500 hidden sm:inline">Showing all releases</span>
+            <button
+              type="button"
+              onclick="viewAllReleases()"
+              class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
+            >
+              View All
+            </button>
+          </div>
         </div>
 
         <!-- Interactive Genre Category Bar -->
