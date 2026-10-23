@@ -78,6 +78,25 @@ The home page is sectioned rather than one endless grid:
   more of the catalogue from the home page; the rails hide while a search or
   genre/tab filter is active
 
+## Optional self-hosted Allanime source
+
+One slot in the streaming cascade is the self-hosted [Allanime
+API](https://github.com/mdtahseen7/Allanime-api) (search, details, episode
+lists and a direct media URL per episode). Point the same-origin
+`/api/allanime/*` proxy at an instance with `ALLANIME_API_BASE` (default
+`http://127.0.0.1:5678`, that repository's own default port). When an
+instance answers, the server picker gains **Server 5: Allanime (Direct)** and
+its results join the search cascade; playback resolves per episode and plays
+through the same-origin Range proxy (direct files) or hls.js (playlists).
+With no instance running the proxy answers an honest 504, the probe keeps the
+button out of the picker and the cascade skips the source — the default
+four-server setup is unchanged.
+
+Note: that project's episode-URL extraction currently fails upstream
+(its own scraper log reports `AA_CRYPTO_MISSING` after allanime.day changed
+its API); search and episode lists still work, and a failed extract just
+fails over to the next server.
+
 ## Routes, SEO and crawlers
 
 Two crawlable routes exist, both handled by the client router in `index.html`

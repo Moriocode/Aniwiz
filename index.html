@@ -1191,6 +1191,35 @@
       autoFallbackActive = Boolean(checked);
     };
 
+    /**
+     * Server 5 (Allanime) only joins the picker when a self-hosted instance
+     * answers the /api/allanime/* proxy. The button is created dynamically so
+     * machines without an instance keep exactly the four public servers.
+     */
+    async function probeAllanimeServerButton() {
+      try {
+        // The __probe route always answers 200 with { reachable }, so no
+        // failing same-origin request is ever produced when no instance runs.
+        const res = await fetch('/api/allanime/__probe');
+        if (!res.ok) return;
+        const probe = await res.json().catch(() => null);
+        if (!probe?.reachable) return;
+      } catch (e) {
+        return;
+      }
+      const row = document.getElementById('server-btn-4')?.parentElement;
+      if (!row || document.getElementById('server-btn-5')) return;
+
+      const btn = document.createElement('button');
+      btn.id = 'server-btn-5';
+      btn.type = 'button';
+      btn.className = 'server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition';
+      btn.title = 'Server 5: Allanime (Direct — self-hosted instance)';
+      btn.textContent = 'HD-5';
+      btn.setAttribute('onclick', "switchStreamServer(5, 'Allanime')");
+      row.appendChild(btn);
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       // First paint is synchronous: an honest loading state, no waiting on the
       // network before content is visible. The grid only ever renders real
@@ -1200,6 +1229,7 @@
       renderContinueWatching();
       setBottomNavActive('home');
       updateHomeSeo();
+      probeAllanimeServerButton();
 
       // Live data swaps in whenever it is ready — it must never block the UI.
       // Deep links await this same promise before resolving their slug.
@@ -1884,14 +1914,16 @@
       2: 'ani.pm',
       3: 'AniRaku',
       4: 'Shonen',
+      5: 'Allanime',
       6: 'OpenAnime'
     };
 
     // Auto-fallback priority: after any embed failure, prefer the server with
     // no embed host that could be blocked (3 = native HLS), then the iframe
-    // servers. Server 6 (OpenAnime, self-hosted) is a manual picker choice.
+    // servers. Servers 5 (Allanime) and 6 (OpenAnime, self-hosted) only
+    // appear when an instance is reachable and are manual picker choices.
     // Keep in sync with StreamSourceResult.embeddable in animeService.
-    const EMBEDDABLE_SERVERS = { 1: true, 2: true, 3: true, 4: true, 6: true };
+    const EMBEDDABLE_SERVERS = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
 
     function nextEmbeddableServer(fromId) {
       const FALLBACK_PRIORITY = [3, 1, 2, 4]; // native first — no embed host
@@ -1914,7 +1946,7 @@
       const { default: Hls } = await import('hls.js');
       const player = document.getElementById('player');
       const res = await fetch(streamResult.streamUrl);
-      if (!res.ok) throw new Error(`AniRaku resolve failed: ${res.status}`);
+      if (!res.ok) throw new Error(`Stream resolve failed: ${res.status}`);
       const info = await res.json();
       if (!info?.ok || !info.url) throw new Error(info?.error || 'No playable source');
 
@@ -1925,6 +1957,17 @@
       `;
       const video = document.getElementById('stream-video');
       wireNativeVideoProgress(video, anime, ep);
+
+      // Direct files (Allanime's mp4) play straight from the same-origin
+      // Range proxy — the Allanime resolver is the only one that returns a
+      // `playUrl`, and only when the media is not a playlist. Playlists
+      // (AniRaku's m3u8 — which hides inside a query string, hence the
+      // substring test — and Allanime playlists) go through hls.js below.
+      if (info.playUrl && !/m3u8/i.test(String(info.url))) {
+        video.src = info.playUrl;
+        video.play().catch(() => { /* autoplay blocked — controls are visible */ });
+        return;
+      }
 
       if (Hls.isSupported()) {
         const hls = new Hls({ enableWorker: true, backBufferLength: 60 });

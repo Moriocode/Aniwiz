@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { Readable } from 'node:stream';
 
 /**
  * Local anime API middleware (shared between Vite and Vercel).
@@ -541,6 +542,111 @@ export const anipmApiMiddleware: AnipmApiMiddleware = (req, res, next) => {
           hint: 'Start https://github.com/Zcross091/Open-Anime-API and set OPENANIME_API_URL'
         }));
       });
+    return;
+  }
+
+  // ==========================================
+  // ALLANIME SELF-HOSTED API PROXY (server 5 + search/episode fallback)
+  // Endpoints: JSON pass-through for /api/allanime/, /search?query=,
+  //   /anime/:id, /episodes/:id; normalized /episode_url ->
+  //   { ok, url, playUrl } (the shape the native player consumes);
+  //   /play streams the raw video with Range passthrough for <video>.
+  // Upstream: ALLANIME_API_BASE (default http://127.0.0.1:5678, the
+  // repository's own default PORT) — deploy
+  // https://github.com/mdtahseen7/Allanime-api and point this at it.
+  // When no instance is running this answers 504 immediately so the UI and
+  // the provider cascade skip the source without waiting.
+  // ==========================================
+  if (url.pathname.startsWith('/api/allanime/')) {
+    const ALLANIME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+    const allAnimeBase = (process.env.ALLANIME_API_BASE || 'http://127.0.0.1:5678').replace(/\/$/, '');
+    const subpath = url.pathname.replace('/api/allanime/', '');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    const unreachable = (err: any) => {
+      res.statusCode = 504;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({
+        ok: false,
+        error: 'Allanime instance unreachable',
+        detail: err?.name === 'AbortError' ? 'timeout' : (err?.message || 'connection failed'),
+        hint: 'Start https://github.com/mdtahseen7/Allanime-api and set ALLANIME_API_BASE',
+      }));
+    };
+
+    // Dedicated reachability probe: always answers 200 with { reachable },
+    // so the UI can check for an instance without ever producing a failing
+    // same-origin request when none is running.
+    if (subpath === '__probe') {
+      upstreamFetch(`${allAnimeBase}/`, { headers: { 'User-Agent': ALLANIME_UA } }, 3000)
+        .then((up) => {
+          res.statusCode = 200;
+          res.end(JSON.stringify({ ok: true, reachable: up.ok }));
+        })
+        .catch(() => {
+          res.statusCode = 200;
+          res.end(JSON.stringify({ ok: true, reachable: false }));
+        });
+      return;
+    }
+
+    // /play proxies the raw media (the upstream's own design: binary body +
+    // Range support), so <video> gets seeking without cross-origin rules.
+    if (subpath === 'play') {
+      upstreamFetch(`${allAnimeBase}/play${url.search}`, {
+        headers: {
+          'User-Agent': ALLANIME_UA,
+          ...(typeof req.headers.range === 'string' ? { Range: req.headers.range } : {}),
+        },
+      }, 20000)
+        .then((up) => {
+          res.statusCode = up.status;
+          for (const header of ['content-type', 'content-length', 'content-range', 'accept-ranges']) {
+            const value = up.headers.get(header);
+            if (value) res.setHeader(header, value);
+          }
+          if (!up.body) { res.end(); return; }
+          Readable.fromWeb(up.body as any).on('error', () => res.destroy()).pipe(res as any);
+        })
+        .catch(unreachable);
+      return;
+    }
+
+    res.setHeader('Content-Type', 'application/json');
+
+    // /episode_url is normalized to { ok, url, playUrl } so the player's
+    // native path works for every resolver, not just AniRaku's shape.
+    if (subpath === 'episode_url') {
+      upstreamFetch(`${allAnimeBase}/episode_url${url.search}`, {
+        headers: { 'User-Agent': ALLANIME_UA, Accept: 'application/json' },
+      })
+        .then((up) => up.text().then((text) => {
+          if (!up.ok) { res.statusCode = up.status; res.end(text); return; }
+          let parsed: any = null;
+          try { parsed = JSON.parse(text); } catch {}
+          const episodeUrl = parsed?.episode_url;
+          if (typeof episodeUrl !== 'string' || !episodeUrl) {
+            res.statusCode = 502;
+            res.end(JSON.stringify({ ok: false, error: 'Allanime returned no playable episode_url' }));
+            return;
+          }
+          res.end(JSON.stringify({
+            ok: true,
+            url: episodeUrl,
+            playUrl: `/api/allanime/play${url.search}`,
+            mode: parsed?.mode || 'sub',
+          }));
+        }))
+        .catch(unreachable);
+      return;
+    }
+
+    // Plain JSON pass-through (/, /search, /anime/:id, /episodes/:id).
+    upstreamFetch(`${allAnimeBase}/${subpath}${url.search}`, {
+      headers: { 'User-Agent': ALLANIME_UA, Accept: 'application/json' },
+    })
+      .then((up) => up.text().then((text) => { res.statusCode = up.status; res.end(text); }))
+      .catch(unreachable);
     return;
   }
 

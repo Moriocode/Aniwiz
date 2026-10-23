@@ -7,6 +7,7 @@ import { requestAniwixi } from './aniwixiClient';
 import { AniwixiProvider } from './providers/aniwixiProvider';
 import { AniPulseProvider } from './providers/aniPulseProvider';
 import { OpenAnimeProvider } from './providers/openAnimeProvider';
+import { AllanimeProvider } from './providers/allanimeProvider';
 
 // Register the LIVE providers only. HiAnime/AniKoto/Anivexa/ANIME-API were
 // removed: their local endpoints served hardcoded placeholder data (fake
@@ -20,6 +21,10 @@ providerRegistry.register(new AniwixiProvider());
 // Registered last: when no instance is running the proxy fails fast and the
 // cascade simply skips it.
 providerRegistry.register(new OpenAnimeProvider());
+// Optional self-hosted Allanime API instance (mdtahseen7/Allanime-api, see
+// the /api/allanime/* proxy). Registered last: with no instance running the
+// proxy answers 504 fast and the cascade skips it.
+providerRegistry.register(new AllanimeProvider());
 
 class AnimeService {
   private memoryCache: Map<string, AnimeItem> = new Map();
@@ -288,6 +293,15 @@ class AnimeService {
     const cached = this.memoryCache.get(rawId);
     if (cached) return cached;
 
+    // Provider-minted ids resolve through their own provider directly —
+    // digits scraped out of an opaque Allanime id would hit a random AniList
+    // title instead of the requested show.
+    if (rawId.startsWith('allanime:')) {
+      const details = await new AllanimeProvider().getAnimeDetails(rawId);
+      if (details) this.memoryCache.set(rawId, details);
+      return details;
+    }
+
     const cleanId = rawId.replace(/[^0-9]/g, '');
 
     if (cleanId) {
@@ -321,6 +335,14 @@ class AnimeService {
   public async getEpisodes(id: string): Promise<AnimeEpisode[]> {
     const details = await this.getAnimeDetails(id);
     const count = details?.totalEpisodes;
+
+    // Allanime-minted ids list real episode numbers from the upstream.
+    if (String(id).startsWith('allanime:')) {
+      try {
+        const eps = await new AllanimeProvider().getEpisodes(String(id));
+        if (eps && eps.length > 0) return eps;
+      } catch {}
+    }
 
     // Check if Aniwixi has exact episode metadata — only for purely numeric
     // (AniList-keyed) ids; slug ids would resolve to an unrelated title.
@@ -371,6 +393,7 @@ class AnimeService {
     if (resolvedId == null) return { sub: [], dub: [] };
     const anilistId = String(resolvedId);
     const openAnime = await this.getOpenAnimeServerOption();
+    const allAnime = await this.getAllAnimeServerOption();
 
     return {
       sub: [
@@ -403,6 +426,7 @@ class AnimeService {
           type: 'sub',
           embedUrl: `https://shonen.to/embed/anilist/${anilistId}/${episodeNumber}?language=sub&parentOrigin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`,
         },
+        ...(allAnime ? [allAnime] : []),
         ...(openAnime ? [openAnime] : [])
       ],
       dub: [
@@ -434,6 +458,7 @@ class AnimeService {
           type: 'dub',
           embedUrl: `https://shonen.to/embed/anilist/${anilistId}/${episodeNumber}?language=dub&parentOrigin=${encodeURIComponent(typeof window !== 'undefined' ? window.location.origin : '')}`,
         },
+        ...(allAnime ? [{ ...allAnime, id: 'server-allanime-dub', type: 'dub' as StreamAudioMode }] : []),
         ...(openAnime ? [{ ...openAnime, id: 'server-openanime-dub', type: 'dub' as StreamAudioMode }] : [])
       ]
     };
@@ -466,6 +491,40 @@ class AnimeService {
       serverId: 6,
       type: 'sub',
       embedUrl: '/api/openanime',
+      isPrimary: false,
+    };
+  }
+
+  /**
+   * The self-hosted Allanime API instance (mdtahseen7/Allanime-api) is
+   * optional too. Probe it (cheaply, once per short window) and only offer
+   * Server 5 when it actually answers — the picker never shows a dead entry
+   * on machines without it.
+   */
+  private allAnimeProbe: { at: number; reachable: boolean } | null = null;
+
+  private async getAllAnimeServerOption(): Promise<StreamServerOption | null> {
+    const now = Date.now();
+    if (!this.allAnimeProbe || now - this.allAnimeProbe.at > 30_000) {
+      let reachable = false;
+      try {
+        // __probe always answers 200 with { reachable } — no failing
+        // same-origin request when no instance is running.
+        const res = await fetch('/api/allanime/__probe');
+        if (res.ok) reachable = Boolean((await res.json().catch(() => null))?.reachable);
+      } catch {
+        reachable = false;
+      }
+      this.allAnimeProbe = { at: now, reachable };
+    }
+    if (!this.allAnimeProbe.reachable) return null;
+
+    return {
+      id: 'server-allanime',
+      name: 'Server 5: Allanime (Direct)',
+      serverId: 5,
+      type: 'sub',
+      embedUrl: '/api/allanime/play',
       isPrimary: false,
     };
   }
@@ -527,6 +586,22 @@ class AnimeService {
     if (serverId === 6) {
       // Self-hosted Open Anime API — resolves a fresh link per episode
       return new OpenAnimeProvider().getStreamSource(details?.title || slug, episodeNumber, 6, audio);
+    }
+
+    if (serverId === 5) {
+      // Self-hosted Allanime — resolves a per-episode media URL by title
+      // (exact-match first, so a sequel never streams in place of its
+      // target). The resolver URL answers { ok, url, playUrl }; the native
+      // player handles both playlists (hls.js) and direct files (Range
+      // proxy), so `type: 'hls'` routes it through that path.
+      const resolverUrl = await new AllanimeProvider().resolveEpisodeResolverUrl(details?.title || slug, episodeNumber, audio);
+      return {
+        streamUrl: resolverUrl,
+        type: 'hls',
+        serverName: 'Server 5: Allanime (Direct)',
+        audioMode: audio,
+        embeddable: true,
+      };
     }
 
     // Every remaining server builds its URL from a real AniList id — resolve
