@@ -245,7 +245,14 @@ const heroState = await page.evaluate(() => {
   const header = document.querySelector('header').getBoundingClientRect();
   return {
     heroTop: Math.round(hero.top),
+    heroLeft: Math.round(hero.left),
+    heroWidth: Math.round(hero.width),
     headerBottom: Math.round(header.bottom),
+    viewportWidth: window.innerWidth,
+    heroRadius: getComputedStyle(document.getElementById('hero-banner')).borderRadius,
+    heroFilter: getComputedStyle(document.getElementById('hero-backdrop')).filter,
+    gradientLayers: [...document.getElementById('hero-banner').children]
+      .filter((el) => getComputedStyle(el).backgroundImage.includes('gradient')).length,
     shellHidden: document.getElementById('search-shell').classList.contains('hidden'),
     navHomeActive: document.querySelector('.bottom-nav-item[data-nav="home"]')?.classList.contains('text-brand-soft') || false,
   };
@@ -256,6 +263,15 @@ check('logo link closes the search overlay and marks Home active',
 check('hero banner sits clear of the sticky header after the logo link',
   heroState.heroTop >= heroState.headerBottom,
   `hero top ${heroState.heroTop} vs header bottom ${heroState.headerBottom}`);
+
+// Full-bleed hero: no rounded card, no page gutters on either side, and the
+// key art stays bright under a single bottom-up gradient.
+check('hero banner runs edge to edge with square corners',
+  heroState.heroLeft === 0 && heroState.heroWidth === heroState.viewportWidth && heroState.heroRadius === '0px',
+  `left ${heroState.heroLeft}, width ${heroState.heroWidth}/${heroState.viewportWidth}, radius ${heroState.heroRadius}`);
+check('hero artwork is not dimmed and uses one readability gradient',
+  !/brightness\(0\./.test(heroState.heroFilter) && heroState.gradientLayers === 1,
+  `filter ${heroState.heroFilter}, ${heroState.gradientLayers} gradient layer(s)`);
 
 // The header schedule shortcut must open the modal on mobile.
 await page.locator('#schedule-btn').click();
@@ -288,6 +304,19 @@ await deskPage.waitForFunction(() => document.querySelectorAll('#anime-grid > di
 check('desktop renders the catalogue grid',
   (await deskPage.locator('#anime-grid > div').count()) >= 4,
   `${await deskPage.locator('#anime-grid > div').count()} cards`);
+
+const deskHero = await deskPage.evaluate(() => {
+  const rect = document.getElementById('hero-banner').getBoundingClientRect();
+  return {
+    left: Math.round(rect.left),
+    right: Math.round(rect.right),
+    viewportWidth: window.innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  };
+});
+check('desktop hero breaks out of the centred content column without overflow',
+  deskHero.left === 0 && deskHero.right === deskHero.viewportWidth && deskHero.scrollWidth === deskHero.viewportWidth,
+  `x ${deskHero.left}–${deskHero.right}, viewport ${deskHero.viewportWidth}, scroll ${deskHero.scrollWidth}`);
 await deskPage.screenshot({ path: 'artifacts/desktop-home.png' });
 
 // At the lg breakpoint the labelled Weekly Schedule joins the row — it must fit

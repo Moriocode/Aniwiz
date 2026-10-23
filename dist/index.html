@@ -50,8 +50,8 @@
   </script>
 
   <style>*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}html{scroll-behavior:smooth;background-color:#0f172a}body{color:#e2e8f0;background-color:#0f172a;font-family:Plus Jakarta Sans,system-ui,-apple-system,sans-serif;overflow-x:hidden}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0b1220}::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#475569}.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}@keyframes shimmer{to{transform:translate(100%)}}.skeleton-box{background-color:#1e293b;position:relative;overflow:hidden}.skeleton-box:after{content:"";background-image:linear-gradient(90deg,#fff0 0,#ffffff0d 20%,#ffffff1a 60%,#fff0);animation:1.8s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}</style>
-  <script type="module" crossorigin src="/assets/index-Cg0qnKgk.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-CpTHLRtw.css">
+  <script type="module" crossorigin src="/assets/index-DpNgvM1B.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DAK3y_sz.css">
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-slate-50">
 
@@ -210,57 +210,71 @@
         </div>
       </nav>
 
-      <!-- Hero Spotlight Banner -->
-      <div id="hero-banner" class="relative rounded-2xl overflow-hidden bg-dark-800 border border-dark-700 min-h-[300px] sm:min-h-[380px] flex items-end p-6 sm:p-10 shadow-2xl">
-        <div id="hero-backdrop" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 brightness-[0.45]" style="background-image: linear-gradient(135deg, #1E293B 0%, #0B1220 70%)"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/70 to-transparent"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-dark-950/90 via-dark-950/40 to-transparent"></div>
+      <!-- Hero Spotlight Banner: edge-to-edge key art. The artwork keeps its
+           own vibrancy (no dimming layer); a single bottom-up slate gradient
+           keeps the title, synopsis and actions readable over the bright top. -->
+      <div id="hero-banner" class="hero-bleed relative flex items-end overflow-hidden bg-dark-800">
+        <div
+          id="hero-backdrop"
+          class="absolute inset-0 bg-cover bg-center brightness-110 saturate-125"
+          style="background-image: linear-gradient(135deg, #1E293B 0%, #0B1220 70%)"
+        ></div>
 
-        <div class="relative z-10 max-w-2xl space-y-3">
-          <!-- Spotlight metadata (populated from live provider data only) -->
-          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-medium">
-            <span class="px-2 py-0.5 rounded bg-brand text-slate-50 font-bold text-[10px] uppercase tracking-wider">#1 Spotlight</span>
-            <span id="hero-type">—</span>
-            <span aria-hidden="true" class="text-slate-500">·</span>
-            <span id="hero-duration">—</span>
-            <span aria-hidden="true" class="text-slate-500">·</span>
-            <span id="hero-status">Loading…</span>
-            <span aria-hidden="true" class="text-slate-500">·</span>
-            <span class="text-amber-400 font-bold flex items-center gap-1">★ <span id="hero-rating">—</span></span>
-          </div>
+        <!-- Single readability gradient: transparent over the artwork, deep
+             slate at the base where the title, synopsis and actions sit. The
+             midpoint is a semi-transparent slate rather than fully clear,
+             otherwise the synopsis and meta row disappear into bright key art. -->
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f172a] from-5% via-[#0f172a]/60 via-38% to-transparent"></div>
 
-          <!-- Title -->
-          <h1 id="hero-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-50 tracking-tight leading-tight drop-shadow-md">
-            Loading live spotlight…
-          </h1>
-          <p id="hero-alt-title" class="text-xs sm:text-sm text-slate-400 font-medium line-clamp-1">
-          </p>
+        <!-- Content sits on the same rails as the rest of the page (max-w-7xl +
+             gutters) while the banner itself runs the full viewport width. -->
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10 sm:pb-14">
+          <div class="max-w-2xl space-y-3">
+            <!-- Spotlight metadata (populated from live provider data only) -->
+            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-medium">
+              <span class="px-2 py-0.5 rounded bg-brand text-slate-50 font-bold text-[10px] uppercase tracking-wider">#1 Spotlight</span>
+              <span id="hero-type">—</span>
+              <span aria-hidden="true" class="text-slate-500">·</span>
+              <span id="hero-duration">—</span>
+              <span aria-hidden="true" class="text-slate-500">·</span>
+              <span id="hero-status">Loading…</span>
+              <span aria-hidden="true" class="text-slate-500">·</span>
+              <span class="text-amber-400 font-bold flex items-center gap-1">★ <span id="hero-rating">—</span></span>
+            </div>
 
-          <!-- Synopsis -->
-          <p id="hero-synopsis" class="text-xs sm:text-sm text-slate-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
-          </p>
+            <!-- Title -->
+            <h1 id="hero-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-50 tracking-tight leading-tight drop-shadow-md">
+              Loading live spotlight…
+            </h1>
+            <p id="hero-alt-title" class="text-xs sm:text-sm text-slate-400 font-medium line-clamp-1">
+            </p>
 
-          <!-- Action buttons -->
-          <div class="pt-2 flex flex-wrap items-center gap-3">
-            <a
-              id="hero-watch-btn"
-              href="/"
-              onclick="return handleSpotlightLink(event)"
-              class="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-slate-50 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
-            >
-              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-              <span>Watch Episode 1</span>
-            </a>
-            <button
-              id="hero-info-btn"
-              onclick="toggleHeroAnimeDetails()"
-              class="px-4 py-2.5 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm transition-all active:scale-95"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span id="hero-info-btn-label">Anime Info</span>
-            </button>
+            <!-- Synopsis -->
+            <p id="hero-synopsis" class="text-xs sm:text-sm text-slate-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
+            </p>
+
+            <!-- Action buttons -->
+            <div class="pt-2 flex flex-wrap items-center gap-3">
+              <a
+                id="hero-watch-btn"
+                href="/"
+                onclick="return handleSpotlightLink(event)"
+                class="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-slate-50 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
+              >
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span>Watch Episode 1</span>
+              </a>
+              <button
+                id="hero-info-btn"
+                onclick="toggleHeroAnimeDetails()"
+                class="px-4 py-2.5 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm transition-all active:scale-95"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span id="hero-info-btn-label">Anime Info</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
