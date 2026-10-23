@@ -61,6 +61,27 @@
 }
 
 /*
+ * Full-bleed hero (AnimeKAI-style): the banner lives inside the centred,
+ * padded <main>, so pull it back out to both viewport edges. 50% resolves
+ * against the parent's content width while 50vw resolves against the
+ * viewport, which cancels the page gutters at every breakpoint and leaves no
+ * side margin. Corners, border and shadow are removed so the key art reads as
+ * one continuous surface; the height fills most of the first screen.
+ */
+@layer components {
+  .hero-bleed {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    min-height: clamp(28rem, 68vh, 47.5rem);
+  }
+}
+
+/*
  * Mobile layout utilities (Tailwind v4 first-party utilities cannot express
  * safe-area insets). The bottom navigation floats above the home indicator,
  * and content reserves room for it so the last row is never covered.

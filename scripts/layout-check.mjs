@@ -231,6 +231,29 @@ const tabsVisibleAgain = await page.locator('#category-tabs').isVisible();
 check('Home shortcut closes the search overlay', searchClosedAfterHome && tabsVisibleAgain);
 await page.screenshot({ path: 'artifacts/mobile-home.png' });
 
+// Regression: Home must also clear a search left over from browsing. Closing
+// the player alone used to leave the grid scoped to the old query.
+await page.locator('.bottom-nav-item[data-nav="search"]').click();
+await page.waitForTimeout(300);
+await page.locator('#search-input').fill('frieren');
+await page.waitForFunction(
+  () => /\b[1-9]\d* results?\b/.test(document.getElementById('catalog-count-badge')?.textContent || ''),
+  null,
+  { timeout: 8000 }
+).catch(() => {});
+const searchedCards = await page.locator('#anime-grid > div').count();
+await page.locator('.bottom-nav-item[data-nav="home"]').click();
+await page.waitForTimeout(700);
+const afterHome = await page.evaluate(() => ({
+  query: document.getElementById('search-input').value,
+  cards: document.querySelectorAll('#anime-grid > div').length,
+  badge: (document.getElementById('catalog-count-badge').textContent || '').trim(),
+  homeActive: document.querySelector('.bottom-nav-item[data-nav="home"]')?.classList.contains('text-brand-soft') || false,
+}));
+check('Home clears an active search and restores the whole catalogue',
+  afterHome.query === '' && /Showing all releases/.test(afterHome.badge) && afterHome.cards > searchedCards && afterHome.homeActive,
+  `query "${afterHome.query}", cards ${searchedCards} → ${afterHome.cards}, badge "${afterHome.badge}"`);
+
 // Regression: the logo/link returns to the main page. Nothing may stay parked
 // over the hero — the sticky header must not cover it, and an open search row
 // must be closed by the click.
@@ -245,7 +268,14 @@ const heroState = await page.evaluate(() => {
   const header = document.querySelector('header').getBoundingClientRect();
   return {
     heroTop: Math.round(hero.top),
+    heroLeft: Math.round(hero.left),
+    heroWidth: Math.round(hero.width),
     headerBottom: Math.round(header.bottom),
+    viewportWidth: window.innerWidth,
+    heroRadius: getComputedStyle(document.getElementById('hero-banner')).borderRadius,
+    heroFilter: getComputedStyle(document.getElementById('hero-backdrop')).filter,
+    gradientLayers: [...document.getElementById('hero-banner').children]
+      .filter((el) => getComputedStyle(el).backgroundImage.includes('gradient')).length,
     shellHidden: document.getElementById('search-shell').classList.contains('hidden'),
     navHomeActive: document.querySelector('.bottom-nav-item[data-nav="home"]')?.classList.contains('text-brand-soft') || false,
   };
@@ -253,9 +283,20 @@ const heroState = await page.evaluate(() => {
 check('logo link closes the search overlay and marks Home active',
   heroState.shellHidden && heroState.navHomeActive,
   `shellHidden=${heroState.shellHidden} navHome=${heroState.navHomeActive}`);
-check('hero banner sits clear of the sticky header after the logo link',
-  heroState.heroTop >= heroState.headerBottom,
+// The hero now starts the page, flush under the header (AnimeKAI-style), so a
+// 1px rounding tolerance is expected — it must never slide under the header.
+check('hero banner sits flush with, not under, the sticky header after the logo link',
+  heroState.heroTop >= heroState.headerBottom - 1,
   `hero top ${heroState.heroTop} vs header bottom ${heroState.headerBottom}`);
+
+// Full-bleed hero: no rounded card, no page gutters on either side, and the
+// key art stays bright under a single bottom-up gradient.
+check('hero banner runs edge to edge with square corners',
+  heroState.heroLeft === 0 && heroState.heroWidth === heroState.viewportWidth && heroState.heroRadius === '0px',
+  `left ${heroState.heroLeft}, width ${heroState.heroWidth}/${heroState.viewportWidth}, radius ${heroState.heroRadius}`);
+check('hero artwork is not dimmed and uses one readability gradient',
+  !/brightness\(0\./.test(heroState.heroFilter) && heroState.gradientLayers === 1,
+  `filter ${heroState.heroFilter}, ${heroState.gradientLayers} gradient layer(s)`);
 
 // The header schedule shortcut must open the modal on mobile.
 await page.locator('#schedule-btn').click();
@@ -288,6 +329,19 @@ await deskPage.waitForFunction(() => document.querySelectorAll('#anime-grid > di
 check('desktop renders the catalogue grid',
   (await deskPage.locator('#anime-grid > div').count()) >= 4,
   `${await deskPage.locator('#anime-grid > div').count()} cards`);
+
+const deskHero = await deskPage.evaluate(() => {
+  const rect = document.getElementById('hero-banner').getBoundingClientRect();
+  return {
+    left: Math.round(rect.left),
+    right: Math.round(rect.right),
+    viewportWidth: window.innerWidth,
+    scrollWidth: document.documentElement.scrollWidth,
+  };
+});
+check('desktop hero breaks out of the centred content column without overflow',
+  deskHero.left === 0 && deskHero.right === deskHero.viewportWidth && deskHero.scrollWidth === deskHero.viewportWidth,
+  `x ${deskHero.left}–${deskHero.right}, viewport ${deskHero.viewportWidth}, scroll ${deskHero.scrollWidth}`);
 await deskPage.screenshot({ path: 'artifacts/desktop-home.png' });
 
 // At the lg breakpoint the labelled Weekly Schedule joins the row — it must fit

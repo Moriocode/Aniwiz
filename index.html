@@ -118,7 +118,7 @@
   <!-- ========================================== -->
   <!-- TOP NAVIGATION HEADER                      -->
   <!-- ========================================== -->
-  <header class="sticky top-0 z-40 w-full bg-dark-800/95 backdrop-blur-md border-b border-dark-700 transition-colors">
+  <header class="sticky top-0 z-40 w-full bg-dark-800/95 border-b border-dark-700 transition-colors">
     <!-- Mobile: 3-slot grid so the wordmark stays centred (the left slot is
          deliberately empty — the bottom bar is the only navigation now).
          Desktop: single flex row. -->
@@ -257,8 +257,91 @@
     <!-- ========================================== -->
     <section id="browse-section" class="space-y-7 scroll-mt-16">
 
+      <!-- Hero Spotlight Banner: AnimeKAI-style key art at the very top.
+           Edge-to-edge, square corners, no dimming filter; a single bottom-up
+           gradient keeps the copy readable over the bright artwork. -->
+      <div id="hero-banner" class="hero-bleed -mt-4 sm:-mt-6 relative flex items-end overflow-hidden bg-dark-800">
+        <div
+          id="hero-backdrop"
+          class="absolute inset-0 bg-cover bg-center"
+          style="background-image: linear-gradient(135deg, #1E293B 0%, #0B1220 70%)"
+        ></div>
+
+        <!-- Single readability gradient: transparent over the artwork, deep
+             slate at the base where the title, synopsis and actions sit. -->
+        <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f172a] from-5% via-[#0f172a]/60 via-38% to-transparent"></div>
+
+        <!-- Content sits on the same rails as the rest of the page (max-w-7xl +
+             gutters) while the banner itself runs the full viewport width. -->
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-8 sm:pb-12">
+          <div class="max-w-2xl space-y-3">
+            <!-- Spotlight metadata (populated from live provider data only) -->
+            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-medium">
+              <span class="px-2 py-0.5 rounded bg-brand text-slate-50 font-bold text-[10px] uppercase tracking-wider">#1 Spotlight</span>
+              <span id="hero-type">—</span>
+              <span aria-hidden="true" class="text-slate-500">·</span>
+              <span id="hero-duration">—</span>
+              <span aria-hidden="true" class="text-slate-500">·</span>
+              <span id="hero-status">Loading…</span>
+            </div>
+
+            <!-- Title -->
+            <h1 id="hero-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-50 tracking-tight leading-tight drop-shadow-md">
+              Loading live spotlight…
+            </h1>
+            <p id="hero-alt-title" class="text-xs sm:text-sm text-slate-400 font-medium line-clamp-1">
+            </p>
+
+            <!-- Synopsis -->
+            <p id="hero-synopsis" class="text-xs sm:text-sm text-slate-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
+            </p>
+
+            <!-- AnimeKAI-style stat strip: rating / release / quality -->
+            <div class="inline-flex items-stretch gap-4 sm:gap-6 rounded-xl border border-white/10 bg-dark-950/75 px-4 py-2.5">
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Rating</p>
+                <p class="mt-0.5 text-sm font-bold text-amber-400">★ <span id="hero-rating">—</span></p>
+              </div>
+              <div class="w-px bg-white/10" aria-hidden="true"></div>
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Release</p>
+                <p class="mt-0.5 text-sm font-bold text-slate-50"><span id="hero-year">—</span></p>
+              </div>
+              <div class="w-px bg-white/10" aria-hidden="true"></div>
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Quality</p>
+                <p class="mt-0.5 text-sm font-bold text-slate-50"><span id="hero-quality">—</span></p>
+              </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="pt-1 flex flex-wrap items-center gap-3">
+              <a
+                id="hero-watch-btn"
+                href="/"
+                onclick="return handleSpotlightLink(event)"
+                class="px-6 py-3 rounded-xl bg-brand hover:bg-brand-hover text-slate-50 text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
+              >
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                <span>Watch Episode 1</span>
+              </a>
+              <button
+                id="hero-info-btn"
+                onclick="toggleHeroAnimeDetails()"
+                class="px-4 py-3 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all active:scale-95"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span id="hero-info-btn-label">Anime Info</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Horizontal content-type switcher (MyKisah pattern) -->
-      <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-700/80 -mt-1">
+      <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-700/80">
         <div id="category-tabs-track" class="flex items-center gap-6 sm:gap-8 overflow-x-auto scrollbar-none">
           <button
             type="button"
@@ -269,61 +352,6 @@
           >Anime</button>
         </div>
       </nav>
-
-      <!-- Hero Spotlight Banner -->
-      <div id="hero-banner" class="relative rounded-2xl overflow-hidden bg-dark-800 border border-dark-700 min-h-[300px] sm:min-h-[380px] flex items-end p-6 sm:p-10 shadow-2xl">
-        <div id="hero-backdrop" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 brightness-[0.45]" style="background-image: linear-gradient(135deg, #1E293B 0%, #0B1220 70%)"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/70 to-transparent"></div>
-        <div class="absolute inset-0 bg-gradient-to-r from-dark-950/90 via-dark-950/40 to-transparent"></div>
-
-        <div class="relative z-10 max-w-2xl space-y-3">
-          <!-- Spotlight metadata (populated from live provider data only) -->
-          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-medium">
-            <span class="px-2 py-0.5 rounded bg-brand text-slate-50 font-bold text-[10px] uppercase tracking-wider">#1 Spotlight</span>
-            <span id="hero-type">—</span>
-            <span aria-hidden="true" class="text-slate-500">·</span>
-            <span id="hero-duration">—</span>
-            <span aria-hidden="true" class="text-slate-500">·</span>
-            <span id="hero-status">Loading…</span>
-            <span aria-hidden="true" class="text-slate-500">·</span>
-            <span class="text-amber-400 font-bold flex items-center gap-1">★ <span id="hero-rating">—</span></span>
-          </div>
-
-          <!-- Title -->
-          <h1 id="hero-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-50 tracking-tight leading-tight drop-shadow-md">
-            Loading live spotlight…
-          </h1>
-          <p id="hero-alt-title" class="text-xs sm:text-sm text-slate-400 font-medium line-clamp-1">
-          </p>
-
-          <!-- Synopsis -->
-          <p id="hero-synopsis" class="text-xs sm:text-sm text-slate-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
-          </p>
-
-          <!-- Action buttons -->
-          <div class="pt-2 flex flex-wrap items-center gap-3">
-            <a
-              id="hero-watch-btn"
-              href="/"
-              onclick="return handleSpotlightLink(event)"
-              class="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-slate-50 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
-            >
-              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-              <span>Watch Episode 1</span>
-            </a>
-            <button
-              id="hero-info-btn"
-              onclick="toggleHeroAnimeDetails()"
-              class="px-4 py-2.5 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm transition-all active:scale-95"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span id="hero-info-btn-label">Anime Info</span>
-            </button>
-          </div>
-        </div>
-      </div>
 
       <!-- CONTINUE WATCHING: broad landscape thumbnails -->
       <section id="continue-watching-section" class="hidden space-y-3">
@@ -387,20 +415,9 @@
           <span class="hidden sm:inline text-[11px] text-slate-400">HD Quality Guaranteed</span>
         </div>
 
-        <!-- Anime Cards Grid: first 20 releases, "Show more" adds a page at a time -->
+        <!-- Anime Cards Grid: the whole filtered catalogue, rendered at once -->
         <div id="anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           <!-- Populated dynamically via renderCatalogGrid -->
-        </div>
-
-        <div class="flex justify-center pt-1">
-          <button
-            type="button"
-            id="load-more-btn"
-            onclick="loadMoreCatalog()"
-            class="hidden px-5 py-2.5 rounded-xl bg-dark-800 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold transition active:scale-95"
-          >
-            Show more
-          </button>
         </div>
 
         <!-- Empty / Loading / Error State UI (title, message and action are set dynamically) -->
@@ -524,8 +541,8 @@
               <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-700">
               <button id="server-btn-1" onclick="switchStreamServer(1, 'AnimeWixi')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 1: AnimeWixi embed (HD)">HD-1</button>
               <button id="server-btn-2" onclick="switchStreamServer(2, 'ani.pm')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 2: ani.pm (VidStreaming) embed">HD-2</button>
-              <button id="server-btn-3" onclick="switchStreamServer(3, 'AniRaku')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-slate-50 transition" title="Server 3: AniRaku (Direct HLS — plays natively on this site. Default.)">HD-3</button>
-              <button id="server-btn-4" onclick="switchStreamServer(4, 'Shonen')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 4: Shonen hosted player embed">HD-4</button>
+              <button id="server-btn-3" onclick="switchStreamServer(3, 'AniRaku')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 3: AniRaku (Direct HLS — plays natively on this site)">HD-3</button>
+              <button id="server-btn-4" onclick="switchStreamServer(4, 'Shonen')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-slate-50 transition" title="Server 4: Shonen hosted player embed (Default — fastest start)">HD-4</button>
               </div>
             </div>
 
@@ -608,7 +625,7 @@
     aria-label="Mobile primary navigation"
     class="fixed inset-x-0 bottom-0 z-40 lg:hidden px-3 pb-safe pointer-events-none"
   >
-    <div class="pointer-events-auto mx-auto max-w-md h-16 grid grid-cols-5 rounded-2xl border border-dark-700 bg-dark-800/95 backdrop-blur-xl shadow-2xl shadow-dark-950/70 overflow-hidden">
+    <div class="pointer-events-auto mx-auto max-w-md h-16 grid grid-cols-5 rounded-2xl border border-dark-700 bg-dark-800/95 shadow-2xl shadow-dark-950/70 overflow-hidden">
       <!-- Home -->
       <button
         type="button"
@@ -782,14 +799,14 @@
   <!-- MODULAR FRONTEND APPLICATION LOGIC         -->
   <!-- ========================================== -->
   <script type="module">
-    import { animeService, toCardImage, cardImageSrcSet } from '/src/services/api/index.ts';
+    import { animeService, toCardImage } from '/src/services/api/index.ts';
     import { SITE_NAME, buildAnimeSlugMap, slugifyTitle, animePath, animeEpisodePath } from '/src/utils/slug.ts';
 
     // Application State
     let currentAnime = null;
     let currentEpisode = 1;
     let currentLanguage = 'sub';
-    let currentServerId = 3; // default: native HLS (no embed host to block)
+    let currentServerId = 4; // default: Shonen embed (fastest first paint)
     let autoSkipOpActive = false;
     let autoFallbackActive = true;
     let searchDebounceTimeout = null;
@@ -809,10 +826,8 @@
     // Results of the last server-side search: { query, items }
     let searchResults = null;
     let searchRequestSeq = 0;
-    // The default browse view paginates the catalogue grid at 20 cards per
-    // page; the Trending / New Anime rails below it are separate sections.
-    const GRID_PAGE_SIZE = 20;
-    let gridVisibleCount = GRID_PAGE_SIZE;
+    // The browse grid renders every title in the current filter scope; the
+    // Trending / New Anime rails below it are separate sections.
     let currentGridList = [];
     let homeRowsHaveItems = false;
 
@@ -1391,6 +1406,8 @@
       const typeEl = document.getElementById('hero-type');
       const durationEl = document.getElementById('hero-duration');
       const statusEl = document.getElementById('hero-status');
+      const yearEl = document.getElementById('hero-year');
+      const qualityEl = document.getElementById('hero-quality');
 
       if (titleEl) titleEl.textContent = anime.title;
       if (altTitleEl) altTitleEl.textContent = anime.altTitle || '';
@@ -1399,6 +1416,8 @@
       if (typeEl) typeEl.textContent = anime.type || '—';
       if (durationEl) durationEl.textContent = anime.duration || '—';
       if (statusEl) statusEl.textContent = anime.status || '—';
+      if (yearEl) yearEl.textContent = anime.year != null ? String(anime.year) : '—';
+      if (qualityEl) qualityEl.textContent = anime.quality || '—';
       if (backdropEl && (anime.banner || anime.poster)) {
         const backdropUrl = anime.banner || anime.poster;
         // Only paint the hero backdrop from a real fetched URL.
@@ -1437,15 +1456,8 @@
       if (!grid) return;
 
       currentGridList = animeList || [];
-      const visibleList = currentGridList.slice(0, gridVisibleCount);
-      const remaining = Math.max(0, currentGridList.length - visibleList.length);
-      const loadMoreBtn = document.getElementById('load-more-btn');
-      if (loadMoreBtn) {
-        loadMoreBtn.classList.toggle('hidden', remaining === 0);
-        loadMoreBtn.textContent = remaining > 0 ? `Show more (${remaining} more)` : 'Show more';
-      }
 
-      if (visibleList.length === 0) {
+      if (currentGridList.length === 0) {
         grid.innerHTML = '';
         if (emptyState) emptyState.classList.remove('hidden');
         return;
@@ -1453,7 +1465,7 @@
 
       if (emptyState) emptyState.classList.add('hidden');
 
-      grid.innerHTML = visibleList.map((anime) => {
+      grid.innerHTML = currentGridList.map((anime) => {
         // Missing metadata renders as "—", never as invented numbers.
         const subCount = anime.subEpisodes ?? anime.totalEpisodes ?? '—';
         const dubCount = anime.dubEpisodes ?? '—';
@@ -1462,16 +1474,17 @@
         // Only ever render a real, fetched poster URL. Titles without artwork
         // get a neutral tile instead of a broken image or stock placeholder.
         const posterUrl = typeof anime.poster === 'string' && /^https?:\/\//.test(anime.poster) ? anime.poster : '';
-        // Cards are ~190px wide: serve the medium rendition and let the
-        // browser upgrade via srcset on high-DPI screens (see imageQuality.ts).
+        // Cards are ~175–190px wide: serve the 230px `medium` rendition only.
+        // A srcset here made high-DPI phones pick the 460px `large` file
+        // (~5.9 MB for 23 visible covers); medium keeps them sharp and roughly
+        // a third of the bytes (see imageQuality.ts).
         const cardSrc = posterUrl ? toCardImage(posterUrl) : '';
-        const srcSet = posterUrl ? cardImageSrcSet(posterUrl) : '';
         const posterMarkup = posterUrl
           ? `<img
                 src="${escapeHtml(cardSrc)}"
-                ${srcSet ? `srcset="${escapeHtml(srcSet)}" sizes="(min-width: 1280px) 15vw, (min-width: 1024px) 18vw, (min-width: 768px) 23vw, (min-width: 640px) 30vw, 45vw"` : ''}
                 alt="${escapeHtml(anime.title)}"
                 loading="lazy"
+                fetchpriority="low"
                 decoding="async"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />`
@@ -1494,24 +1507,24 @@
               <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-dark-950/30"></div>
               
               <div class="absolute top-2 left-2 flex items-center gap-1.5">
-                <span class="px-1.5 py-0.5 rounded bg-dark-950/75 backdrop-blur-sm text-[10px] font-mono font-bold text-slate-50 uppercase tracking-wider">
+                <span class="px-1.5 py-0.5 rounded bg-dark-950/85 text-[10px] font-mono font-bold text-slate-50 uppercase tracking-wider">
                   ${anime.quality || 'HD'}
                 </span>
               </div>
 
               <!-- Quick sub/dub badge -->
               <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-semibold text-slate-300">
-                <div class="flex items-center gap-1 bg-dark-950/80 backdrop-blur-sm px-2 py-0.5 rounded">
+                <div class="flex items-center gap-1 bg-dark-950/85 px-2 py-0.5 rounded">
                   <span class="text-brand-soft">SUB</span>${subCount === '—' ? '' : ` ${subCount}`}
                   ${dubCount === '—' ? '' : `<span class="text-slate-400">·</span><span class="text-sky-400">DUB</span> ${dubCount}`}
                 </div>
-                <div class="flex items-center gap-0.5 bg-dark-950/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-amber-400 font-bold">
+                <div class="flex items-center gap-0.5 bg-dark-950/85 px-1.5 py-0.5 rounded text-amber-400 font-bold">
                   ★ ${rating}
                 </div>
               </div>
 
               <!-- Center Play Icon on Hover -->
-              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-dark-950/40 backdrop-blur-[2px]">
+              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-dark-950/40">
                 <div class="w-12 h-12 rounded-full bg-brand text-slate-50 flex items-center justify-center shadow-lg shadow-brand/40 transform scale-75 group-hover:scale-100 transition-transform">
                   <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </div>
@@ -1536,7 +1549,7 @@
               onclick="toggleMyList('${anime.id}')"
               title="${saved ? 'Remove from My List' : 'Save to My List'}"
               aria-label="${saved ? 'Remove from My List' : 'Save to My List'}"
-              class="absolute top-2 right-2 z-10 w-7 h-7 rounded-lg bg-dark-950/70 backdrop-blur-sm flex items-center justify-center ${saved ? 'text-brand-soft' : 'text-slate-300 hover:text-brand-soft'} transition active:scale-90"
+              class="absolute top-2 right-2 z-10 w-7 h-7 rounded-lg bg-dark-950/80 flex items-center justify-center ${saved ? 'text-brand-soft' : 'text-slate-300 hover:text-brand-soft'} transition active:scale-90"
             >
               <svg class="w-3.5 h-3.5" fill="${saved ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -1547,26 +1560,18 @@
       }).join('');
     }
 
-    /** Expand the catalogue grid by one more page of cards. */
-    function loadMoreCatalog() {
-      gridVisibleCount += GRID_PAGE_SIZE;
-      renderCatalogGrid(currentGridList);
-    }
-    window.loadMoreCatalog = loadMoreCatalog;
-
     /** Compact rail card: a bare anchor, so crawlers can follow the rails. */
     function homeRowCardHtml(anime) {
       // Same rule as the grid: only a real fetched poster URL is rendered.
       const posterUrl = typeof anime.poster === 'string' && /^https?:\/\//.test(anime.poster) ? anime.poster : '';
-      // Rail cards are 144–160px wide; same card-rendition rule as the grid.
+      // Rail cards are 144–160px wide; same medium-rendition rule as the grid.
       const cardSrc = posterUrl ? toCardImage(posterUrl) : '';
-      const srcSet = posterUrl ? cardImageSrcSet(posterUrl) : '';
       const posterMarkup = posterUrl
         ? `<img
               src="${escapeHtml(cardSrc)}"
-              ${srcSet ? `srcset="${escapeHtml(srcSet)}" sizes="(min-width: 640px) 160px, 144px"` : ''}
               alt="${escapeHtml(anime.title)}"
               loading="lazy"
+              fetchpriority="low"
               decoding="async"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />`
@@ -1904,8 +1909,8 @@
      */
     // Friendly labels shown to the viewer (no internal engine names).
     // Must match getStreamSource() in animeService:
-    //   1 AnimeWixi · 2 ani.pm/VidStreaming · 3 AniRaku (native HLS, default)
-    //   4 Shonen (hosted player embed)
+    //   1 AnimeWixi · 2 ani.pm/VidStreaming · 3 AniRaku (native HLS)
+    //   4 Shonen (hosted player embed, default — starts fastest)
     //   6 OpenAnime (self-hosted, only offered when an instance is reachable)
     // MegaCloud, AniKoto and Multi-Mirror were removed: their embed links 404
     // or refuse to be framed, so they never played inside this site.
@@ -2358,8 +2363,6 @@
      * is currently loaded (live provider data only).
      */
     function applyCatalogFilters() {
-      // Every filter change starts the grid back at its first page.
-      gridVisibleCount = GRID_PAGE_SIZE;
       const rawQuery = activeQuery.trim();
       const query = rawQuery.toLowerCase();
       const usingServerResults = Boolean(query && searchResults && searchResults.query === rawQuery);
@@ -2406,9 +2409,7 @@
         } else if (activeCategory !== 'all') {
           badge.textContent = `${CATEGORY_LABELS[activeCategory] || 'Category'} · ${list.length} releases`;
         } else {
-          badge.textContent = list.length > GRID_PAGE_SIZE
-            ? `Showing ${GRID_PAGE_SIZE} of ${list.length} releases`
-            : 'Showing all releases';
+          badge.textContent = 'Showing all releases';
         }
       }
 
@@ -2675,9 +2676,9 @@
       toggleMobileSearch(false);
 
       if (id === 'home') {
-        closeWatchPage();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        setBottomNavActive('home');
+        // Home always means the unfiltered home page: clear any search/genre/
+        // tab scope left over from browsing, close the player and scroll up.
+        resetFiltersAndSearch();
       } else if (id === 'explore') {
         closeWatchPage();
         setBottomNavActive('explore');

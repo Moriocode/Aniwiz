@@ -68,9 +68,8 @@ src/index.css         Tailwind v4 theme (brand/dark palette), compiled at build
 
 The home page is sectioned rather than one endless grid:
 
-- the catalogue grid shows the first **20** releases, with a "Show more"
-  button that reveals further pages of 20 (the count badge reads
-  "Showing 20 of N releases"); every filter change returns to the first page
+- the catalogue grid renders the whole filtered catalogue at once (the count
+  badge reads "Showing all releases"); every filter change re-renders it
 - below it sit a **Trending Anime** rail and a **New Anime** rail (12 cards
   each; the New rail sorts by the newest reported year and never repeats a
   title already on the Trending rail)

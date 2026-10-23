@@ -49,7 +49,7 @@ const home = await page.evaluate(() => ({
   heroHref: document.getElementById('hero-watch-btn')?.getAttribute('href') || '',
 }));
 check('catalogue cards are crawlable anchors', home.cards.length >= 4 && home.cards.every((href) => /^\/anime\/[a-z0-9-]+$/.test(href)), `${home.cards.length} anchors`);
-check('grid is paginated (max 20 cards per page)', home.cards.length <= 20, `${home.cards.length} anchors`);
+check('whole catalogue is in the initial HTML (no pagination gate)', home.cards.length > 20, `${home.cards.length} anchors`);
 check('Trending / New Anime rails render crawlable anchors',
   home.trendingHrefs.length > 0 && home.newHrefs.length > 0 &&
     [...home.trendingHrefs, ...home.newHrefs].every((href) => /^\/anime\/[a-z0-9-]+$/.test(href)),
@@ -142,17 +142,12 @@ const backToHome = await page.evaluate(() => ({
 }));
 check('Back from the series returns home', backToHome.path === '/' && !backToHome.watchVisible, backToHome.path);
 
-// "Show more" reveals the next page of cards without a reload
-const gridBeforeMore = await page.locator('#anime-grid > div').count();
-const canExpand = await page.locator('#load-more-btn').evaluate((el) => !el.classList.contains('hidden'));
-if (canExpand) {
-  await page.locator('#load-more-btn').click();
-  await page.waitForTimeout(300);
-  const gridAfterMore = await page.locator('#anime-grid > div').count();
-  check('"Show more" reveals the next page of cards', gridAfterMore > gridBeforeMore, `${gridBeforeMore} → ${gridAfterMore} cards`);
-} else {
-  check('"Show more" hidden when one page holds the whole grid', gridBeforeMore <= 20, `${gridBeforeMore} cards`);
-}
+// The whole catalogue renders at once — no "Show more" gate.
+const homeGridCards = await page.locator('#anime-grid > div').count();
+const homeGridBadge = (await page.locator('#catalog-count-badge').textContent())?.trim() || '';
+check('full catalogue renders without a "Show more" button',
+  (await page.locator('#load-more-btn').count()) === 0 && homeGridCards > 0 && /Showing all releases/.test(homeGridBadge),
+  `${homeGridCards} cards, badge "${homeGridBadge}"`);
 
 /* ------------------------------------------------------------------ */
 /* Fresh deep link (typed URL / shared link)                          */
