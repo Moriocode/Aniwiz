@@ -145,6 +145,12 @@ await page.locator('#anime-grid > div').first().click();
 await page.waitForTimeout(2500);
 const watchVisible = await page.locator('#watch-section').evaluate((el) => !el.classList.contains('hidden'));
 check('watch section opens', watchVisible);
+
+// The fastest-starting mirror is the default: Shonen (HD-4) must already be
+// selected when the watch page opens, without the visitor picking a server.
+const defaultServerId = await page.locator('.server-btn').evaluateAll((els) =>
+  els.find((el) => el.classList.contains('bg-brand'))?.id || 'none');
+check('server 4 (Shonen) is selected by default', defaultServerId === 'server-btn-4', defaultServerId);
 const watchTitle = (await page.locator('#watch-anime-title').textContent())?.trim() || '';
 check('watch page shows title', watchTitle.length > 0 && watchTitle !== 'Anime Title', watchTitle);
 const episodeCount = await page.locator('#episodes-container > a').count();

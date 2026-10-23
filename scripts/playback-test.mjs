@@ -75,7 +75,7 @@ async function activateServer(id) {
   await page.waitForTimeout(1000);
 }
 
-// --- HD-3: native HLS (the app default) ---
+// --- HD-3: native HLS (opt-in; HD-4 is the default) ---
 {
   await activateServer(3);
   // Wait for the HLS player to mount rather than assuming a fixed delay.
