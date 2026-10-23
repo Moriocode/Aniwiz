@@ -415,20 +415,9 @@
           <span class="hidden sm:inline text-[11px] text-slate-400">HD Quality Guaranteed</span>
         </div>
 
-        <!-- Anime Cards Grid: first 20 releases, "Show more" adds a page at a time -->
+        <!-- Anime Cards Grid: the whole filtered catalogue, rendered at once -->
         <div id="anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           <!-- Populated dynamically via renderCatalogGrid -->
-        </div>
-
-        <div class="flex justify-center pt-1">
-          <button
-            type="button"
-            id="load-more-btn"
-            onclick="loadMoreCatalog()"
-            class="hidden px-5 py-2.5 rounded-xl bg-dark-800 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold transition active:scale-95"
-          >
-            Show more
-          </button>
         </div>
 
         <!-- Empty / Loading / Error State UI (title, message and action are set dynamically) -->
@@ -837,10 +826,8 @@
     // Results of the last server-side search: { query, items }
     let searchResults = null;
     let searchRequestSeq = 0;
-    // The default browse view paginates the catalogue grid at 20 cards per
-    // page; the Trending / New Anime rails below it are separate sections.
-    const GRID_PAGE_SIZE = 20;
-    let gridVisibleCount = GRID_PAGE_SIZE;
+    // The browse grid renders every title in the current filter scope; the
+    // Trending / New Anime rails below it are separate sections.
     let currentGridList = [];
     let homeRowsHaveItems = false;
 
@@ -1469,15 +1456,8 @@
       if (!grid) return;
 
       currentGridList = animeList || [];
-      const visibleList = currentGridList.slice(0, gridVisibleCount);
-      const remaining = Math.max(0, currentGridList.length - visibleList.length);
-      const loadMoreBtn = document.getElementById('load-more-btn');
-      if (loadMoreBtn) {
-        loadMoreBtn.classList.toggle('hidden', remaining === 0);
-        loadMoreBtn.textContent = remaining > 0 ? `Show more (${remaining} more)` : 'Show more';
-      }
 
-      if (visibleList.length === 0) {
+      if (currentGridList.length === 0) {
         grid.innerHTML = '';
         if (emptyState) emptyState.classList.remove('hidden');
         return;
@@ -1485,7 +1465,7 @@
 
       if (emptyState) emptyState.classList.add('hidden');
 
-      grid.innerHTML = visibleList.map((anime) => {
+      grid.innerHTML = currentGridList.map((anime) => {
         // Missing metadata renders as "—", never as invented numbers.
         const subCount = anime.subEpisodes ?? anime.totalEpisodes ?? '—';
         const dubCount = anime.dubEpisodes ?? '—';
@@ -1579,13 +1559,6 @@
         `;
       }).join('');
     }
-
-    /** Expand the catalogue grid by one more page of cards. */
-    function loadMoreCatalog() {
-      gridVisibleCount += GRID_PAGE_SIZE;
-      renderCatalogGrid(currentGridList);
-    }
-    window.loadMoreCatalog = loadMoreCatalog;
 
     /** Compact rail card: a bare anchor, so crawlers can follow the rails. */
     function homeRowCardHtml(anime) {
@@ -2390,8 +2363,6 @@
      * is currently loaded (live provider data only).
      */
     function applyCatalogFilters() {
-      // Every filter change starts the grid back at its first page.
-      gridVisibleCount = GRID_PAGE_SIZE;
       const rawQuery = activeQuery.trim();
       const query = rawQuery.toLowerCase();
       const usingServerResults = Boolean(query && searchResults && searchResults.query === rawQuery);
@@ -2438,9 +2409,7 @@
         } else if (activeCategory !== 'all') {
           badge.textContent = `${CATEGORY_LABELS[activeCategory] || 'Category'} · ${list.length} releases`;
         } else {
-          badge.textContent = list.length > GRID_PAGE_SIZE
-            ? `Showing ${GRID_PAGE_SIZE} of ${list.length} releases`
-            : 'Showing all releases';
+          badge.textContent = 'Showing all releases';
         }
       }
 
@@ -2707,9 +2676,9 @@
       toggleMobileSearch(false);
 
       if (id === 'home') {
-        closeWatchPage();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        setBottomNavActive('home');
+        // Home always means the unfiltered home page: clear any search/genre/
+        // tab scope left over from browsing, close the player and scroll up.
+        resetFiltersAndSearch();
       } else if (id === 'explore') {
         closeWatchPage();
         setBottomNavActive('explore');

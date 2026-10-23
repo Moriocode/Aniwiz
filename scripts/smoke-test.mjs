@@ -109,18 +109,10 @@ const resetCards = await page.locator('#anime-grid > div').count();
 check('reset restores catalog', /Showing (?:all releases|\d+ of \d+ releases)/.test(resetBadge) && resetCards === cardCount,
   `${resetBadge}, ${resetCards} cards`);
 
-// 5b. "Show more" pagination: the grid shows the first page (20 cards) and
-// expands only when the catalogue is larger.
-const loadMoreVisible = await page.locator('#load-more-btn').evaluate((el) => !el.classList.contains('hidden'));
-if (loadMoreVisible) {
-  await page.locator('#load-more-btn').click();
-  await page.waitForTimeout(300);
-  const expandedCards = await page.locator('#anime-grid > div').count();
-  check('Show more expands the grid by another page', expandedCards > resetCards,
-    `${resetCards} → ${expandedCards} cards`);
-} else {
-  check('Show more hidden when the catalogue fits one page', resetCards <= 20, `${resetCards} cards`);
-}
+// 5b. The whole catalogue renders at once — there is no "Show more" gate.
+check('full catalogue renders without a Show more button',
+  (await page.locator('#load-more-btn').count()) === 0 && resetCards >= cardCount,
+  `${resetCards} cards, ${await page.locator('#load-more-btn').count()} load-more nodes`);
 
 // 6. "Anime Info" hero button (previously an undefined function)
 let infoError = null;

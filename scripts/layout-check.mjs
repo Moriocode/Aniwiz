@@ -231,6 +231,29 @@ const tabsVisibleAgain = await page.locator('#category-tabs').isVisible();
 check('Home shortcut closes the search overlay', searchClosedAfterHome && tabsVisibleAgain);
 await page.screenshot({ path: 'artifacts/mobile-home.png' });
 
+// Regression: Home must also clear a search left over from browsing. Closing
+// the player alone used to leave the grid scoped to the old query.
+await page.locator('.bottom-nav-item[data-nav="search"]').click();
+await page.waitForTimeout(300);
+await page.locator('#search-input').fill('frieren');
+await page.waitForFunction(
+  () => /\b[1-9]\d* results?\b/.test(document.getElementById('catalog-count-badge')?.textContent || ''),
+  null,
+  { timeout: 8000 }
+).catch(() => {});
+const searchedCards = await page.locator('#anime-grid > div').count();
+await page.locator('.bottom-nav-item[data-nav="home"]').click();
+await page.waitForTimeout(700);
+const afterHome = await page.evaluate(() => ({
+  query: document.getElementById('search-input').value,
+  cards: document.querySelectorAll('#anime-grid > div').length,
+  badge: (document.getElementById('catalog-count-badge').textContent || '').trim(),
+  homeActive: document.querySelector('.bottom-nav-item[data-nav="home"]')?.classList.contains('text-brand-soft') || false,
+}));
+check('Home clears an active search and restores the whole catalogue',
+  afterHome.query === '' && /Showing all releases/.test(afterHome.badge) && afterHome.cards > searchedCards && afterHome.homeActive,
+  `query "${afterHome.query}", cards ${searchedCards} → ${afterHome.cards}, badge "${afterHome.badge}"`);
+
 // Regression: the logo/link returns to the main page. Nothing may stay parked
 // over the hero — the sticky header must not cover it, and an open search row
 // must be closed by the click.
