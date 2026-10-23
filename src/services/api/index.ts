@@ -1,7 +1,7 @@
 export * from './types';
 export * from './providerRegistry';
 export * from './animeService';
-export { toHiResImage } from './imageQuality';
+export { toHiResImage, toCardImage, cardImageSrcSet } from './imageQuality';
 export { AniListProvider } from './providers/anilistProvider';
 export { AniPulseProvider } from './providers/aniPulseProvider';
 export { AniwixiProvider } from './providers/aniwixiProvider';

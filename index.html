@@ -2,6 +2,7 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8" />
+  <link rel="preconnect" href="https://s4.anilist.co" crossorigin />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>AniStream - Modern Anime Streaming Platform</title>
   <meta id="seo-description" name="description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
@@ -432,7 +433,7 @@
           <div class="flex items-end justify-between gap-3">
             <div>
               <h2 class="text-base sm:text-lg font-bold text-slate-50 tracking-tight">New Anime</h2>
-              <p class="text-[11px] text-slate-400 mt-0.5">Fresh releases and the newest titles in the catalogue</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">Currently airing shows and the newest releases</p>
             </div>
           </div>
           <div id="new-anime-row" class="flex gap-3 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -781,7 +782,7 @@
   <!-- MODULAR FRONTEND APPLICATION LOGIC         -->
   <!-- ========================================== -->
   <script type="module">
-    import { animeService } from '/src/services/api/index.ts';
+    import { animeService, toCardImage, cardImageSrcSet } from '/src/services/api/index.ts';
     import { SITE_NAME, buildAnimeSlugMap, slugifyTitle, animePath, animeEpisodePath } from '/src/utils/slug.ts';
 
     // Application State
@@ -1431,11 +1432,17 @@
         // Only ever render a real, fetched poster URL. Titles without artwork
         // get a neutral tile instead of a broken image or stock placeholder.
         const posterUrl = typeof anime.poster === 'string' && /^https?:\/\//.test(anime.poster) ? anime.poster : '';
+        // Cards are ~190px wide: serve the medium rendition and let the
+        // browser upgrade via srcset on high-DPI screens (see imageQuality.ts).
+        const cardSrc = posterUrl ? toCardImage(posterUrl) : '';
+        const srcSet = posterUrl ? cardImageSrcSet(posterUrl) : '';
         const posterMarkup = posterUrl
           ? `<img
-                src="${escapeHtml(posterUrl)}"
+                src="${escapeHtml(cardSrc)}"
+                ${srcSet ? `srcset="${escapeHtml(srcSet)}" sizes="(min-width: 1280px) 15vw, (min-width: 1024px) 18vw, (min-width: 768px) 23vw, (min-width: 640px) 30vw, 45vw"` : ''}
                 alt="${escapeHtml(anime.title)}"
                 loading="lazy"
+                decoding="async"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />`
           : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-dark-850 to-dark-950">
@@ -1521,11 +1528,16 @@
     function homeRowCardHtml(anime) {
       // Same rule as the grid: only a real fetched poster URL is rendered.
       const posterUrl = typeof anime.poster === 'string' && /^https?:\/\//.test(anime.poster) ? anime.poster : '';
+      // Rail cards are 144–160px wide; same card-rendition rule as the grid.
+      const cardSrc = posterUrl ? toCardImage(posterUrl) : '';
+      const srcSet = posterUrl ? cardImageSrcSet(posterUrl) : '';
       const posterMarkup = posterUrl
         ? `<img
-              src="${escapeHtml(posterUrl)}"
+              src="${escapeHtml(cardSrc)}"
+              ${srcSet ? `srcset="${escapeHtml(srcSet)}" sizes="(min-width: 640px) 160px, 144px"` : ''}
               alt="${escapeHtml(anime.title)}"
               loading="lazy"
+              decoding="async"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />`
         : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-dark-850 to-dark-950">
@@ -1579,10 +1591,23 @@
       // A title never appears on both rails: mark only the cards actually
       // taken by the trending rail (filter() would mark the whole list).
       const taken = new Set(trending.map((anime) => String(anime?.id ?? '')));
-      const newest = [...items]
-        .sort((a, b) => (b.year ?? 0) - (a.year ?? 0))
-        .filter((anime) => !taken.has(String(anime?.id ?? '')))
-        .slice(0, size);
+      const notTaken = (anime) => !taken.has(String(anime?.id ?? ''));
+
+      // "New Anime" means the latest releases only: currently-airing titles
+      // plus the newest season present in the catalogue, newest first.
+      const seasonOrder = { WINTER: 0, SPRING: 1, SUMMER: 2, FALL: 3 };
+      const byRecency = (a, b) =>
+        (b.year ?? 0) - (a.year ?? 0) ||
+        (seasonOrder[String(b.season || '').toUpperCase()] ?? -1) -
+          (seasonOrder[String(a.season || '').toUpperCase()] ?? -1);
+      const latestYear = items.reduce((max, anime) => Math.max(max, anime.year ?? 0), 0);
+      const latestPool = items.filter((anime) => anime.status === 'Ongoing' || (anime.year ?? 0) === latestYear);
+      let newest = [...latestPool].sort(byRecency).filter(notTaken).slice(0, size);
+      if (newest.length === 0) {
+        // The provider reported no year/status metadata: fall back to the
+        // catalogue's own order rather than hiding the rail.
+        newest = items.filter(notTaken).slice(0, size);
+      }
 
       renderHomeRow('trending-row-section', 'trending-row', trending);
       renderHomeRow('new-row-section', 'new-anime-row', newest);
