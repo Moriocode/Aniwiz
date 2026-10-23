@@ -40,7 +40,7 @@ await page.waitForSelector('#watch-section:not(.hidden)', { timeout: 15000 });
 // The player only resolves streams once the episode list is ready — wait for
 // it explicitly instead of sleeping a fixed amount (fixed sleeps made this
 // test flaky against live API latency).
-await page.waitForSelector('#episodes-container > button', { timeout: 20000 });
+await page.waitForSelector('#episodes-container > a', { timeout: 20000 });
 await page.waitForSelector('.server-btn', { timeout: 15000 });
 await page.waitForTimeout(1500);
 

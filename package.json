@@ -11,6 +11,7 @@
     "lint": "tsc --noEmit",
     "test:smoke": "node scripts/smoke-test.mjs",
     "test:layout": "node scripts/layout-check.mjs",
+    "test:seo": "node scripts/seo-routing-test.mjs",
     "verify": "npm run lint && npm run build"
   },
   "dependencies": {

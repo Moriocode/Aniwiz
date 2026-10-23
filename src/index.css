@@ -9,19 +9,23 @@
  * production" console warning) while every class keeps the same name.
  */
 @theme {
-  /* Brand */
-  --color-brand: #e50914;
-  --color-brand-hover: #c10711;
-  --color-brand-subtle: #2a1113;
+  /* Brand — calm indigo replaces the old alert red. `brand` is the fill /
+     indicator colour, `brand-soft` is the lavender used for text accents so
+     small labels stay readable on slate without the harsh contrast of pure
+     white. */
+  --color-brand: #6366f1;
+  --color-brand-hover: #4f46e5;
+  --color-brand-soft: #a5b4fc;
+  --color-brand-subtle: #1e1b4b;
 
-  /* Dark surfaces */
-  --color-dark-950: #07090e;
-  --color-dark-900: #0b0e14;
-  --color-dark-850: #11151f;
-  --color-dark-800: #171c28;
-  --color-dark-750: #1e2433;
-  --color-dark-700: #232a3b;
-  --color-dark-600: #343e54;
+  /* Calm slate surfaces (no pure black): page → card → border */
+  --color-dark-950: #0b1220;
+  --color-dark-900: #0f172a;
+  --color-dark-850: #172033;
+  --color-dark-800: #1e293b;
+  --color-dark-750: #263449;
+  --color-dark-700: #334155;
+  --color-dark-600: #475569;
 
   /* Type */
   --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
@@ -45,11 +49,11 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    background-color: #07090e;
+    background-color: #0f172a;
   }
 
   body {
-    background-color: #07090e;
+    background-color: #0f172a;
     color: #e2e8f0;
     overflow-x: hidden;
     font-family: var(--font-sans);

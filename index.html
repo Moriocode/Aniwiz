@@ -4,10 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>AniStream - Modern Anime Streaming Platform</title>
-  <meta name="description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
-  <meta property="og:title" content="AniStream - Modern Anime Streaming Platform" />
-  <meta property="og:description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
-  <meta property="og:type" content="website" />
+  <meta id="seo-description" name="description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
+  <meta id="seo-robots" name="robots" content="index, follow" />
+  <link id="seo-canonical" rel="canonical" />
+  <meta property="og:title" id="seo-og-title" content="AniStream - Modern Anime Streaming Platform" />
+  <meta property="og:description" id="seo-og-description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
+  <meta property="og:type" id="seo-og-type" content="website" />
+  <meta property="og:url" id="seo-og-url" content="/" />
+  <meta property="og:image" id="seo-og-image" content="" />
+  <meta property="og:site_name" content="AniStream" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" id="seo-twitter-title" content="AniStream - Modern Anime Streaming Platform" />
+  <meta name="twitter:description" id="seo-twitter-description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
+  <meta name="twitter:image" id="seo-twitter-image" content="" />
+  <meta name="theme-color" content="#0F172A" />
+  <script type="application/ld+json" id="seo-jsonld">{"@context":"https://schema.org","@type":"WebSite","name":"AniStream","url":"/"}</script>
 
   <!-- Google Fonts: loaded asynchronously so a slow or blocked fonts host can
        never stall first paint (the page falls back to system fonts). -->
@@ -45,10 +56,10 @@
     }
     html {
       scroll-behavior: smooth;
-      background-color: #07090E;
+      background-color: #0F172A;
     }
     body {
-      background-color: #07090E;
+      background-color: #0F172A;
       color: #E2E8F0;
       overflow-x: hidden;
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -58,14 +69,14 @@
       height: 6px;
     }
     ::-webkit-scrollbar-track {
-      background: #0B0E14;
+      background: #0B1220;
     }
     ::-webkit-scrollbar-thumb {
-      background: #232A3B;
+      background: #334155;
       border-radius: 4px;
     }
     ::-webkit-scrollbar-thumb:hover {
-      background: #343E54;
+      background: #475569;
     }
     .scrollbar-none::-webkit-scrollbar {
       display: none;
@@ -83,7 +94,7 @@
     .skeleton-box {
       position: relative;
       overflow: hidden;
-      background-color: #11151F;
+      background-color: #1E293B;
     }
     .skeleton-box::after {
       position: absolute;
@@ -101,12 +112,12 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-white">
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-slate-50">
 
   <!-- ========================================== -->
   <!-- TOP NAVIGATION HEADER                      -->
   <!-- ========================================== -->
-  <header class="sticky top-0 z-40 w-full bg-dark-900/95 backdrop-blur-md border-b border-dark-800 transition-colors">
+  <header class="sticky top-0 z-40 w-full bg-dark-800/95 backdrop-blur-md border-b border-dark-700 transition-colors">
     <!-- Mobile: 3-slot grid so the wordmark stays centred (the left slot is
          deliberately empty — the bottom bar is the only navigation now).
          Desktop: single flex row. -->
@@ -119,15 +130,15 @@
       <a href="#browse-section" onclick="resetFiltersAndSearch()" class="justify-self-center lg:justify-self-auto flex items-center gap-2.5 shrink-0 group">
         <!-- The mark is dropped below lg so the wordmark itself (not the
              icon + wordmark unit) sits exactly on the header centreline. -->
-        <div class="hidden lg:flex w-9 h-9 rounded-xl bg-brand items-center justify-center text-white shadow-lg shadow-brand/20 transition-transform group-hover:scale-105">
+        <div class="hidden lg:flex w-9 h-9 rounded-xl bg-brand items-center justify-center text-slate-50 shadow-lg shadow-brand/20 transition-transform group-hover:scale-105">
           <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24">
             <path d="M8 5.14v14l11-7-11-7z"/>
           </svg>
         </div>
         <div class="flex flex-col">
-          <span class="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
-            Ani<span class="text-brand">Stream</span>
-            <span class="hidden lg:inline text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded bg-dark-800 text-zinc-400 border border-dark-750 font-mono font-semibold">HD</span>
+          <span class="text-xl font-extrabold tracking-tight text-slate-50 flex items-center gap-1.5">
+            Ani<span class="text-brand-soft">Stream</span>
+            <span class="hidden lg:inline text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded bg-dark-800 text-slate-400 border border-dark-700 font-mono font-semibold">HD</span>
           </span>
         </div>
       </a>
@@ -136,7 +147,7 @@
            magnifier), inline in the bar from lg up. One input, one autocomplete. -->
       <div
         id="search-shell"
-        class="hidden lg:block fixed left-0 right-0 top-16 z-40 px-3 pb-3 bg-dark-900 border-b border-dark-800 shadow-xl lg:static lg:flex-1 lg:max-w-md lg:px-0 lg:pb-0 lg:border-0 lg:bg-transparent lg:shadow-none"
+        class="hidden lg:block fixed left-0 right-0 top-16 z-40 px-3 pb-3 bg-dark-800 border-b border-dark-700 shadow-xl lg:static lg:flex-1 lg:max-w-md lg:px-0 lg:pb-0 lg:border-0 lg:bg-transparent lg:shadow-none"
         role="search"
       >
         <div class="relative">
@@ -149,9 +160,9 @@
             oninput="handleSearchAutocomplete(this.value)"
             onfocus="if(this.value.trim()) handleSearchAutocomplete(this.value)"
             onkeydown="if(event.key === 'Enter'){ event.preventDefault(); hideSearchSuggestions(); } else if(event.key === 'Escape'){ hideSearchSuggestions(); toggleMobileSearch(false); this.blur(); }"
-            class="w-full h-10 pl-9 pr-9 rounded-xl bg-dark-800 text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
+            class="w-full h-10 pl-9 pr-9 rounded-xl bg-dark-900 text-xs sm:text-sm text-slate-100 placeholder-slate-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
           />
-          <div class="absolute left-3 text-zinc-500 pointer-events-none">
+          <div class="absolute left-3 text-slate-400 pointer-events-none">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -160,7 +171,7 @@
             id="search-clear-btn"
             type="button"
             onclick="clearSearchInput()"
-            class="absolute right-2.5 text-zinc-500 hover:text-zinc-200 hidden p-1 transition"
+            class="absolute right-2.5 text-slate-400 hover:text-slate-200 hidden p-1 transition"
             title="Clear search"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,7 +183,7 @@
         <!-- Realtime Suggestion Dropdown -->
         <div
           id="search-autocomplete-box"
-          class="absolute left-0 right-0 top-12 z-50 hidden rounded-xl bg-dark-900 border border-dark-750 shadow-2xl overflow-hidden divide-y divide-dark-800/80 text-xs max-h-80 overflow-y-auto"
+          class="absolute left-0 right-0 top-12 z-50 hidden rounded-xl bg-dark-800 border border-dark-700 shadow-2xl overflow-hidden divide-y divide-dark-700/80 text-xs max-h-80 overflow-y-auto"
         >
           <!-- Autocomplete results rendered dynamically -->
         </div>
@@ -181,38 +192,27 @@
 
       <!-- Header Navigation & User Actions -->
       <div class="justify-self-end lg:justify-self-auto flex items-center gap-2 sm:gap-3">
-        <!-- Standalone search shortcut (mobile / tablet) -->
-        <button
-          id="mobile-search-btn"
-          type="button"
-          onclick="toggleMobileSearch()"
-          aria-label="Search anime"
-          aria-controls="search-shell"
-          aria-expanded="false"
-          class="lg:hidden -mr-1 w-10 h-10 flex items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-dark-800 transition active:scale-95"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-        </button>
-
         <!-- Multi-API Redundancy Status Indicator -->
-        <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-750 text-xs text-zinc-300 shadow-sm" title="Streams & metadata backed by 5 independent APIs (HiAnime, Anivexa, AnimeWixi, ANIME-API, AniList) with automatic fallback">
+        <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-700 text-xs text-slate-300 shadow-sm" title="Streams & metadata backed by 5 independent APIs (HiAnime, Anivexa, AnimeWixi, ANIME-API, AniList) with automatic fallback">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="font-medium text-zinc-300">Multi-API Cascade</span>
-          <span class="text-[10px] px-1.5 py-0.5 bg-dark-900 border border-dark-700/60 rounded text-emerald-400 font-mono font-semibold">Active</span>
+          <span class="font-medium text-slate-300">Multi-API Cascade</span>
+          <span class="text-[10px] px-1.5 py-0.5 bg-dark-800 border border-dark-700/60 rounded text-emerald-400 font-mono font-semibold">Active</span>
         </div>
 
-        <!-- Quick Schedule Button -->
+        <!-- Weekly Schedule: icon-only on mobile (replaces the old duplicate
+             search shortcut), labelled from lg up. -->
         <button
+          id="schedule-btn"
+          type="button"
           onclick="toggleScheduleModal()"
-          class="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-300 transition shrink-0 hover:text-white active:scale-95"
+          aria-label="Weekly Schedule"
+          class="w-10 h-10 lg:w-auto lg:h-auto lg:py-2 lg:px-3 flex items-center justify-center lg:justify-start gap-1.5 bg-dark-800 hover:bg-dark-750 border border-dark-700 rounded-xl text-xs font-semibold text-slate-300 transition shrink-0 hover:text-sky-400 active:scale-95"
           title="Weekly Airing Schedule"
         >
-          <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
-          <span>Schedule</span>
+          <span class="hidden lg:inline">Weekly Schedule</span>
         </button>
 
         <!-- My List (desktop entry point; mobile uses the bottom bar) -->
@@ -220,9 +220,9 @@
           type="button"
           onclick="toggleMyListModal(true)"
           title="My List"
-          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-200 transition shrink-0 active:scale-95"
+          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-slate-200 transition shrink-0 active:scale-95"
         >
-          <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-brand-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
           </svg>
           <span>My List</span>
@@ -232,14 +232,14 @@
         <button
           id="history-btn"
           onclick="toggleHistoryModal()"
-          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-200 transition shrink-0 active:scale-95"
+          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-slate-200 transition shrink-0 active:scale-95"
           title="Watch History & Continue Watching"
         >
-          <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-brand-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span class="hidden sm:inline">History</span>
-          <span id="history-counter" class="px-1.5 py-0.2 rounded-full bg-brand text-[10px] font-bold text-white font-mono">0</span>
+          <span id="history-counter" class="px-1.5 py-0.2 rounded-full bg-brand text-[10px] font-bold text-slate-50 font-mono">0</span>
         </button>
       </div>
 
@@ -257,62 +257,63 @@
     <section id="browse-section" class="space-y-7 scroll-mt-16">
 
       <!-- Horizontal content-type switcher (MyKisah pattern) -->
-      <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-800/80 -mt-1">
+      <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-700/80 -mt-1">
         <div id="category-tabs-track" class="flex items-center gap-6 sm:gap-8 overflow-x-auto scrollbar-none">
           <button
             type="button"
             data-category="all"
             onclick="setCategory('all')"
             aria-current="true"
-            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors border-brand text-white"
+            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors border-brand text-slate-50"
           >Anime</button>
         </div>
       </nav>
 
       <!-- Hero Spotlight Banner -->
-      <div id="hero-banner" class="relative rounded-2xl overflow-hidden bg-dark-900 border border-dark-800 min-h-[300px] sm:min-h-[380px] flex items-end p-6 sm:p-10 shadow-2xl">
-        <div id="hero-backdrop" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 brightness-[0.45]" style="background-image: linear-gradient(135deg, #151A26 0%, #0B0E14 70%)"></div>
+      <div id="hero-banner" class="relative rounded-2xl overflow-hidden bg-dark-800 border border-dark-700 min-h-[300px] sm:min-h-[380px] flex items-end p-6 sm:p-10 shadow-2xl">
+        <div id="hero-backdrop" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 brightness-[0.45]" style="background-image: linear-gradient(135deg, #1E293B 0%, #0B1220 70%)"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/70 to-transparent"></div>
         <div class="absolute inset-0 bg-gradient-to-r from-dark-950/90 via-dark-950/40 to-transparent"></div>
 
         <div class="relative z-10 max-w-2xl space-y-3">
           <!-- Spotlight metadata (populated from live provider data only) -->
-          <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-300 font-medium">
-            <span class="px-2 py-0.5 rounded bg-brand text-white font-bold text-[10px] uppercase tracking-wider">#1 Spotlight</span>
+          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-medium">
+            <span class="px-2 py-0.5 rounded bg-brand text-slate-50 font-bold text-[10px] uppercase tracking-wider">#1 Spotlight</span>
             <span id="hero-type">—</span>
-            <span aria-hidden="true" class="text-zinc-600">·</span>
+            <span aria-hidden="true" class="text-slate-500">·</span>
             <span id="hero-duration">—</span>
-            <span aria-hidden="true" class="text-zinc-600">·</span>
+            <span aria-hidden="true" class="text-slate-500">·</span>
             <span id="hero-status">Loading…</span>
-            <span aria-hidden="true" class="text-zinc-600">·</span>
+            <span aria-hidden="true" class="text-slate-500">·</span>
             <span class="text-amber-400 font-bold flex items-center gap-1">★ <span id="hero-rating">—</span></span>
           </div>
 
           <!-- Title -->
-          <h1 id="hero-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-md">
+          <h1 id="hero-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-50 tracking-tight leading-tight drop-shadow-md">
             Loading live spotlight…
           </h1>
-          <p id="hero-alt-title" class="text-xs sm:text-sm text-zinc-400 font-medium line-clamp-1">
+          <p id="hero-alt-title" class="text-xs sm:text-sm text-slate-400 font-medium line-clamp-1">
           </p>
 
           <!-- Synopsis -->
-          <p id="hero-synopsis" class="text-xs sm:text-sm text-zinc-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
+          <p id="hero-synopsis" class="text-xs sm:text-sm text-slate-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
           </p>
 
           <!-- Action buttons -->
           <div class="pt-2 flex flex-wrap items-center gap-3">
-            <button
+            <a
               id="hero-watch-btn"
-              onclick="startWatchingSpotlight()"
-              class="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
+              href="/"
+              onclick="return handleSpotlightLink(event)"
+              class="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-slate-50 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
             >
               <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               <span>Watch Episode 1</span>
-            </button>
+            </a>
             <button
               id="hero-info-btn"
               onclick="toggleHeroAnimeDetails()"
-              class="px-4 py-2.5 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-zinc-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm transition-all active:scale-95"
+              class="px-4 py-2.5 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm transition-all active:scale-95"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -327,13 +328,13 @@
       <section id="continue-watching-section" class="hidden space-y-3">
         <div class="flex items-end justify-between gap-3">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Continue Watching</h2>
-            <p class="text-[11px] text-zinc-500 mt-0.5">Pick up exactly where you left off</p>
+            <h2 class="text-base sm:text-lg font-bold text-slate-50 tracking-tight">Continue Watching</h2>
+            <p class="text-[11px] text-slate-400 mt-0.5">Pick up exactly where you left off</p>
           </div>
           <button
             type="button"
             onclick="toggleHistoryModal()"
-            class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
+            class="text-xs font-semibold text-brand-soft hover:text-sky-400 transition shrink-0"
           >
             History
           </button>
@@ -351,15 +352,15 @@
       <section id="all-anime" class="space-y-4 scroll-mt-20">
         <div class="flex items-end justify-between gap-3">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Latest Episodes</h2>
-            <p id="catalog-subtitle" class="text-[11px] text-zinc-500 mt-0.5">Trending episodes across the catalogue</p>
+            <h2 class="text-base sm:text-lg font-bold text-slate-50 tracking-tight">Latest Episodes</h2>
+            <p id="catalog-subtitle" class="text-[11px] text-slate-400 mt-0.5">Trending episodes across the catalogue</p>
           </div>
           <div class="flex items-center gap-3 shrink-0">
-            <span id="catalog-count-badge" class="text-[11px] sm:text-xs font-medium text-zinc-500 hidden sm:inline">Showing all releases</span>
+            <span id="catalog-count-badge" class="text-[11px] sm:text-xs font-medium text-slate-400 hidden sm:inline">Showing all releases</span>
             <button
               type="button"
               onclick="viewAllReleases()"
-              class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
+              class="text-xs font-semibold text-brand-soft hover:text-sky-400 transition shrink-0"
             >
               View All
             </button>
@@ -368,38 +369,77 @@
 
         <!-- Interactive Genre Category Bar -->
         <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="genre-filter-bar">
-          <button onclick="filterByGenre('All')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand text-white transition shrink-0 active:scale-95">All</button>
-          <button onclick="filterByGenre('Action')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Action</button>
-          <button onclick="filterByGenre('Adventure')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Adventure</button>
-          <button onclick="filterByGenre('Fantasy')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Fantasy</button>
-          <button onclick="filterByGenre('Comedy')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Comedy</button>
-          <button onclick="filterByGenre('Sci-Fi')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Sci-Fi</button>
-          <button onclick="filterByGenre('Supernatural')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Supernatural</button>
-          <button onclick="filterByGenre('Drama')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Drama</button>
+          <button onclick="filterByGenre('All')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand text-slate-50 transition shrink-0 active:scale-95">All</button>
+          <button onclick="filterByGenre('Action')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Action</button>
+          <button onclick="filterByGenre('Adventure')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Adventure</button>
+          <button onclick="filterByGenre('Fantasy')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Fantasy</button>
+          <button onclick="filterByGenre('Comedy')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Comedy</button>
+          <button onclick="filterByGenre('Sci-Fi')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Sci-Fi</button>
+          <button onclick="filterByGenre('Supernatural')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Supernatural</button>
+          <button onclick="filterByGenre('Drama')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Drama</button>
         </div>
 
         <div class="flex items-center justify-between gap-3 pt-1">
-          <h3 id="catalog-section-heading" class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+          <h3 id="catalog-section-heading" class="text-xs font-bold uppercase tracking-wider text-slate-400">
             Trending Releases
           </h3>
-          <span class="hidden sm:inline text-[11px] text-zinc-500">HD Quality Guaranteed</span>
+          <span class="hidden sm:inline text-[11px] text-slate-400">HD Quality Guaranteed</span>
         </div>
 
-        <!-- Anime Cards Grid -->
+        <!-- Anime Cards Grid: first 20 releases, "Show more" adds a page at a time -->
         <div id="anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           <!-- Populated dynamically via renderCatalogGrid -->
         </div>
 
+        <div class="flex justify-center pt-1">
+          <button
+            type="button"
+            id="load-more-btn"
+            onclick="loadMoreCatalog()"
+            class="hidden px-5 py-2.5 rounded-xl bg-dark-800 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold transition active:scale-95"
+          >
+            Show more
+          </button>
+        </div>
+
         <!-- Empty / Loading / Error State UI (title, message and action are set dynamically) -->
-        <div id="anime-empty-state" class="hidden py-16 text-center space-y-3 bg-dark-900/50 rounded-2xl border border-dark-800 p-8">
-          <div class="w-12 h-12 mx-auto rounded-full bg-dark-800 flex items-center justify-center text-zinc-500">
+        <div id="anime-empty-state" class="hidden py-16 text-center space-y-3 bg-dark-800/50 rounded-2xl border border-dark-700 p-8">
+          <div class="w-12 h-12 mx-auto rounded-full bg-dark-800 flex items-center justify-center text-slate-400">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
-          <h4 id="anime-empty-title" class="font-bold text-base text-zinc-200">No Anime Found</h4>
-          <p id="anime-empty-message" class="text-xs text-zinc-400 max-w-sm mx-auto">We couldn't find any anime matching your criteria. Try adjusting your search query or reset your genre filters.</p>
-          <button id="anime-empty-action" onclick="resetFiltersAndSearch()" class="px-4 py-2 rounded-xl bg-brand text-white text-xs font-semibold shadow transition active:scale-95">Reset Filters</button>
+          <h4 id="anime-empty-title" class="font-bold text-base text-slate-200">No Anime Found</h4>
+          <p id="anime-empty-message" class="text-xs text-slate-400 max-w-sm mx-auto">We couldn't find any anime matching your criteria. Try adjusting your search query or reset your genre filters.</p>
+          <button id="anime-empty-action" onclick="resetFiltersAndSearch()" class="px-4 py-2 rounded-xl bg-brand text-slate-50 text-xs font-semibold shadow transition active:scale-95">Reset Filters</button>
         </div>
       </section>
+
+      <!-- HOME ROWS: horizontal rails below the grid. Each card is a bare
+           anchor so crawlers can discover more of the catalogue from home. -->
+      <div id="home-rows" class="hidden space-y-7">
+        <section id="trending-row-section" class="space-y-3 scroll-mt-20">
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-50 tracking-tight">Trending Anime</h2>
+              <p class="text-[11px] text-slate-400 mt-0.5">The most-watched titles on AniStream right now</p>
+            </div>
+          </div>
+          <div id="trending-row" class="flex gap-3 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+            <!-- Populated dynamically via renderHomeRows -->
+          </div>
+        </section>
+
+        <section id="new-row-section" class="space-y-3 scroll-mt-20">
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-50 tracking-tight">New Anime</h2>
+              <p class="text-[11px] text-slate-400 mt-0.5">Fresh releases and the newest titles in the catalogue</p>
+            </div>
+          </div>
+          <div id="new-anime-row" class="flex gap-3 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+            <!-- Populated dynamically via renderHomeRows -->
+          </div>
+        </section>
+      </div>
 
     </section>
 
@@ -410,24 +450,24 @@
 
       <!-- Breadcrumbs & Quick Return -->
       <div class="flex items-center justify-between text-xs">
-        <nav class="flex items-center gap-2 text-zinc-400 font-medium" aria-label="Breadcrumb">
-          <button onclick="closeWatchPage()" class="hover:text-white transition flex items-center gap-1">
+        <nav class="flex items-center gap-2 text-slate-400 font-medium" aria-label="Breadcrumb">
+          <button onclick="closeWatchPage()" class="hover:text-sky-400 transition flex items-center gap-1">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             <span>Back to Browse</span>
           </button>
-          <span class="text-zinc-600">/</span>
-          <span id="crumb-anime-title" class="text-zinc-200 font-semibold truncate max-w-[200px] sm:max-w-md">Anime Title</span>
-          <span class="text-zinc-600">/</span>
-          <span id="crumb-episode-num" class="text-brand font-bold">Episode 1</span>
+          <span class="text-slate-500">/</span>
+          <span id="crumb-anime-title" class="text-slate-200 font-semibold truncate max-w-[200px] sm:max-w-md">Anime Title</span>
+          <span class="text-slate-500">/</span>
+          <span id="crumb-episode-num" class="text-brand-soft font-bold">Episode 1</span>
         </nav>
       </div>
 
       <!-- Cinema Video Player Container -->
       <div class="space-y-4">
-        <div id="player-theater-wrapper" class="relative w-full rounded-2xl bg-black border border-dark-800 overflow-hidden shadow-2xl aspect-video max-h-[78vh]">
+        <div id="player-theater-wrapper" class="relative w-full rounded-2xl bg-dark-950 border border-dark-700 overflow-hidden shadow-2xl aspect-video max-h-[78vh]">
           
           <!-- Cinema Mount Point for Video/Embed -->
-          <div id="player" class="w-full h-full relative z-10 flex items-center justify-center bg-black">
+          <div id="player" class="w-full h-full relative z-10 flex items-center justify-center bg-dark-950">
             <!-- Populated via loadStream() -->
           </div>
 
@@ -436,29 +476,33 @@
         </div>
 
         <!-- Stream Player Controls Bar -->
-        <div class="p-3.5 sm:p-4 rounded-xl bg-dark-900 border border-dark-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="p-3.5 sm:p-4 rounded-xl bg-dark-800 border border-dark-700 flex flex-wrap items-center justify-between gap-3 text-xs">
           
           <!-- Episode Navigation & Skip Intro -->
           <div class="flex items-center gap-2">
-            <button
+            <a
               id="btn-prev-ep"
-              onclick="switchEpisode(currentEpisode - 1)"
-              class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-zinc-200 border border-dark-700 font-semibold transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+              href="/"
+              onclick="return handleEpisodeNav(event, currentEpisode - 1)"
+              aria-disabled="true"
+              class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-200 border border-dark-700 font-semibold transition active:scale-95 opacity-40 pointer-events-none"
               title="Previous Episode"
             >
               ⏮ Prev
-            </button>
-            <button
+            </a>
+            <a
               id="btn-next-ep"
-              onclick="switchEpisode(currentEpisode + 1)"
-              class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-zinc-200 border border-dark-700 font-semibold transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+              href="/"
+              onclick="return handleEpisodeNav(event, currentEpisode + 1)"
+              aria-disabled="false"
+              class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-200 border border-dark-700 font-semibold transition active:scale-95"
               title="Next Episode"
             >
               Next ⏭
-            </button>
+            </a>
             <button
               onclick="skipOpeningCredits()"
-              class="px-3 py-1.5 rounded-lg bg-brand/15 hover:bg-brand/25 text-brand border border-brand/30 font-bold transition active:scale-95"
+              class="px-3 py-1.5 rounded-lg bg-brand/15 hover:bg-brand/25 text-brand-soft border border-brand/30 font-bold transition active:scale-95"
               title="Skip Opening Credits (+85 seconds)"
             >
               Skip Intro (+85s)
@@ -468,30 +512,30 @@
           <!-- Server & Audio Selectors -->
           <div class="flex flex-wrap items-center gap-3">
             <!-- Audio Mode Segmented (Sub / Dub) -->
-            <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-800">
-              <button id="lang-btn-sub" onclick="setLanguage('sub')" class="lang-btn px-2.5 py-1 rounded-md text-[11px] font-bold bg-dark-750 text-white transition">SUB</button>
-              <button id="lang-btn-dub" onclick="setLanguage('dub')" class="lang-btn px-2.5 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition">DUB</button>
+            <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-700">
+              <button id="lang-btn-sub" onclick="setLanguage('sub')" class="lang-btn px-2.5 py-1 rounded-md text-[11px] font-bold bg-dark-750 text-slate-50 transition">SUB</button>
+              <button id="lang-btn-dub" onclick="setLanguage('dub')" class="lang-btn px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition">DUB</button>
             </div>
 
             <!-- Stream Server Selector (live embeddable servers only) -->
             <div class="flex items-center gap-1.5">
-              <span class="text-[11px] text-zinc-400 font-medium">Server:</span>
-              <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-800">
-              <button id="server-btn-1" onclick="switchStreamServer(1, 'AnimeWixi')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 1: AnimeWixi embed (HD)">HD-1</button>
-              <button id="server-btn-2" onclick="switchStreamServer(2, 'ani.pm')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 2: ani.pm (VidStreaming) embed">HD-2</button>
-              <button id="server-btn-3" onclick="switchStreamServer(3, 'AniRaku')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-white transition" title="Server 3: AniRaku (Direct HLS — plays natively on this site. Default.)">HD-3</button>
-              <button id="server-btn-4" onclick="switchStreamServer(4, 'Shonen')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 4: Shonen hosted player embed">HD-4</button>
+              <span class="text-[11px] text-slate-400 font-medium">Server:</span>
+              <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-700">
+              <button id="server-btn-1" onclick="switchStreamServer(1, 'AnimeWixi')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 1: AnimeWixi embed (HD)">HD-1</button>
+              <button id="server-btn-2" onclick="switchStreamServer(2, 'ani.pm')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 2: ani.pm (VidStreaming) embed">HD-2</button>
+              <button id="server-btn-3" onclick="switchStreamServer(3, 'AniRaku')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-slate-50 transition" title="Server 3: AniRaku (Direct HLS — plays natively on this site. Default.)">HD-3</button>
+              <button id="server-btn-4" onclick="switchStreamServer(4, 'Shonen')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 4: Shonen hosted player embed">HD-4</button>
               </div>
             </div>
 
             <!-- Auto-Fallback & Auto-skip intro toggles -->
-            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-zinc-400 hover:text-zinc-200 select-none" title="Automatically failover to the next API server if the stream fails">
-              <input type="checkbox" id="auto-fallback-checkbox" checked onchange="toggleAutoFallback(this.checked)" class="rounded bg-dark-800 border-dark-700 text-brand focus:ring-0 w-3.5 h-3.5" />
+            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-400 hover:text-slate-200 select-none" title="Automatically failover to the next API server if the stream fails">
+              <input type="checkbox" id="auto-fallback-checkbox" checked onchange="toggleAutoFallback(this.checked)" class="rounded bg-dark-800 border-dark-700 text-brand-soft focus:ring-0 w-3.5 h-3.5" />
               <span>Auto-Fallback</span>
             </label>
 
-            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-zinc-400 hover:text-zinc-200 select-none">
-              <input type="checkbox" id="auto-skip-checkbox" onchange="toggleAutoSkipOp(this.checked)" class="rounded bg-dark-800 border-dark-700 text-brand focus:ring-0 w-3.5 h-3.5" />
+            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-400 hover:text-slate-200 select-none">
+              <input type="checkbox" id="auto-skip-checkbox" onchange="toggleAutoSkipOp(this.checked)" class="rounded bg-dark-800 border-dark-700 text-brand-soft focus:ring-0 w-3.5 h-3.5" />
               <span>Auto Skip OP</span>
             </label>
           </div>
@@ -503,13 +547,13 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         <!-- Left: Anime Info & Synopsis -->
-        <div class="lg:col-span-1 p-5 rounded-2xl bg-dark-900 border border-dark-800 space-y-4">
+        <div class="lg:col-span-1 p-5 rounded-2xl bg-dark-800 border border-dark-700 space-y-4">
           <div class="flex gap-4">
-            <img id="watch-anime-poster" src="" alt="Poster" class="w-20 h-28 object-cover rounded-xl bg-dark-800 border border-dark-750 shrink-0 shadow-md" />
+            <img id="watch-anime-poster" src="" alt="Poster" class="w-20 h-28 object-cover rounded-xl bg-dark-800 border border-dark-700 shrink-0 shadow-md" />
             <div class="space-y-1 min-w-0">
-              <h3 id="watch-anime-title" class="font-extrabold text-sm sm:text-base text-white leading-tight line-clamp-2">Anime Title</h3>
-              <p id="watch-anime-alt" class="text-xs text-zinc-400 truncate font-medium"></p>
-              <div class="flex items-center gap-2 pt-1 text-[11px] text-zinc-400">
+              <h3 id="watch-anime-title" class="font-extrabold text-sm sm:text-base text-slate-50 leading-tight line-clamp-2">Anime Title</h3>
+              <p id="watch-anime-alt" class="text-xs text-slate-400 truncate font-medium"></p>
+              <div class="flex items-center gap-2 pt-1 text-[11px] text-slate-400">
                 <span class="text-amber-400 font-bold">★ <span id="watch-anime-rating">9.2</span></span>
                 <span>·</span>
                 <span id="watch-anime-ep-count">— Episodes</span>
@@ -517,21 +561,21 @@
             </div>
           </div>
 
-          <p id="watch-anime-synopsis" class="text-xs text-zinc-300 leading-relaxed max-h-40 overflow-y-auto pr-1">
+          <p id="watch-anime-synopsis" class="text-xs text-slate-300 leading-relaxed max-h-40 overflow-y-auto pr-1">
             Synopsis loading...
           </p>
 
-          <div class="pt-3 border-t border-dark-800 flex flex-wrap gap-1.5" id="watch-anime-genres">
+          <div class="pt-3 border-t border-dark-700 flex flex-wrap gap-1.5" id="watch-anime-genres">
             <!-- Genre tags populated dynamically -->
           </div>
         </div>
 
         <!-- Right: Episode Selection Grid -->
-        <div class="lg:col-span-2 p-5 rounded-2xl bg-dark-900 border border-dark-800 space-y-4">
+        <div class="lg:col-span-2 p-5 rounded-2xl bg-dark-800 border border-dark-700 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h4 class="font-bold text-sm text-white">Episodes List</h4>
-              <p class="text-xs text-zinc-400">Select an episode to start streaming</p>
+              <h4 class="font-bold text-sm text-slate-50">Episodes List</h4>
+              <p class="text-xs text-slate-400">Select an episode to start streaming</p>
             </div>
             
             <input
@@ -539,7 +583,7 @@
               type="text"
               placeholder="Filter episode # or title..."
               oninput="filterEpisodeButtons(this.value)"
-              class="w-full sm:w-56 h-8 px-3 rounded-lg bg-dark-800 text-xs text-zinc-200 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand"
+              class="w-full sm:w-56 h-8 px-3 rounded-lg bg-dark-900 text-xs text-slate-200 placeholder-slate-500 border border-dark-700 focus:outline-none focus:border-brand"
             />
           </div>
 
@@ -563,14 +607,14 @@
     aria-label="Mobile primary navigation"
     class="fixed inset-x-0 bottom-0 z-40 lg:hidden px-3 pb-safe pointer-events-none"
   >
-    <div class="pointer-events-auto mx-auto max-w-md h-16 grid grid-cols-5 rounded-2xl border border-dark-800 bg-dark-900/95 backdrop-blur-xl shadow-2xl shadow-black/70 overflow-hidden">
+    <div class="pointer-events-auto mx-auto max-w-md h-16 grid grid-cols-5 rounded-2xl border border-dark-700 bg-dark-800/95 backdrop-blur-xl shadow-2xl shadow-dark-950/70 overflow-hidden">
       <!-- Home -->
       <button
         type="button"
         data-nav="home"
         onclick="handleBottomNav('home')"
         aria-current="page"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-brand transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-brand-soft transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/>
@@ -583,7 +627,7 @@
         type="button"
         data-nav="explore"
         onclick="handleBottomNav('explore')"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="9" stroke-width="2"/>
@@ -597,7 +641,7 @@
         type="button"
         data-nav="search"
         onclick="handleBottomNav('search')"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -610,7 +654,7 @@
         type="button"
         data-nav="mylist"
         onclick="handleBottomNav('mylist')"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -623,7 +667,7 @@
         type="button"
         data-nav="history"
         onclick="handleBottomNav('history')"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -636,25 +680,25 @@
   <!-- ========================================== -->
   <!-- WATCH HISTORY & CONTINUE WATCHING MODAL    -->
   <!-- ========================================== -->
-  <div id="history-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-dark-900 border border-dark-750 rounded-2xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden text-zinc-200">
-      <div class="p-4 sm:p-5 border-b border-dark-800 flex items-center justify-between">
+  <div id="history-modal" class="fixed inset-0 z-50 hidden bg-dark-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-2xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden text-slate-200">
+      <div class="p-4 sm:p-5 border-b border-dark-700 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-brand/15 text-brand flex items-center justify-center">
+          <div class="w-8 h-8 rounded-xl bg-brand/15 text-brand-soft flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
-          <h3 class="font-bold text-base text-white">Watch History</h3>
+          <h3 class="font-bold text-base text-slate-50">Watch History</h3>
         </div>
-        <button onclick="toggleHistoryModal()" class="text-zinc-400 hover:text-white p-1">✕</button>
+        <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-sky-400 p-1">✕</button>
       </div>
 
-      <div id="history-modal-list" class="p-4 sm:p-5 max-h-96 overflow-y-auto divide-y divide-dark-800 text-xs space-y-2">
+      <div id="history-modal-list" class="p-4 sm:p-5 max-h-96 overflow-y-auto divide-y divide-dark-700 text-xs space-y-2">
         <!-- Rendered dynamically -->
       </div>
 
-      <div class="p-3 border-t border-dark-800 bg-dark-950 flex items-center justify-between text-xs">
-        <button onclick="clearAllWatchHistory()" class="text-red-400 hover:text-red-300 font-medium">Clear History</button>
-        <button onclick="toggleHistoryModal()" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-white font-semibold">Done</button>
+      <div class="p-3 border-t border-dark-700 bg-dark-950 flex items-center justify-between text-xs">
+        <button onclick="clearAllWatchHistory()" class="text-slate-400 hover:text-sky-400 font-medium transition-colors">Clear History</button>
+        <button onclick="toggleHistoryModal()" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-50 font-semibold">Done</button>
       </div>
     </div>
   </div>
@@ -662,28 +706,28 @@
   <!-- ========================================== -->
   <!-- MY LIST MODAL (saved titles)               -->
   <!-- ========================================== -->
-  <div id="mylist-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-dark-900 border border-dark-750 rounded-2xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden text-zinc-200">
-      <div class="p-4 sm:p-5 border-b border-dark-800 flex items-center justify-between">
+  <div id="mylist-modal" class="fixed inset-0 z-50 hidden bg-dark-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-2xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden text-slate-200">
+      <div class="p-4 sm:p-5 border-b border-dark-700 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-brand/15 text-brand flex items-center justify-center">
+          <div class="w-8 h-8 rounded-xl bg-brand/15 text-brand-soft flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
           </div>
           <div>
-            <h3 class="font-bold text-base text-white">My List</h3>
-            <p id="mylist-count" class="text-[11px] text-zinc-500">0 saved titles</p>
+            <h3 class="font-bold text-base text-slate-50">My List</h3>
+            <p id="mylist-count" class="text-[11px] text-slate-400">0 saved titles</p>
           </div>
         </div>
-        <button onclick="toggleMyListModal(false)" class="text-zinc-400 hover:text-white p-1" aria-label="Close My List">✕</button>
+        <button onclick="toggleMyListModal(false)" class="text-slate-400 hover:text-sky-400 p-1" aria-label="Close My List">✕</button>
       </div>
 
-      <div id="mylist-modal-list" class="p-4 sm:p-5 max-h-96 overflow-y-auto divide-y divide-dark-800 text-xs space-y-2">
+      <div id="mylist-modal-list" class="p-4 sm:p-5 max-h-96 overflow-y-auto divide-y divide-dark-700 text-xs space-y-2">
         <!-- Rendered dynamically -->
       </div>
 
-      <div class="p-3 border-t border-dark-800 bg-dark-950 flex items-center justify-between text-xs">
-        <button onclick="clearMyList()" class="text-red-400 hover:text-red-300 font-medium">Clear List</button>
-        <button onclick="toggleMyListModal(false)" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-white font-semibold">Done</button>
+      <div class="p-3 border-t border-dark-700 bg-dark-950 flex items-center justify-between text-xs">
+        <button onclick="clearMyList()" class="text-slate-400 hover:text-sky-400 font-medium transition-colors">Clear List</button>
+        <button onclick="toggleMyListModal(false)" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-50 font-semibold">Done</button>
       </div>
     </div>
   </div>
@@ -691,27 +735,27 @@
   <!-- ========================================== -->
   <!-- WEEKLY AIRING SCHEDULE MODAL               -->
   <!-- ========================================== -->
-  <div id="schedule-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-dark-900 border border-dark-750 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-zinc-200">
-      <div class="p-4 sm:p-5 border-b border-dark-800 flex items-center justify-between">
+  <div id="schedule-modal" class="fixed inset-0 z-50 hidden bg-dark-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-slate-200">
+      <div class="p-4 sm:p-5 border-b border-dark-700 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           </div>
           <div>
-            <h3 class="font-bold text-base text-white">Weekly Broadcast Schedule</h3>
-            <p class="text-xs text-zinc-400">Timetable of upcoming anime releases</p>
+            <h3 class="font-bold text-base text-slate-50">Weekly Broadcast Schedule</h3>
+            <p class="text-xs text-slate-400">Timetable of upcoming anime releases</p>
           </div>
         </div>
-        <button onclick="toggleScheduleModal()" class="text-zinc-400 hover:text-white p-1">✕</button>
+        <button onclick="toggleScheduleModal()" class="text-slate-400 hover:text-sky-400 p-1">✕</button>
       </div>
 
       <div id="schedule-modal-content" class="p-4 sm:p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         <!-- Rendered dynamically -->
       </div>
 
-      <div class="p-3 border-t border-dark-800 bg-dark-950 flex justify-end">
-        <button onclick="toggleScheduleModal()" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-white text-xs font-semibold">Close</button>
+      <div class="p-3 border-t border-dark-700 bg-dark-950 flex justify-end">
+        <button onclick="toggleScheduleModal()" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-50 text-xs font-semibold">Close</button>
       </div>
     </div>
   </div>
@@ -719,15 +763,15 @@
   <!-- ========================================== -->
   <!-- CLEAN ENTERTAINMENT FOOTER                 -->
   <!-- ========================================== -->
-  <footer class="mt-auto border-t border-dark-800 bg-dark-950 pt-8 pb-28 md:pb-8 text-xs text-zinc-500">
+  <footer class="mt-auto border-t border-dark-700 bg-dark-950 pt-8 pb-28 md:pb-8 text-xs text-slate-400">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white text-xs font-bold">AS</div>
-        <span class="font-bold text-zinc-300 text-sm">AniStream</span>
-        <span class="text-zinc-600">·</span>
-        <span class="text-zinc-400">Free HD Anime Streaming Platform</span>
+        <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-slate-50 text-xs font-bold">AS</div>
+        <span class="font-bold text-slate-300 text-sm">AniStream</span>
+        <span class="text-slate-500">·</span>
+        <span class="text-slate-400">Free HD Anime Streaming Platform</span>
       </div>
-      <p class="text-center sm:text-right text-[11px] text-zinc-500">
+      <p class="text-center sm:text-right text-[11px] text-slate-400">
         AniStream does not host media files on its servers. All streams are provided by non-affiliated third parties.
       </p>
     </div>
@@ -738,6 +782,7 @@
   <!-- ========================================== -->
   <script type="module">
     import { animeService } from '/src/services/api/index.ts';
+    import { SITE_NAME, buildAnimeSlugMap, slugifyTitle, animePath, animeEpisodePath } from '/src/utils/slug.ts';
 
     // Application State
     let currentAnime = null;
@@ -763,6 +808,383 @@
     // Results of the last server-side search: { query, items }
     let searchResults = null;
     let searchRequestSeq = 0;
+    // The default browse view paginates the catalogue grid at 20 cards per
+    // page; the Trending / New Anime rails below it are separate sections.
+    const GRID_PAGE_SIZE = 20;
+    let gridVisibleCount = GRID_PAGE_SIZE;
+    let currentGridList = [];
+    let homeRowsHaveItems = false;
+
+    // ---------------------------------------------------------------------
+    // URL ROUTING + DYNAMIC SEO
+    // ---------------------------------------------------------------------
+    // Clean, crawlable paths:
+    //   /anime/:slug
+    //   /anime/:slug/episode/:number
+    // Slug rules live in src/utils/slug.ts and are reused by the sitemap route,
+    // so anchors, canonical tags and sitemap.xml can never drift apart.
+
+    const HOME_TITLE = 'AniStream - Modern Anime Streaming Platform';
+    const HOME_DESCRIPTION = 'Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history.';
+    let cataloguePromise = null;
+    let slugMap = new Map();
+    let routeToken = 0;
+
+    /** Rebuild the catalogue-wide slug map (called once per catalogue load). */
+    function registerCatalogueSlugs(items) {
+      const unique = [];
+      const seen = new Set();
+      for (const anime of items || []) {
+        if (!anime || anime.id == null || seen.has(String(anime.id))) continue;
+        seen.add(String(anime.id));
+        unique.push({ id: anime.id, title: anime.title || 'Anime' });
+      }
+      slugMap = buildAnimeSlugMap(unique);
+    }
+
+    /** Stable slug for any title, including search results outside the catalogue. */
+    function slugForAnime(anime) {
+      const id = String(anime?.id ?? '');
+      if (!id) return 'anime';
+      if (slugMap.has(id)) return slugMap.get(id);
+
+      const base = slugifyTitle(anime?.title || 'Anime');
+      const used = new Set(slugMap.values());
+      let slug = base;
+      if (used.has(slug)) {
+        slug = `${base}-${id}`;
+        let suffix = 2;
+        while (used.has(slug)) {
+          slug = `${base}-${id}-${suffix}`;
+          suffix += 1;
+        }
+      }
+      slugMap.set(id, slug);
+      return slug;
+    }
+
+    function pathForAnime(anime) {
+      return animePath(slugForAnime(anime));
+    }
+
+    function pathForEpisode(anime, episode) {
+      return animeEpisodePath(slugForAnime(anime), episode);
+    }
+
+    /** Parse the two crawlable route shapes (plus home). */
+    function parseRoute(pathname = window.location.pathname) {
+      let path = pathname || '/';
+      try {
+        path = decodeURIComponent(path);
+      } catch (e) {
+        // Malformed escapes fall through to the raw path.
+      }
+      path = path.replace(/\/+$/, '') || '/';
+
+      if (path === '/') return { name: 'home' };
+
+      const episodeMatch = path.match(/^\/anime\/([a-z0-9-]+)\/episode\/(\d+)$/i);
+      if (episodeMatch) {
+        return { name: 'episode', slug: episodeMatch[1].toLowerCase(), episode: Number(episodeMatch[2]) };
+      }
+
+      const seriesMatch = path.match(/^\/anime\/([a-z0-9-]+)$/i);
+      if (seriesMatch) {
+        return { name: 'anime', slug: seriesMatch[1].toLowerCase() };
+      }
+
+      return { name: 'unknown' };
+    }
+
+    function writeRoute(path, replace = false) {
+      const current = window.location.pathname + window.location.search;
+      if (current === path) return;
+      if (replace) window.history.replaceState({}, '', path);
+      else window.history.pushState({}, '', path);
+    }
+
+    function absoluteUrl(path) {
+      try {
+        return new URL(path, window.location.origin).href;
+      } catch (e) {
+        return path;
+      }
+    }
+
+    function setMetaById(id, value) {
+      const el = document.getElementById(id);
+      if (el) el.setAttribute('content', value || '');
+    }
+
+    function trimDescription(text, maxLength = 155) {
+      const clean = String(text || '')
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!clean) return '';
+      if (clean.length <= maxLength) return clean;
+      return `${clean.slice(0, maxLength - 1).replace(/[\s,.;:-]+\S*$/, '')}…`;
+    }
+
+    /**
+     * Single choke point for the document head. Called on every route change so
+     * title/description/canonical/OG/Twitter/JSON-LD always describe what the
+     * user is looking at.
+     */
+    function updateSeo({ title, description, path, image = '', type = 'website', schema = null }) {
+      const canonical = absoluteUrl(path);
+      document.title = title;
+
+      setMetaById('seo-description', description);
+      setMetaById('seo-robots', 'index, follow');
+
+      const canonicalEl = document.getElementById('seo-canonical');
+      if (canonicalEl) canonicalEl.setAttribute('href', canonical);
+
+      setMetaById('seo-og-title', title);
+      setMetaById('seo-og-description', description);
+      setMetaById('seo-og-url', canonical);
+      setMetaById('seo-og-type', type);
+      setMetaById('seo-og-image', image);
+      setMetaById('seo-twitter-title', title);
+      setMetaById('seo-twitter-description', description);
+      setMetaById('seo-twitter-image', image);
+
+      const jsonld = document.getElementById('seo-jsonld');
+      if (jsonld) {
+        jsonld.textContent = schema ? JSON.stringify(schema).replace(/</g, String.fromCharCode(92) + 'u003c') : '';
+      }
+    }
+
+    function updateHomeSeo() {
+      updateSeo({
+        title: HOME_TITLE,
+        description: HOME_DESCRIPTION,
+        path: '/',
+        type: 'website',
+        schema: {
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: SITE_NAME,
+          url: absoluteUrl('/'),
+          description: HOME_DESCRIPTION,
+        },
+      });
+    }
+
+    function updateAnimeSeo(anime, episode, mode = 'anime') {
+      if (!anime) return;
+      const seriesPath = pathForAnime(anime);
+      const path = mode === 'episode' ? pathForEpisode(anime, episode) : seriesPath;
+      const title = mode === 'episode'
+        ? `Watch ${anime.title} Episode ${episode} Online - ${SITE_NAME}`
+        : `Watch ${anime.title} Online - ${SITE_NAME}`;
+      const description = trimDescription(
+        anime.synopsis || `Stream ${anime.title} in HD with multiple servers, episode lists and progress tracking on ${SITE_NAME}.`
+      );
+      const image = anime.banner || anime.poster || '';
+
+      const schema = mode === 'episode'
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'TVEpisode',
+            name: `${anime.title} Episode ${episode}`,
+            episodeNumber: episode,
+            url: absoluteUrl(path),
+            image: image || undefined,
+            partOfSeries: {
+              '@type': 'TVSeries',
+              name: anime.title,
+              url: absoluteUrl(seriesPath),
+            },
+          }
+        : {
+            '@context': 'https://schema.org',
+            '@type': 'TVSeries',
+            name: anime.title,
+            alternateName: anime.altTitle || undefined,
+            description: trimDescription(anime.synopsis, 500) || undefined,
+            image: image || undefined,
+            genre: anime.genres && anime.genres.length ? anime.genres : undefined,
+            numberOfEpisodes: anime.totalEpisodes || undefined,
+            url: absoluteUrl(seriesPath),
+          };
+
+      updateSeo({
+        title,
+        description,
+        path,
+        image,
+        type: mode === 'episode' ? 'video.episode' : 'video.tv_show',
+        schema,
+      });
+    }
+
+    function findAnimeBySlug(slug) {
+      const candidates = [];
+      const push = (anime) => { if (anime) candidates.push(anime); };
+      (fullCatalog || []).forEach(push);
+      push(window._spotlightAnime);
+      push(currentAnime);
+      (searchResults?.items || []).forEach(push);
+
+      for (const anime of candidates) {
+        if (slugForAnime(anime) === slug) return anime;
+      }
+      return null;
+    }
+
+    /** Local catalogue first, then a provider search for older/less popular titles. */
+    async function resolveAnimeBySlug(slug) {
+      const local = findAnimeBySlug(slug);
+      if (local) return local;
+
+      try {
+        const query = slug.replace(/-/g, ' ');
+        const { results } = await animeService.search(query);
+        return (results || []).find((anime) => slugForAnime(anime) === slug) || null;
+      } catch (err) {
+        console.warn('[router] Slug resolution search failed:', err);
+        return null;
+      }
+    }
+
+    /**
+     * Apply the URL to the UI. Used on first load and on popstate, so deep
+     * links, refresh, Back and Forward all land on the same title/episode.
+     */
+    async function applyRoute() {
+      const token = ++routeToken;
+      const route = parseRoute();
+
+      if (route.name === 'home') {
+        if (!document.getElementById('watch-section')?.classList.contains('hidden')) {
+          closeWatchPage({ updateUrl: false });
+        }
+        updateHomeSeo();
+        return;
+      }
+
+      if (route.name === 'unknown') {
+        // Not part of the public URL surface: replace it with home instead of
+        // leaving an indexable soft 404.
+        writeRoute('/', true);
+        if (!document.getElementById('watch-section')?.classList.contains('hidden')) {
+          closeWatchPage({ updateUrl: false });
+        }
+        updateHomeSeo();
+        return;
+      }
+
+      if (cataloguePromise) {
+        try { await cataloguePromise; } catch (e) { /* catalogue handles its own error state */ }
+      }
+      if (token !== routeToken) return;
+
+      const anime = await resolveAnimeBySlug(route.slug);
+      if (token !== routeToken) return;
+
+      if (!anime) {
+        console.warn(`[router] No catalogue match for /anime/${route.slug}; returning home.`);
+        writeRoute('/', true);
+        if (!document.getElementById('watch-section')?.classList.contains('hidden')) {
+          closeWatchPage({ updateUrl: false });
+        }
+        updateHomeSeo();
+        return;
+      }
+
+      const episode = route.name === 'episode' ? Math.max(1, route.episode) : 1;
+      const mode = route.name === 'episode' ? 'episode' : 'anime';
+      const watchOpen = !document.getElementById('watch-section')?.classList.contains('hidden');
+
+      if (watchOpen && currentAnime && String(currentAnime.id) === String(anime.id)) {
+        if (currentEpisode !== episode) {
+          switchEpisode(episode, { updateUrl: false });
+        }
+        updateAnimeSeo(anime, episode, mode);
+        return;
+      }
+
+      openWatchPage(anime, episode, { updateUrl: false, seoMode: mode });
+    }
+
+    // ---------------------------------------------------------------------
+    // Anchor helpers: links stay real <a href> elements for crawlers, while a
+    // plain left click is handled in-app (Ctrl/Cmd/middle click still opens a
+    // new tab through the browser).
+    // ---------------------------------------------------------------------
+    function isPlainLeftClick(event) {
+      return !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey &&
+        (typeof event.button !== 'number' || event.button === 0);
+    }
+
+    function handleAnimeLink(event, animeId, episodeNumber = 1, mode) {
+      if (!isPlainLeftClick(event)) return true;
+      event.preventDefault();
+      const routeMode = mode || (Number(episodeNumber) > 1 ? 'episode' : 'anime');
+      openAnimeFromCard(animeId, episodeNumber, { routeMode });
+      return false;
+    }
+
+    function handleEpisodeLink(event, episodeNumber) {
+      if (!isPlainLeftClick(event)) return true;
+      event.preventDefault();
+      switchEpisode(Number(episodeNumber));
+      return false;
+    }
+
+    function handleEpisodeNav(event, targetEpisode) {
+      if (!isPlainLeftClick(event)) return true;
+      event.preventDefault();
+      const target = Number(targetEpisode);
+      const total = Number(currentAnime?.totalEpisodes) || 0;
+      if (!Number.isFinite(target) || target < 1 || (total > 0 && target > total)) return false;
+      switchEpisode(target);
+      return false;
+    }
+
+    function handleSuggestionLink(event, animeId) {
+      if (!isPlainLeftClick(event)) return true;
+      event.preventDefault();
+      hideSearchSuggestions();
+      toggleMobileSearch(false);
+      openAnimeFromCard(animeId);
+      return false;
+    }
+
+    function handleHistoryLink(event, animeId, episodeNumber) {
+      if (!isPlainLeftClick(event)) return true;
+      event.preventDefault();
+      document.getElementById('history-modal')?.classList.add('hidden');
+      setBottomNavActive('home');
+      openAnimeFromCard(animeId, Number(episodeNumber) || 1, { routeMode: 'episode' });
+      return false;
+    }
+
+    function handleMyListLink(event, animeId) {
+      if (!isPlainLeftClick(event)) return true;
+      event.preventDefault();
+      toggleMyListModal(false);
+      setBottomNavActive('home');
+      openAnimeFromCard(animeId);
+      return false;
+    }
+
+    function handleSpotlightLink(event) {
+      if (!isPlainLeftClick(event)) return true;
+      event.preventDefault();
+      startWatchingSpotlight();
+      return false;
+    }
+
+    window.handleAnimeLink = handleAnimeLink;
+    window.handleEpisodeLink = handleEpisodeLink;
+    window.handleEpisodeNav = handleEpisodeNav;
+    window.handleSuggestionLink = handleSuggestionLink;
+    window.handleHistoryLink = handleHistoryLink;
+    window.handleMyListLink = handleMyListLink;
+    window.handleSpotlightLink = handleSpotlightLink;
 
     window.toggleAutoFallback = (checked) => {
       autoFallbackActive = Boolean(checked);
@@ -776,9 +1198,16 @@
       updateHistoryBadge();
       renderContinueWatching();
       setBottomNavActive('home');
+      updateHomeSeo();
 
       // Live data swaps in whenever it is ready — it must never block the UI.
-      initializeCatalog();
+      // Deep links await this same promise before resolving their slug.
+      cataloguePromise = initializeCatalog();
+      applyRoute();
+
+      window.addEventListener('popstate', () => {
+        applyRoute();
+      });
 
       // Close the suggestion dropdown when clicking anywhere outside it.
       document.addEventListener('click', (event) => {
@@ -881,7 +1310,7 @@
 
     function retryCatalogLoad() {
       showCatalogLoadingState();
-      initializeCatalog();
+      cataloguePromise = initializeCatalog();
     }
     window.retryCatalogLoad = retryCatalogLoad;
 
@@ -903,9 +1332,12 @@
         }
 
         fullCatalog = trending.length > 0 ? trending : spotlights;
+        // Register the catalogue's slugs before anything renders an href.
+        registerCatalogueSlugs([...fullCatalog, spotlights[0]].filter(Boolean));
         renderHeroBanner(spotlights[0] || trending[0]);
         renderCategoryTabs();
         applyCatalogFilters();
+        renderHomeRows();
         renderContinueWatching();
       } catch (err) {
         console.error('[AniStream] Failed to initialize the live catalogue:', err);
@@ -917,6 +1349,9 @@
       if (!anime) return;
       window._spotlightAnime = anime;
 
+      // The hero CTA is a real link to the spotlight's series page.
+      const watchBtn = document.getElementById('hero-watch-btn');
+      if (watchBtn) watchBtn.setAttribute('href', pathForAnime(anime));
       const titleEl = document.getElementById('hero-title');
       const altTitleEl = document.getElementById('hero-alt-title');
       const synopsisEl = document.getElementById('hero-synopsis');
@@ -970,7 +1405,16 @@
       const emptyState = document.getElementById('anime-empty-state');
       if (!grid) return;
 
-      if (!animeList || animeList.length === 0) {
+      currentGridList = animeList || [];
+      const visibleList = currentGridList.slice(0, gridVisibleCount);
+      const remaining = Math.max(0, currentGridList.length - visibleList.length);
+      const loadMoreBtn = document.getElementById('load-more-btn');
+      if (loadMoreBtn) {
+        loadMoreBtn.classList.toggle('hidden', remaining === 0);
+        loadMoreBtn.textContent = remaining > 0 ? `Show more (${remaining} more)` : 'Show more';
+      }
+
+      if (visibleList.length === 0) {
         grid.innerHTML = '';
         if (emptyState) emptyState.classList.remove('hidden');
         return;
@@ -978,7 +1422,7 @@
 
       if (emptyState) emptyState.classList.add('hidden');
 
-      grid.innerHTML = animeList.map((anime) => {
+      grid.innerHTML = visibleList.map((anime) => {
         // Missing metadata renders as "—", never as invented numbers.
         const subCount = anime.subEpisodes ?? anime.totalEpisodes ?? '—';
         const dubCount = anime.dubEpisodes ?? '—';
@@ -995,54 +1439,43 @@
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />`
           : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-dark-850 to-dark-950">
-                <span class="text-3xl font-black text-zinc-700 select-none">${escapeHtml((anime.title || '?').charAt(0))}</span>
+                <span class="text-3xl font-black text-slate-600 select-none">${escapeHtml((anime.title || '?').charAt(0))}</span>
               </div>`;
 
         return `
-          <div
-            onclick="openAnimeFromCard('${anime.id}')"
-            class="group cursor-pointer flex flex-col rounded-xl bg-dark-900 border border-dark-800 hover:border-brand/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-brand/5 active:scale-[0.98]"
-          >
+          <div class="group relative cursor-pointer flex flex-col rounded-xl bg-dark-800 border border-dark-700 hover:border-sky-400/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-brand/5 active:scale-[0.98]">
+            <a
+              href="${pathForAnime(anime)}"
+              onclick="return handleAnimeLink(event, '${anime.id}')"
+              class="flex flex-col h-full"
+            >
             <!-- Poster image container -->
             <div class="relative aspect-[3/4] bg-dark-950 overflow-hidden">
               ${posterMarkup}
               
               <!-- Subtle top gradient and quality tag -->
-              <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-black/30"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-dark-950/30"></div>
               
               <div class="absolute top-2 left-2 flex items-center gap-1.5">
-                <span class="px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-sm text-[10px] font-mono font-bold text-white uppercase tracking-wider">
+                <span class="px-1.5 py-0.5 rounded bg-dark-950/75 backdrop-blur-sm text-[10px] font-mono font-bold text-slate-50 uppercase tracking-wider">
                   ${anime.quality || 'HD'}
                 </span>
               </div>
 
-              <!-- Save / remove shortcut (feeds My List) -->
-              <button
-                type="button"
-                onclick="event.stopPropagation(); toggleMyList('${anime.id}')"
-                title="${saved ? 'Remove from My List' : 'Save to My List'}"
-                aria-label="${saved ? 'Remove from My List' : 'Save to My List'}"
-                class="absolute top-2 right-2 z-10 w-7 h-7 rounded-lg bg-black/70 backdrop-blur-sm flex items-center justify-center ${saved ? 'text-brand' : 'text-zinc-300 hover:text-brand'} transition active:scale-90"
-              >
-                <svg class="w-3.5 h-3.5" fill="${saved ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                </svg>
-              </button>
-
               <!-- Quick sub/dub badge -->
-              <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-semibold text-zinc-300">
-                <div class="flex items-center gap-1 bg-black/80 backdrop-blur-sm px-2 py-0.5 rounded">
-                  <span class="text-brand">SUB</span>${subCount === '—' ? '' : ` ${subCount}`}
-                  ${dubCount === '—' ? '' : `<span class="text-zinc-500">·</span><span class="text-blue-400">DUB</span> ${dubCount}`}
+              <div class="absolute bottom-2 left-2 right-2 flex items-center justify-between text-[10px] font-semibold text-slate-300">
+                <div class="flex items-center gap-1 bg-dark-950/80 backdrop-blur-sm px-2 py-0.5 rounded">
+                  <span class="text-brand-soft">SUB</span>${subCount === '—' ? '' : ` ${subCount}`}
+                  ${dubCount === '—' ? '' : `<span class="text-slate-400">·</span><span class="text-sky-400">DUB</span> ${dubCount}`}
                 </div>
-                <div class="flex items-center gap-0.5 bg-black/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-amber-400 font-bold">
+                <div class="flex items-center gap-0.5 bg-dark-950/80 backdrop-blur-sm px-1.5 py-0.5 rounded text-amber-400 font-bold">
                   ★ ${rating}
                 </div>
               </div>
 
               <!-- Center Play Icon on Hover -->
-              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40 backdrop-blur-[2px]">
-                <div class="w-12 h-12 rounded-full bg-brand text-white flex items-center justify-center shadow-lg shadow-brand/40 transform scale-75 group-hover:scale-100 transition-transform">
+              <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-dark-950/40 backdrop-blur-[2px]">
+                <div class="w-12 h-12 rounded-full bg-brand text-slate-50 flex items-center justify-center shadow-lg shadow-brand/40 transform scale-75 group-hover:scale-100 transition-transform">
                   <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </div>
               </div>
@@ -1050,17 +1483,120 @@
 
             <!-- Card Metadata -->
             <div class="p-3 flex-1 flex flex-col justify-between space-y-1">
-              <h4 class="font-bold text-xs sm:text-sm text-zinc-100 group-hover:text-brand line-clamp-1 transition-colors">
+              <h4 class="font-bold text-xs sm:text-sm text-slate-100 group-hover:text-brand-soft line-clamp-1 transition-colors">
                 ${escapeHtml(anime.title)}
               </h4>
-              <div class="flex items-center justify-between text-[11px] text-zinc-500">
+              <div class="flex items-center justify-between text-[11px] text-slate-400">
                 <span>${anime.type || '—'} · ${anime.duration || '—'}</span>
-                <span class="text-zinc-400 font-medium">${anime.year ?? '—'}</span>
+                <span class="text-slate-400 font-medium">${anime.year ?? '—'}</span>
               </div>
             </div>
+            </a>
+
+            <!-- Save / remove shortcut (sits above the card link, not inside it) -->
+            <button
+              type="button"
+              onclick="toggleMyList('${anime.id}')"
+              title="${saved ? 'Remove from My List' : 'Save to My List'}"
+              aria-label="${saved ? 'Remove from My List' : 'Save to My List'}"
+              class="absolute top-2 right-2 z-10 w-7 h-7 rounded-lg bg-dark-950/70 backdrop-blur-sm flex items-center justify-center ${saved ? 'text-brand-soft' : 'text-slate-300 hover:text-brand-soft'} transition active:scale-90"
+            >
+              <svg class="w-3.5 h-3.5" fill="${saved ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+              </svg>
+            </button>
           </div>
         `;
       }).join('');
+    }
+
+    /** Expand the catalogue grid by one more page of cards. */
+    function loadMoreCatalog() {
+      gridVisibleCount += GRID_PAGE_SIZE;
+      renderCatalogGrid(currentGridList);
+    }
+    window.loadMoreCatalog = loadMoreCatalog;
+
+    /** Compact rail card: a bare anchor, so crawlers can follow the rails. */
+    function homeRowCardHtml(anime) {
+      // Same rule as the grid: only a real fetched poster URL is rendered.
+      const posterUrl = typeof anime.poster === 'string' && /^https?:\/\//.test(anime.poster) ? anime.poster : '';
+      const posterMarkup = posterUrl
+        ? `<img
+              src="${escapeHtml(posterUrl)}"
+              alt="${escapeHtml(anime.title)}"
+              loading="lazy"
+              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />`
+        : `<div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-dark-850 to-dark-950">
+              <span class="text-2xl font-black text-slate-600 select-none">${escapeHtml((anime.title || '?').charAt(0))}</span>
+            </div>`;
+
+      return `
+        <a
+          href="${pathForAnime(anime)}"
+          onclick="return handleAnimeLink(event, '${anime.id}')"
+          class="group shrink-0 w-36 sm:w-40 block rounded-xl bg-dark-800 border border-dark-700 hover:border-sky-400/40 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-brand/5"
+        >
+          <div class="relative aspect-[3/4] bg-dark-950 overflow-hidden">
+            ${posterMarkup}
+            <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-dark-950/30"></div>
+          </div>
+          <div class="p-2.5 space-y-0.5">
+            <h3 class="font-bold text-xs text-slate-100 group-hover:text-brand-soft line-clamp-1 transition-colors">
+              ${escapeHtml(anime.title)}
+            </h3>
+            <p class="text-[10px] text-slate-400">${anime.type || '—'} · ${anime.year ?? '—'}</p>
+          </div>
+        </a>
+      `;
+    }
+
+    function renderHomeRow(sectionId, rowId, items) {
+      const section = document.getElementById(sectionId);
+      const row = document.getElementById(rowId);
+      if (!section || !row) return;
+      if (!items.length) {
+        row.innerHTML = '';
+        section.classList.add('hidden');
+        return;
+      }
+      row.innerHTML = items.map(homeRowCardHtml).join('');
+      section.classList.remove('hidden');
+    }
+
+    /**
+     * "Trending Anime" and "New Anime" rails below the catalogue grid.
+     * Trending keeps the provider's own ordering (flagged items first);
+     * New sorts by the newest reported year. A title never appears twice.
+     */
+    function renderHomeRows() {
+      const size = 12;
+      const items = fullCatalog || [];
+
+      const flagged = items.filter((anime) => anime.isTrending);
+      const trending = (flagged.length > 0 ? flagged : items).slice(0, size);
+      // A title never appears on both rails: mark only the cards actually
+      // taken by the trending rail (filter() would mark the whole list).
+      const taken = new Set(trending.map((anime) => String(anime?.id ?? '')));
+      const newest = [...items]
+        .sort((a, b) => (b.year ?? 0) - (a.year ?? 0))
+        .filter((anime) => !taken.has(String(anime?.id ?? '')))
+        .slice(0, size);
+
+      renderHomeRow('trending-row-section', 'trending-row', trending);
+      renderHomeRow('new-row-section', 'new-anime-row', newest);
+
+      homeRowsHaveItems = trending.length > 0 || newest.length > 0;
+      updateHomeRowsVisibility();
+    }
+
+    /** Rails only show on the default browse view (no search/genre/tab scope). */
+    function updateHomeRowsVisibility() {
+      const homeRows = document.getElementById('home-rows');
+      if (!homeRows) return;
+      const defaultView = !activeQuery.trim() && activeGenre === 'All' && activeCategory === 'all';
+      homeRows.classList.toggle('hidden', !defaultView || !homeRowsHaveItems);
     }
 
     /**
@@ -1075,11 +1611,13 @@
         (window._spotlightAnime && String(window._spotlightAnime.id) === key ? window._spotlightAnime : null);
     }
 
-    async function openAnimeFromCard(animeId, episodeNumber = 1) {
+    async function openAnimeFromCard(animeId, episodeNumber = 1, options = {}) {
+      const routeMode = options.routeMode || (Number(episodeNumber) > 1 ? 'episode' : 'anime');
+
       // 1. Already on screen -> open instantly.
       const local = findLocalAnime(animeId);
       if (local) {
-        openWatchPage(local, episodeNumber);
+        openWatchPage(local, episodeNumber, { seoMode: routeMode });
         return;
       }
 
@@ -1089,7 +1627,7 @@
         const raw = localStorage.getItem(WATCH_HISTORY_KEY);
         const entry = raw ? JSON.parse(raw).find(i => String(i.id) === String(animeId)) : null;
         if (entry && entry.title) {
-          openWatchPage({ id: entry.id, title: entry.title, poster: entry.poster, totalEpisodes: 0 }, episodeNumber);
+          openWatchPage({ id: entry.id, title: entry.title, poster: entry.poster, totalEpisodes: 0 }, episodeNumber, { seoMode: routeMode });
           return;
         }
       } catch (e) {}
@@ -1097,7 +1635,7 @@
       // 3. Unknown id (e.g. deep link) -> resolve over the network.
       const anime = await animeService.getAnimeDetails(animeId);
       if (anime) {
-        openWatchPage(anime, episodeNumber);
+        openWatchPage(anime, episodeNumber, { seoMode: routeMode });
       }
     }
     window.openAnimeFromCard = openAnimeFromCard;
@@ -1105,7 +1643,8 @@
     /**
      * Watch Page Controller
      */
-    async function openWatchPage(anime, episodeNumber = 1) {
+    async function openWatchPage(anime, episodeNumber = 1, options = {}) {
+      const { updateUrl = true, replaceUrl = false, seoMode = 'anime' } = options;
       currentAnime = anime;
       currentEpisode = Number(episodeNumber) || 1;
       window.currentAnime = anime;
@@ -1148,8 +1687,18 @@
       if (countEl) countEl.textContent = anime.totalEpisodes != null ? `${anime.totalEpisodes} Episodes` : '— Episodes';
       if (genresEl) {
         genresEl.innerHTML = (anime.genres || ['Action']).map(g => `
-          <span class="px-2 py-0.5 rounded-md bg-dark-800 text-zinc-400 text-[10px] font-medium border border-dark-750">${escapeHtml(g)}</span>
+          <span class="px-2 py-0.5 rounded-md bg-dark-800 text-slate-400 text-[10px] font-medium border border-dark-700">${escapeHtml(g)}</span>
         `).join('');
+      }
+
+      // URL + head tags follow the title being opened (series page or episode).
+      updateAnimeSeo(anime, currentEpisode, seoMode);
+      updateEpisodeNavLinks();
+      if (updateUrl) {
+        writeRoute(
+          seoMode === 'episode' ? pathForEpisode(anime, currentEpisode) : pathForAnime(anime),
+          Boolean(replaceUrl)
+        );
       }
 
       // Load the stream first — the episode list fills in alongside it instead
@@ -1164,7 +1713,7 @@
     }
     window.openWatchPage = openWatchPage;
 
-    function closeWatchPage() {
+    function closeWatchPage(options = {}) {
       document.getElementById('watch-section')?.classList.add('hidden');
       document.getElementById('browse-section')?.classList.remove('hidden');
 
@@ -1176,6 +1725,8 @@
       const player = document.getElementById('player');
       if (player) player.innerHTML = '';
       renderContinueWatching();
+      updateHomeSeo();
+      if (options.updateUrl !== false) writeRoute('/', Boolean(options.replaceUrl));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     window.closeWatchPage = closeWatchPage;
@@ -1184,7 +1735,7 @@
       const container = document.getElementById('episodes-container');
       if (!container || !currentAnime) return;
 
-      container.innerHTML = '<div class="col-span-full py-6 text-center text-xs text-zinc-500 font-mono animate-pulse">Loading episodes...</div>';
+      container.innerHTML = '<div class="col-span-full py-6 text-center text-xs text-slate-400 font-mono animate-pulse">Loading episodes...</div>';
 
       try {
         const episodes = await animeService.getEpisodes(currentAnime.id);
@@ -1195,7 +1746,7 @@
         console.error('[AniStream] Failed to load episodes:', err);
         allEpisodesCache = [];
         if (container) {
-          container.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-zinc-400">Episodes could not be loaded right now. The episode source failed — nothing is faked. Try again shortly.</div>';
+          container.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-slate-400">Episodes could not be loaded right now. The episode source failed — nothing is faked. Try again shortly.</div>';
         }
       }
     }
@@ -1205,7 +1756,7 @@
       if (!container) return;
 
       if (!episodes || episodes.length === 0) {
-        container.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-zinc-500">No episodes available.</div>';
+        container.innerHTML = '<div class="col-span-full py-4 text-center text-xs text-slate-400">No episodes available.</div>';
         return;
       }
 
@@ -1213,30 +1764,52 @@
         const isCurrent = ep.number === currentEpisode;
         const isFiller = ep.isFiller === true;
         const activeClass = isCurrent
-          ? 'bg-brand text-white border-brand shadow-md shadow-brand/20'
-          : 'bg-dark-850 hover:bg-dark-800 text-zinc-300 border-dark-750';
+          ? 'bg-brand text-slate-50 border-brand shadow-md shadow-brand/20'
+          : 'bg-dark-850 hover:bg-dark-800 text-slate-300 border-dark-700';
 
         return `
-          <button
-            onclick="switchEpisode(${ep.number})"
+          <a
+            href="${pathForEpisode(currentAnime, ep.number)}"
+            onclick="return handleEpisodeLink(event, ${ep.number})"
+            aria-current="${isCurrent ? 'true' : 'false'}"
             class="p-2 sm:p-2.5 rounded-xl border text-left transition flex items-center justify-between group active:scale-95 ${activeClass}"
           >
             <div class="min-w-0 pr-2">
               <span class="block text-xs font-bold leading-snug">Ep ${ep.number}</span>
-              <span class="block text-[10px] ${isCurrent ? 'text-white/80' : 'text-zinc-500'} truncate">
+              <span class="block text-[10px] ${isCurrent ? 'text-slate-50/80' : 'text-slate-400'} truncate">
                 ${escapeHtml(ep.title || `Episode ${ep.number}`)}
               </span>
             </div>
             ${isFiller ? '<span class="px-1.5 py-0.2 rounded text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30">Filler</span>' : ''}
-          </button>
+          </a>
         `;
       }).join('');
 
-      // Update prev/next buttons
+      updateEpisodeNavLinks();
+    }
+
+    /** Keep the Prev/Next anchors pointing at real episode URLs. */
+    function updateEpisodeNavLinks() {
       const prevBtn = document.getElementById('btn-prev-ep');
       const nextBtn = document.getElementById('btn-next-ep');
-      if (prevBtn) prevBtn.disabled = currentEpisode <= 1;
-      if (nextBtn) nextBtn.disabled = currentEpisode >= (currentAnime?.totalEpisodes || 9999);
+      if (!currentAnime) return;
+
+      const total = Number(currentAnime.totalEpisodes) || 0;
+
+      if (prevBtn) {
+        prevBtn.setAttribute('href', pathForEpisode(currentAnime, Math.max(1, currentEpisode - 1)));
+        setEpisodeNavDisabled(prevBtn, currentEpisode <= 1);
+      }
+      if (nextBtn) {
+        nextBtn.setAttribute('href', pathForEpisode(currentAnime, currentEpisode + 1));
+        setEpisodeNavDisabled(nextBtn, total > 0 && currentEpisode >= total);
+      }
+    }
+
+    function setEpisodeNavDisabled(el, disabled) {
+      el.classList.toggle('opacity-40', disabled);
+      el.classList.toggle('pointer-events-none', disabled);
+      el.setAttribute('aria-disabled', String(disabled));
     }
 
     function filterEpisodeButtons(query) {
@@ -1250,7 +1823,7 @@
     }
     window.filterEpisodeButtons = filterEpisodeButtons;
 
-    function switchEpisode(epNumber) {
+    function switchEpisode(epNumber, options = {}) {
       if (!currentAnime) return;
       const targetEp = Number(epNumber) || 1;
       currentEpisode = targetEp;
@@ -1263,6 +1836,11 @@
       renderEpisodesList(allEpisodesCache);
       loadStream(currentAnime, currentEpisode, currentLanguage);
       recordHistory(currentAnime, currentEpisode);
+      updateAnimeSeo(currentAnime, currentEpisode, 'episode');
+      updateEpisodeNavLinks();
+      if (options.updateUrl !== false) {
+        writeRoute(pathForEpisode(currentAnime, currentEpisode), Boolean(options.replaceUrl));
+      }
     }
     window.switchEpisode = switchEpisode;
 
@@ -1317,7 +1895,7 @@
 
       player.innerHTML = `
         <video id="stream-video" controls autoplay playsinline preload="auto"
-          class="w-full h-full absolute inset-0 bg-black">
+          class="w-full h-full absolute inset-0 bg-dark-950">
         </video>
       `;
       const video = document.getElementById('stream-video');
@@ -1396,13 +1974,13 @@
           const shortName = SERVER_SHORT_NAMES[currentServerId] || 'this mirror';
           player.innerHTML = `
             <div class="flex flex-col items-center justify-center gap-3 p-8 text-center max-w-md">
-              <div class="w-11 h-11 rounded-full bg-dark-800 border border-dark-750 flex items-center justify-center text-zinc-400">
+              <div class="w-11 h-11 rounded-full bg-dark-800 border border-dark-700 flex items-center justify-center text-slate-400">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                 </svg>
               </div>
-              <p class="text-sm font-semibold text-zinc-100">${escapeHtml(shortName)} plays on its own site</p>
-              <p class="text-xs text-zinc-400 leading-relaxed">
+              <p class="text-sm font-semibold text-slate-100">${escapeHtml(shortName)} plays on its own site</p>
+              <p class="text-xs text-slate-400 leading-relaxed">
                 This mirror can't be embedded in the player. Continue on its site to watch episode ${ep},
                 or pick one of the HD servers below.
               </p>
@@ -1410,7 +1988,7 @@
                 href="${streamResult.streamUrl}"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="px-4 py-2 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-bold transition active:scale-95"
+                class="px-4 py-2 rounded-lg bg-brand hover:bg-brand-hover text-slate-50 text-xs font-bold transition active:scale-95"
               >
                 Open ${escapeHtml(shortName)} in a new tab
               </a>
@@ -1477,16 +2055,16 @@
       // not shown here.
       player.innerHTML = `
         <div class="flex flex-col items-center justify-center p-6 text-center space-y-3 max-w-lg">
-          <div class="w-11 h-11 rounded-full bg-red-500/15 text-brand flex items-center justify-center">
+          <div class="w-11 h-11 rounded-full bg-brand/15 text-brand-soft flex items-center justify-center">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
           </div>
-          <h4 class="font-bold text-sm text-white">Stream Temporarily Unavailable on Server ${currentServerId}</h4>
-          <p class="text-xs text-zinc-400">Choose another stream server below to resume instant playback:</p>
+          <h4 class="font-bold text-sm text-slate-50">Stream Temporarily Unavailable on Server ${currentServerId}</h4>
+          <p class="text-xs text-slate-400">Choose another stream server below to resume instant playback:</p>
           <div class="pt-2 flex flex-wrap items-center justify-center gap-2">
-            <button onclick="switchStreamServer(1)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white text-xs font-semibold border border-dark-700 transition active:scale-95">Server 1 (AnimeWixi)</button>
-            <button onclick="switchStreamServer(2)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white text-xs font-semibold border border-dark-700 transition active:scale-95">Server 2 (ani.pm)</button>
-            <button onclick="switchStreamServer(3)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white text-xs font-semibold border border-dark-700 transition active:scale-95">Server 3 (AniRaku)</button>
-            <button onclick="switchStreamServer(4)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white text-xs font-semibold border border-dark-700 transition active:scale-95">Server 4 (Shonen)</button>
+            <button onclick="switchStreamServer(1)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 text-xs font-semibold border border-dark-700 transition active:scale-95">Server 1 (AnimeWixi)</button>
+            <button onclick="switchStreamServer(2)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 text-xs font-semibold border border-dark-700 transition active:scale-95">Server 2 (ani.pm)</button>
+            <button onclick="switchStreamServer(3)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 text-xs font-semibold border border-dark-700 transition active:scale-95">Server 3 (AniRaku)</button>
+            <button onclick="switchStreamServer(4)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 text-xs font-semibold border border-dark-700 transition active:scale-95">Server 4 (Shonen)</button>
           </div>
         </div>
       `;
@@ -1503,14 +2081,14 @@
 
       // Update buttons
       document.querySelectorAll('.server-btn').forEach(btn => {
-        btn.classList.remove('bg-brand', 'text-white');
-        btn.classList.add('text-zinc-400');
+        btn.classList.remove('bg-brand', 'text-slate-50');
+        btn.classList.add('text-slate-400');
       });
 
       const activeBtn = document.getElementById(`server-btn-${currentServerId}`);
       if (activeBtn) {
-        activeBtn.classList.remove('text-zinc-400');
-        activeBtn.classList.add('bg-brand', 'text-white');
+        activeBtn.classList.remove('text-slate-400');
+        activeBtn.classList.add('bg-brand', 'text-slate-50');
       }
 
       if (currentAnime) {
@@ -1525,15 +2103,15 @@
       const dubBtn = document.getElementById('lang-btn-dub');
 
       if (lang === 'sub') {
-        subBtn?.classList.add('bg-dark-750', 'text-white');
-        subBtn?.classList.remove('text-zinc-400');
-        dubBtn?.classList.remove('bg-dark-750', 'text-white');
-        dubBtn?.classList.add('text-zinc-400');
+        subBtn?.classList.add('bg-dark-750', 'text-slate-50');
+        subBtn?.classList.remove('text-slate-400');
+        dubBtn?.classList.remove('bg-dark-750', 'text-slate-50');
+        dubBtn?.classList.add('text-slate-400');
       } else {
-        dubBtn?.classList.add('bg-dark-750', 'text-white');
-        dubBtn?.classList.remove('text-zinc-400');
-        subBtn?.classList.remove('bg-dark-750', 'text-white');
-        subBtn?.classList.add('text-zinc-400');
+        dubBtn?.classList.add('bg-dark-750', 'text-slate-50');
+        dubBtn?.classList.remove('text-slate-400');
+        subBtn?.classList.remove('bg-dark-750', 'text-slate-50');
+        subBtn?.classList.add('text-slate-400');
       }
 
       if (currentAnime) {
@@ -1590,17 +2168,18 @@
         .filter(Boolean)
         .join(' · ');
       return `
-        <div
-          onclick="openAnimeFromCard('${item.id}'); hideSearchSuggestions(); toggleMobileSearch(false);"
+        <a
+          href="${pathForAnime(item)}"
+          onclick="return handleSuggestionLink(event, '${item.id}')"
           class="p-2.5 flex items-center gap-3 hover:bg-dark-800 cursor-pointer transition"
         >
           ${safeImg(item.poster, 'w-9 h-12 object-cover rounded bg-dark-950 shrink-0')}
           <div class="flex-1 min-w-0">
-            <p class="font-bold text-zinc-100 truncate">${escapeHtml(item.title)}</p>
-            <p class="text-[10px] text-zinc-500 truncate">${escapeHtml(meta || 'Anime')}</p>
+            <p class="font-bold text-slate-100 truncate">${escapeHtml(item.title)}</p>
+            <p class="text-[10px] text-slate-400 truncate">${escapeHtml(meta || 'Anime')}</p>
           </div>
-          <span class="text-[10px] text-zinc-600 shrink-0">Open</span>
-        </div>
+          <span class="text-[10px] text-slate-500 shrink-0">Open</span>
+        </a>
       `;
     }
 
@@ -1614,7 +2193,7 @@
 
       const rows = (items || []).slice(0, 8).map(renderSearchSuggestionRow).join('');
       const footer = statusText
-        ? `<div class="px-3 py-2 text-[10px] text-zinc-500 bg-dark-950/60">${escapeHtml(statusText)}</div>`
+        ? `<div class="px-3 py-2 text-[10px] text-slate-400 bg-dark-950/60">${escapeHtml(statusText)}</div>`
         : '';
 
       if (!rows && !footer) {
@@ -1711,6 +2290,8 @@
      * is currently loaded (live provider data only).
      */
     function applyCatalogFilters() {
+      // Every filter change starts the grid back at its first page.
+      gridVisibleCount = GRID_PAGE_SIZE;
       const rawQuery = activeQuery.trim();
       const query = rawQuery.toLowerCase();
       const usingServerResults = Boolean(query && searchResults && searchResults.query === rawQuery);
@@ -1757,7 +2338,9 @@
         } else if (activeCategory !== 'all') {
           badge.textContent = `${CATEGORY_LABELS[activeCategory] || 'Category'} · ${list.length} releases`;
         } else {
-          badge.textContent = 'Showing all releases';
+          badge.textContent = list.length > GRID_PAGE_SIZE
+            ? `Showing ${GRID_PAGE_SIZE} of ${list.length} releases`
+            : 'Showing all releases';
         }
       }
 
@@ -1775,6 +2358,7 @@
       }
 
       renderCatalogGrid(list);
+      updateHomeRowsVisibility();
       updateCatalogSubtitle(list, rawQuery, catalogHasGenres);
     }
 
@@ -1797,8 +2381,8 @@
     }
 
     function updateGenreButtons() {
-      const activeClass = 'genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand text-white transition shrink-0 active:scale-95';
-      const idleClass = 'genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95';
+      const activeClass = 'genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand text-slate-50 transition shrink-0 active:scale-95';
+      const idleClass = 'genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95';
 
       document.querySelectorAll('.genre-btn').forEach(btn => {
         btn.className = btn.textContent === activeGenre ? activeClass : idleClass;
@@ -1880,7 +2464,7 @@
         const list = raw ? JSON.parse(raw) : [];
 
         if (list.length === 0) {
-          listEl.innerHTML = '<div class="py-8 text-center text-xs text-zinc-500">Your watch history is currently empty.</div>';
+          listEl.innerHTML = '<div class="py-8 text-center text-xs text-slate-400">Your watch history is currently empty.</div>';
           return;
         }
 
@@ -1889,20 +2473,21 @@
             <div class="flex items-center gap-3 min-w-0">
               ${safeImg(item.poster, 'w-9 h-12 object-cover rounded bg-dark-950 shrink-0')}
               <div class="min-w-0">
-                <p class="font-bold text-xs text-zinc-200 truncate group-hover:text-brand">${escapeHtml(item.title)}</p>
-                <p class="text-[10px] text-zinc-500">Episode ${item.episode}</p>
+                <p class="font-bold text-xs text-slate-200 truncate group-hover:text-brand-soft">${escapeHtml(item.title)}</p>
+                <p class="text-[10px] text-slate-400">Episode ${item.episode}</p>
               </div>
             </div>
-            <button
-              onclick="toggleHistoryModal(); openAnimeFromCard('${item.id}', ${Number(item.episode) || 1});"
-              class="px-3 py-1 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white font-semibold text-xs shrink-0 transition"
+            <a
+              href="${pathForEpisode({ id: item.id, title: item.title }, Number(item.episode) || 1)}"
+              onclick="return handleHistoryLink(event, '${item.id}', ${Number(item.episode) || 1})"
+              class="px-3 py-1 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 font-semibold text-xs shrink-0 transition"
             >
               Resume
-            </button>
+            </a>
           </div>
         `).join('');
       } catch (e) {
-        listEl.innerHTML = '<div class="py-4 text-center text-xs text-zinc-500">Failed to read watch history.</div>';
+        listEl.innerHTML = '<div class="py-4 text-center text-xs text-slate-400">Failed to read watch history.</div>';
       }
     }
 
@@ -1941,22 +2526,22 @@
         modal.classList.remove('hidden');
         const container = document.getElementById('schedule-modal-content');
         if (container) {
-          container.innerHTML = '<div class="col-span-full py-8 text-center text-xs text-zinc-500 font-mono animate-pulse">Loading broadcast schedules...</div>';
+          container.innerHTML = '<div class="col-span-full py-8 text-center text-xs text-slate-400 font-mono animate-pulse">Loading broadcast schedules...</div>';
           const schedules = await animeService.getSchedules();
           if (!schedules.length) {
-            container.innerHTML = '<div class="col-span-full py-8 text-center text-xs text-zinc-400">The airing schedule is unavailable right now — the schedule source failed to respond. Real data only: nothing is fabricated.</div>';
+            container.innerHTML = '<div class="col-span-full py-8 text-center text-xs text-slate-400">The airing schedule is unavailable right now — the schedule source failed to respond. Real data only: nothing is fabricated.</div>';
             return;
           }
           container.innerHTML = schedules.map(item => `
-            <div class="p-3.5 rounded-xl bg-dark-850 border border-dark-800 space-y-2">
-              <div class="flex items-center justify-between pb-1.5 border-b border-dark-800">
+            <div class="p-3.5 rounded-xl bg-dark-850 border border-dark-700 space-y-2">
+              <div class="flex items-center justify-between pb-1.5 border-b border-dark-700">
                 <span class="font-bold text-xs text-amber-400">${escapeHtml(item.day)}</span>
-                <span class="text-[10px] text-zinc-500">${escapeHtml(item.date)}</span>
+                <span class="text-[10px] text-slate-400">${escapeHtml(item.date)}</span>
               </div>
               <div class="space-y-1.5">
                 ${item.animes.map(a => `
-                  <div class="p-2 rounded-lg bg-dark-900 border border-dark-800/60 flex items-center justify-between text-xs">
-                    <span class="font-semibold text-zinc-300 truncate pr-2">${escapeHtml(a.title)}</span>
+                  <div class="p-2 rounded-lg bg-dark-800 border border-dark-700/60 flex items-center justify-between text-xs">
+                    <span class="font-semibold text-slate-300 truncate pr-2">${escapeHtml(a.title)}</span>
                     <span class="text-[10px] text-amber-400 font-mono shrink-0">${escapeHtml(a.time)}</span>
                   </div>
                 `).join('')}
@@ -1979,12 +2564,10 @@
      */
     function toggleMobileSearch(force) {
       const shell = document.getElementById('search-shell');
-      const trigger = document.getElementById('mobile-search-btn');
       if (!shell) return;
 
       const shouldOpen = typeof force === 'boolean' ? force : shell.classList.contains('hidden');
       shell.classList.toggle('hidden', !shouldOpen);
-      trigger?.setAttribute('aria-expanded', String(shouldOpen));
 
       if (shouldOpen) {
         setBottomNavActive('search');
@@ -2003,8 +2586,8 @@
     function setBottomNavActive(id) {
       document.querySelectorAll('.bottom-nav-item').forEach((btn) => {
         const active = btn.dataset.nav === id;
-        btn.classList.toggle('text-brand', active);
-        btn.classList.toggle('text-zinc-500', !active);
+        btn.classList.toggle('text-brand-soft', active);
+        btn.classList.toggle('text-slate-400', !active);
         if (active) btn.setAttribute('aria-current', 'page');
         else btn.removeAttribute('aria-current');
       });
@@ -2086,7 +2669,7 @@
             data-category="${tab.key}"
             onclick="setCategory('${tab.key}')"
             aria-current="${active ? 'true' : 'false'}"
-            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${active ? 'border-brand text-white' : 'border-transparent text-zinc-400 hover:text-white'}"
+            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors ${active ? 'border-brand text-slate-50' : 'border-transparent text-slate-400 hover:text-sky-400'}"
           >${tab.label}</button>
         `;
       }).join('');
@@ -2146,33 +2729,33 @@
           : 0;
 
         return `
-          <button
-            type="button"
-            onclick="openAnimeFromCard('${item.id}', ${episode})"
+          <a
+            href="${pathForEpisode({ id: item.id, title: item.title }, episode)}"
+            onclick="return handleAnimeLink(event, '${item.id}', ${episode}, 'episode')"
             class="snap-start shrink-0 w-60 sm:w-64 text-left group"
           >
-            <div class="relative aspect-video rounded-xl overflow-hidden bg-dark-950 border border-dark-800 group-hover:border-brand/40 transition-colors">
+            <div class="relative aspect-video rounded-xl overflow-hidden bg-dark-950 border border-dark-700 group-hover:border-sky-400/40 transition-colors">
               <img
                 src="${escapeHtml(image)}"
                 alt="${escapeHtml(item.title)}"
                 loading="lazy"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent"></div>
+              <div class="absolute inset-0 bg-gradient-to-t from-dark-950/95 via-dark-950/30 to-transparent"></div>
               <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span class="w-9 h-9 rounded-full bg-brand/90 text-white flex items-center justify-center shadow-lg">
+                <span class="w-9 h-9 rounded-full bg-brand/90 text-slate-50 flex items-center justify-center shadow-lg">
                   <svg class="w-4 h-4 fill-current ml-0.5" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 </span>
               </div>
               <div class="absolute inset-x-0 bottom-0 p-2.5">
-                <p class="text-[10px] font-bold text-brand">Episode ${episode}</p>
-                <p class="text-xs font-bold text-white line-clamp-1">${escapeHtml(item.title)}</p>
+                <p class="text-[10px] font-bold text-brand-soft">Episode ${episode}</p>
+                <p class="text-xs font-bold text-slate-50 line-clamp-1">${escapeHtml(item.title)}</p>
                 <div class="mt-1.5 h-1 rounded-full bg-white/25 overflow-hidden">
                   <div class="h-full bg-brand rounded-full" style="width:${percent}%"></div>
                 </div>
               </div>
             </div>
-          </button>
+          </a>
         `;
       }).join('');
     }
@@ -2241,7 +2824,7 @@
       if (!listEl) return;
 
       if (list.length === 0) {
-        listEl.innerHTML = '<div class="py-8 text-center text-xs text-zinc-500">Nothing saved yet. Tap the heart on any card to add it here.</div>';
+        listEl.innerHTML = '<div class="py-8 text-center text-xs text-slate-400">Nothing saved yet. Tap the heart on any card to add it here.</div>';
         return;
       }
 
@@ -2250,8 +2833,8 @@
           <div class="flex items-center gap-3 min-w-0">
             <img src="${escapeHtml(item.poster)}" alt="" class="w-9 h-12 object-cover rounded bg-dark-950 shrink-0" />
             <div class="min-w-0">
-              <p class="font-bold text-xs text-zinc-200 truncate group-hover:text-brand">${escapeHtml(item.title)}</p>
-              <p class="text-[10px] text-zinc-500">${escapeHtml(item.type || 'Anime')}${item.year ? ` · ${item.year}` : ''}</p>
+              <p class="font-bold text-xs text-slate-200 truncate group-hover:text-brand-soft">${escapeHtml(item.title)}</p>
+              <p class="text-[10px] text-slate-400">${escapeHtml(item.type || 'Anime')}${item.year ? ` · ${item.year}` : ''}</p>
             </div>
           </div>
           <div class="flex items-center gap-1.5 shrink-0">
@@ -2259,14 +2842,15 @@
               onclick="toggleMyList('${item.id}')"
               title="Remove from My List"
               aria-label="Remove from My List"
-              class="w-8 h-8 rounded-lg bg-dark-800 hover:bg-dark-750 text-brand flex items-center justify-center transition active:scale-95"
+              class="w-8 h-8 rounded-lg bg-dark-800 hover:bg-dark-750 text-brand-soft flex items-center justify-center transition active:scale-95"
             >
               <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
             </button>
-            <button
-              onclick="toggleMyListModal(false); openAnimeFromCard('${item.id}')"
-              class="px-3 py-1 rounded-lg bg-dark-800 hover:bg-brand text-zinc-200 hover:text-white font-semibold text-xs transition"
-            >Watch</button>
+            <a
+              href="${pathForAnime({ id: item.id, title: item.title })}"
+              onclick="return handleMyListLink(event, '${item.id}')"
+              class="px-3 py-1 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 font-semibold text-xs transition"
+            >Watch</a>
           </div>
         </div>
       `).join('');
@@ -2314,7 +2898,7 @@
     function safeImg(url, classes) {
       const isRealUrl = typeof url === 'string' && /^https?:\/\//.test(url);
       if (!isRealUrl) {
-        return `<div class="${escapeHtml(classes || '')} flex items-center justify-center bg-dark-950"><svg class="w-4 h-4 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`;
+        return `<div class="${escapeHtml(classes || '')} flex items-center justify-center bg-dark-950"><svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`;
       }
       return `<img src="${escapeHtml(url)}" loading="lazy" class="${escapeHtml(classes || '')}" />`;
     }

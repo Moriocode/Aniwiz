@@ -106,8 +106,21 @@ await page.locator('header a[href="#browse-section"]').click();
 await page.waitForTimeout(400);
 const resetBadge = (await page.locator('#catalog-count-badge').textContent())?.trim() || '';
 const resetCards = await page.locator('#anime-grid > div').count();
-check('reset restores catalog', /Showing all releases/.test(resetBadge) && resetCards === cardCount,
+check('reset restores catalog', /Showing (?:all releases|\d+ of \d+ releases)/.test(resetBadge) && resetCards === cardCount,
   `${resetBadge}, ${resetCards} cards`);
+
+// 5b. "Show more" pagination: the grid shows the first page (20 cards) and
+// expands only when the catalogue is larger.
+const loadMoreVisible = await page.locator('#load-more-btn').evaluate((el) => !el.classList.contains('hidden'));
+if (loadMoreVisible) {
+  await page.locator('#load-more-btn').click();
+  await page.waitForTimeout(300);
+  const expandedCards = await page.locator('#anime-grid > div').count();
+  check('Show more expands the grid by another page', expandedCards > resetCards,
+    `${resetCards} → ${expandedCards} cards`);
+} else {
+  check('Show more hidden when the catalogue fits one page', resetCards <= 20, `${resetCards} cards`);
+}
 
 // 6. "Anime Info" hero button (previously an undefined function)
 let infoError = null;
@@ -134,7 +147,7 @@ const watchVisible = await page.locator('#watch-section').evaluate((el) => !el.c
 check('watch section opens', watchVisible);
 const watchTitle = (await page.locator('#watch-anime-title').textContent())?.trim() || '';
 check('watch page shows title', watchTitle.length > 0 && watchTitle !== 'Anime Title', watchTitle);
-const episodeCount = await page.locator('#episodes-container > button').count();
+const episodeCount = await page.locator('#episodes-container > a').count();
 check('episode list rendered', episodeCount > 0, `${episodeCount} episodes`);
 
 // The player must never show debug-style server status text
@@ -146,8 +159,8 @@ check('player shows no debug/server status text',
 // Regression guard: episodes must carry distinct numbers (the AniWixi provider
 // used to read a field the API never sends, collapsing every episode to 1).
 const episodeNumbers = await page.evaluate(() =>
-  [...document.querySelectorAll('#episodes-container > button')].map((b) =>
-    Number((b.getAttribute('onclick') || '').replace(/\D+/g, ''))
+  [...document.querySelectorAll('#episodes-container > a')].map((a) =>
+    Number(((a.getAttribute('href') || '').match(/\/episode\/(\d+)/) || [])[1] || 0)
   )
 );
 const distinct = new Set(episodeNumbers).size;
@@ -161,7 +174,7 @@ await page.screenshot({ path: 'artifacts/02-watch.png', fullPage: false });
 
 // 8. Switch episode
 if (episodeCount > 1) {
-  await page.locator('#episodes-container > button', { hasText: 'Ep 2' }).first().click();
+  await page.locator('#episodes-container > a', { hasText: 'Ep 2' }).first().click();
   await page.waitForTimeout(800);
   const crumb = (await page.locator('#crumb-episode-num').textContent())?.trim() || '';
   check('episode switch updates breadcrumb', /Episode 2/.test(crumb), crumb);

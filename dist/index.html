@@ -4,10 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
   <title>AniStream - Modern Anime Streaming Platform</title>
-  <meta name="description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
-  <meta property="og:title" content="AniStream - Modern Anime Streaming Platform" />
-  <meta property="og:description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
-  <meta property="og:type" content="website" />
+  <meta id="seo-description" name="description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
+  <meta id="seo-robots" name="robots" content="index, follow" />
+  <link id="seo-canonical" rel="canonical" />
+  <meta property="og:title" id="seo-og-title" content="AniStream - Modern Anime Streaming Platform" />
+  <meta property="og:description" id="seo-og-description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
+  <meta property="og:type" id="seo-og-type" content="website" />
+  <meta property="og:url" id="seo-og-url" content="/" />
+  <meta property="og:image" id="seo-og-image" content="" />
+  <meta property="og:site_name" content="AniStream" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" id="seo-twitter-title" content="AniStream - Modern Anime Streaming Platform" />
+  <meta name="twitter:description" id="seo-twitter-description" content="Stream trending and popular anime in HD with multi-API redundancy, high-speed playback, auto-skip intro, episode lists, and watch history." />
+  <meta name="twitter:image" id="seo-twitter-image" content="" />
+  <meta name="theme-color" content="#0F172A" />
+  <script type="application/ld+json" id="seo-jsonld">{"@context":"https://schema.org","@type":"WebSite","name":"AniStream","url":"/"}</script>
 
   <!-- Google Fonts: loaded asynchronously so a slow or blocked fonts host can
        never stall first paint (the page falls back to system fonts). -->
@@ -37,16 +48,16 @@
     };
   </script>
 
-  <style>*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}html{scroll-behavior:smooth;background-color:#07090e}body{color:#e2e8f0;background-color:#07090e;font-family:Plus Jakarta Sans,system-ui,-apple-system,sans-serif;overflow-x:hidden}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0b0e14}::-webkit-scrollbar-thumb{background:#232a3b;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#343e54}.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}@keyframes shimmer{to{transform:translate(100%)}}.skeleton-box{background-color:#11151f;position:relative;overflow:hidden}.skeleton-box:after{content:"";background-image:linear-gradient(90deg,#fff0 0,#ffffff0d 20%,#ffffff1a 60%,#fff0);animation:1.8s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}</style>
-  <script type="module" crossorigin src="/assets/index-BlPY5m-1.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DGt_JKC_.css">
+  <style>*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}html{scroll-behavior:smooth;background-color:#0f172a}body{color:#e2e8f0;background-color:#0f172a;font-family:Plus Jakarta Sans,system-ui,-apple-system,sans-serif;overflow-x:hidden}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0b1220}::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#475569}.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}@keyframes shimmer{to{transform:translate(100%)}}.skeleton-box{background-color:#1e293b;position:relative;overflow:hidden}.skeleton-box:after{content:"";background-image:linear-gradient(90deg,#fff0 0,#ffffff0d 20%,#ffffff1a 60%,#fff0);animation:1.8s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}</style>
+  <script type="module" crossorigin src="/assets/index-eW6REo33.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-CpTHLRtw.css">
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-white">
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-slate-50">
 
   <!-- ========================================== -->
   <!-- TOP NAVIGATION HEADER                      -->
   <!-- ========================================== -->
-  <header class="sticky top-0 z-40 w-full bg-dark-900/95 backdrop-blur-md border-b border-dark-800 transition-colors">
+  <header class="sticky top-0 z-40 w-full bg-dark-800/95 backdrop-blur-md border-b border-dark-700 transition-colors">
     <!-- Mobile: 3-slot grid so the wordmark stays centred (the left slot is
          deliberately empty — the bottom bar is the only navigation now).
          Desktop: single flex row. -->
@@ -59,15 +70,15 @@
       <a href="#browse-section" onclick="resetFiltersAndSearch()" class="justify-self-center lg:justify-self-auto flex items-center gap-2.5 shrink-0 group">
         <!-- The mark is dropped below lg so the wordmark itself (not the
              icon + wordmark unit) sits exactly on the header centreline. -->
-        <div class="hidden lg:flex w-9 h-9 rounded-xl bg-brand items-center justify-center text-white shadow-lg shadow-brand/20 transition-transform group-hover:scale-105">
+        <div class="hidden lg:flex w-9 h-9 rounded-xl bg-brand items-center justify-center text-slate-50 shadow-lg shadow-brand/20 transition-transform group-hover:scale-105">
           <svg class="w-5 h-5 fill-current ml-0.5" viewBox="0 0 24 24">
             <path d="M8 5.14v14l11-7-11-7z"/>
           </svg>
         </div>
         <div class="flex flex-col">
-          <span class="text-xl font-extrabold tracking-tight text-white flex items-center gap-1.5">
-            Ani<span class="text-brand">Stream</span>
-            <span class="hidden lg:inline text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded bg-dark-800 text-zinc-400 border border-dark-750 font-mono font-semibold">HD</span>
+          <span class="text-xl font-extrabold tracking-tight text-slate-50 flex items-center gap-1.5">
+            Ani<span class="text-brand-soft">Stream</span>
+            <span class="hidden lg:inline text-[9px] uppercase tracking-wider px-1.5 py-0.2 rounded bg-dark-800 text-slate-400 border border-dark-700 font-mono font-semibold">HD</span>
           </span>
         </div>
       </a>
@@ -76,7 +87,7 @@
            magnifier), inline in the bar from lg up. One input, one autocomplete. -->
       <div
         id="search-shell"
-        class="hidden lg:block fixed left-0 right-0 top-16 z-40 px-3 pb-3 bg-dark-900 border-b border-dark-800 shadow-xl lg:static lg:flex-1 lg:max-w-md lg:px-0 lg:pb-0 lg:border-0 lg:bg-transparent lg:shadow-none"
+        class="hidden lg:block fixed left-0 right-0 top-16 z-40 px-3 pb-3 bg-dark-800 border-b border-dark-700 shadow-xl lg:static lg:flex-1 lg:max-w-md lg:px-0 lg:pb-0 lg:border-0 lg:bg-transparent lg:shadow-none"
         role="search"
       >
         <div class="relative">
@@ -89,9 +100,9 @@
             oninput="handleSearchAutocomplete(this.value)"
             onfocus="if(this.value.trim()) handleSearchAutocomplete(this.value)"
             onkeydown="if(event.key === 'Enter'){ event.preventDefault(); hideSearchSuggestions(); } else if(event.key === 'Escape'){ hideSearchSuggestions(); toggleMobileSearch(false); this.blur(); }"
-            class="w-full h-10 pl-9 pr-9 rounded-xl bg-dark-800 text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
+            class="w-full h-10 pl-9 pr-9 rounded-xl bg-dark-900 text-xs sm:text-sm text-slate-100 placeholder-slate-500 border border-dark-700 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand transition shadow-inner"
           />
-          <div class="absolute left-3 text-zinc-500 pointer-events-none">
+          <div class="absolute left-3 text-slate-400 pointer-events-none">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
@@ -100,7 +111,7 @@
             id="search-clear-btn"
             type="button"
             onclick="clearSearchInput()"
-            class="absolute right-2.5 text-zinc-500 hover:text-zinc-200 hidden p-1 transition"
+            class="absolute right-2.5 text-slate-400 hover:text-slate-200 hidden p-1 transition"
             title="Clear search"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,7 +123,7 @@
         <!-- Realtime Suggestion Dropdown -->
         <div
           id="search-autocomplete-box"
-          class="absolute left-0 right-0 top-12 z-50 hidden rounded-xl bg-dark-900 border border-dark-750 shadow-2xl overflow-hidden divide-y divide-dark-800/80 text-xs max-h-80 overflow-y-auto"
+          class="absolute left-0 right-0 top-12 z-50 hidden rounded-xl bg-dark-800 border border-dark-700 shadow-2xl overflow-hidden divide-y divide-dark-700/80 text-xs max-h-80 overflow-y-auto"
         >
           <!-- Autocomplete results rendered dynamically -->
         </div>
@@ -121,38 +132,27 @@
 
       <!-- Header Navigation & User Actions -->
       <div class="justify-self-end lg:justify-self-auto flex items-center gap-2 sm:gap-3">
-        <!-- Standalone search shortcut (mobile / tablet) -->
-        <button
-          id="mobile-search-btn"
-          type="button"
-          onclick="toggleMobileSearch()"
-          aria-label="Search anime"
-          aria-controls="search-shell"
-          aria-expanded="false"
-          class="lg:hidden -mr-1 w-10 h-10 flex items-center justify-center rounded-xl text-zinc-300 hover:text-white hover:bg-dark-800 transition active:scale-95"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-          </svg>
-        </button>
-
         <!-- Multi-API Redundancy Status Indicator -->
-        <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-750 text-xs text-zinc-300 shadow-sm" title="Streams & metadata backed by 5 independent APIs (HiAnime, Anivexa, AnimeWixi, ANIME-API, AniList) with automatic fallback">
+        <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-dark-800/80 border border-dark-700 text-xs text-slate-300 shadow-sm" title="Streams & metadata backed by 5 independent APIs (HiAnime, Anivexa, AnimeWixi, ANIME-API, AniList) with automatic fallback">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="font-medium text-zinc-300">Multi-API Cascade</span>
-          <span class="text-[10px] px-1.5 py-0.5 bg-dark-900 border border-dark-700/60 rounded text-emerald-400 font-mono font-semibold">Active</span>
+          <span class="font-medium text-slate-300">Multi-API Cascade</span>
+          <span class="text-[10px] px-1.5 py-0.5 bg-dark-800 border border-dark-700/60 rounded text-emerald-400 font-mono font-semibold">Active</span>
         </div>
 
-        <!-- Quick Schedule Button -->
+        <!-- Weekly Schedule: icon-only on mobile (replaces the old duplicate
+             search shortcut), labelled from lg up. -->
         <button
+          id="schedule-btn"
+          type="button"
           onclick="toggleScheduleModal()"
-          class="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-300 transition shrink-0 hover:text-white active:scale-95"
+          aria-label="Weekly Schedule"
+          class="w-10 h-10 lg:w-auto lg:h-auto lg:py-2 lg:px-3 flex items-center justify-center lg:justify-start gap-1.5 bg-dark-800 hover:bg-dark-750 border border-dark-700 rounded-xl text-xs font-semibold text-slate-300 transition shrink-0 hover:text-sky-400 active:scale-95"
           title="Weekly Airing Schedule"
         >
-          <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-5 h-5 lg:w-4 lg:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
           </svg>
-          <span>Schedule</span>
+          <span class="hidden lg:inline">Weekly Schedule</span>
         </button>
 
         <!-- My List (desktop entry point; mobile uses the bottom bar) -->
@@ -160,9 +160,9 @@
           type="button"
           onclick="toggleMyListModal(true)"
           title="My List"
-          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-200 transition shrink-0 active:scale-95"
+          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-slate-200 transition shrink-0 active:scale-95"
         >
-          <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-brand-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
           </svg>
           <span>My List</span>
@@ -172,14 +172,14 @@
         <button
           id="history-btn"
           onclick="toggleHistoryModal()"
-          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-zinc-200 transition shrink-0 active:scale-95"
+          class="relative hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-dark-800 hover:bg-dark-750 border border-dark-700 text-xs font-semibold text-slate-200 transition shrink-0 active:scale-95"
           title="Watch History & Continue Watching"
         >
-          <svg class="w-4 h-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-brand-soft" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <span class="hidden sm:inline">History</span>
-          <span id="history-counter" class="px-1.5 py-0.2 rounded-full bg-brand text-[10px] font-bold text-white font-mono">0</span>
+          <span id="history-counter" class="px-1.5 py-0.2 rounded-full bg-brand text-[10px] font-bold text-slate-50 font-mono">0</span>
         </button>
       </div>
 
@@ -197,62 +197,63 @@
     <section id="browse-section" class="space-y-7 scroll-mt-16">
 
       <!-- Horizontal content-type switcher (MyKisah pattern) -->
-      <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-800/80 -mt-1">
+      <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-700/80 -mt-1">
         <div id="category-tabs-track" class="flex items-center gap-6 sm:gap-8 overflow-x-auto scrollbar-none">
           <button
             type="button"
             data-category="all"
             onclick="setCategory('all')"
             aria-current="true"
-            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors border-brand text-white"
+            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors border-brand text-slate-50"
           >Anime</button>
         </div>
       </nav>
 
       <!-- Hero Spotlight Banner -->
-      <div id="hero-banner" class="relative rounded-2xl overflow-hidden bg-dark-900 border border-dark-800 min-h-[300px] sm:min-h-[380px] flex items-end p-6 sm:p-10 shadow-2xl">
-        <div id="hero-backdrop" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 brightness-[0.45]" style="background-image: linear-gradient(135deg, #151A26 0%, #0B0E14 70%)"></div>
+      <div id="hero-banner" class="relative rounded-2xl overflow-hidden bg-dark-800 border border-dark-700 min-h-[300px] sm:min-h-[380px] flex items-end p-6 sm:p-10 shadow-2xl">
+        <div id="hero-backdrop" class="absolute inset-0 bg-cover bg-center transition-transform duration-700 brightness-[0.45]" style="background-image: linear-gradient(135deg, #1E293B 0%, #0B1220 70%)"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/70 to-transparent"></div>
         <div class="absolute inset-0 bg-gradient-to-r from-dark-950/90 via-dark-950/40 to-transparent"></div>
 
         <div class="relative z-10 max-w-2xl space-y-3">
           <!-- Spotlight metadata (populated from live provider data only) -->
-          <div class="flex flex-wrap items-center gap-2 text-xs text-zinc-300 font-medium">
-            <span class="px-2 py-0.5 rounded bg-brand text-white font-bold text-[10px] uppercase tracking-wider">#1 Spotlight</span>
+          <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-medium">
+            <span class="px-2 py-0.5 rounded bg-brand text-slate-50 font-bold text-[10px] uppercase tracking-wider">#1 Spotlight</span>
             <span id="hero-type">—</span>
-            <span aria-hidden="true" class="text-zinc-600">·</span>
+            <span aria-hidden="true" class="text-slate-500">·</span>
             <span id="hero-duration">—</span>
-            <span aria-hidden="true" class="text-zinc-600">·</span>
+            <span aria-hidden="true" class="text-slate-500">·</span>
             <span id="hero-status">Loading…</span>
-            <span aria-hidden="true" class="text-zinc-600">·</span>
+            <span aria-hidden="true" class="text-slate-500">·</span>
             <span class="text-amber-400 font-bold flex items-center gap-1">★ <span id="hero-rating">—</span></span>
           </div>
 
           <!-- Title -->
-          <h1 id="hero-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight drop-shadow-md">
+          <h1 id="hero-title" class="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-50 tracking-tight leading-tight drop-shadow-md">
             Loading live spotlight…
           </h1>
-          <p id="hero-alt-title" class="text-xs sm:text-sm text-zinc-400 font-medium line-clamp-1">
+          <p id="hero-alt-title" class="text-xs sm:text-sm text-slate-400 font-medium line-clamp-1">
           </p>
 
           <!-- Synopsis -->
-          <p id="hero-synopsis" class="text-xs sm:text-sm text-zinc-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
+          <p id="hero-synopsis" class="text-xs sm:text-sm text-slate-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
           </p>
 
           <!-- Action buttons -->
           <div class="pt-2 flex flex-wrap items-center gap-3">
-            <button
+            <a
               id="hero-watch-btn"
-              onclick="startWatchingSpotlight()"
-              class="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-white text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
+              href="/"
+              onclick="return handleSpotlightLink(event)"
+              class="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-slate-50 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
             >
               <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               <span>Watch Episode 1</span>
-            </button>
+            </a>
             <button
               id="hero-info-btn"
               onclick="toggleHeroAnimeDetails()"
-              class="px-4 py-2.5 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-zinc-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm transition-all active:scale-95"
+              class="px-4 py-2.5 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm transition-all active:scale-95"
             >
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -267,13 +268,13 @@
       <section id="continue-watching-section" class="hidden space-y-3">
         <div class="flex items-end justify-between gap-3">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Continue Watching</h2>
-            <p class="text-[11px] text-zinc-500 mt-0.5">Pick up exactly where you left off</p>
+            <h2 class="text-base sm:text-lg font-bold text-slate-50 tracking-tight">Continue Watching</h2>
+            <p class="text-[11px] text-slate-400 mt-0.5">Pick up exactly where you left off</p>
           </div>
           <button
             type="button"
             onclick="toggleHistoryModal()"
-            class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
+            class="text-xs font-semibold text-brand-soft hover:text-sky-400 transition shrink-0"
           >
             History
           </button>
@@ -291,15 +292,15 @@
       <section id="all-anime" class="space-y-4 scroll-mt-20">
         <div class="flex items-end justify-between gap-3">
           <div>
-            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Latest Episodes</h2>
-            <p id="catalog-subtitle" class="text-[11px] text-zinc-500 mt-0.5">Trending episodes across the catalogue</p>
+            <h2 class="text-base sm:text-lg font-bold text-slate-50 tracking-tight">Latest Episodes</h2>
+            <p id="catalog-subtitle" class="text-[11px] text-slate-400 mt-0.5">Trending episodes across the catalogue</p>
           </div>
           <div class="flex items-center gap-3 shrink-0">
-            <span id="catalog-count-badge" class="text-[11px] sm:text-xs font-medium text-zinc-500 hidden sm:inline">Showing all releases</span>
+            <span id="catalog-count-badge" class="text-[11px] sm:text-xs font-medium text-slate-400 hidden sm:inline">Showing all releases</span>
             <button
               type="button"
               onclick="viewAllReleases()"
-              class="text-xs font-semibold text-brand hover:text-brand-hover transition shrink-0"
+              class="text-xs font-semibold text-brand-soft hover:text-sky-400 transition shrink-0"
             >
               View All
             </button>
@@ -308,38 +309,77 @@
 
         <!-- Interactive Genre Category Bar -->
         <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none" id="genre-filter-bar">
-          <button onclick="filterByGenre('All')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand text-white transition shrink-0 active:scale-95">All</button>
-          <button onclick="filterByGenre('Action')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Action</button>
-          <button onclick="filterByGenre('Adventure')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Adventure</button>
-          <button onclick="filterByGenre('Fantasy')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Fantasy</button>
-          <button onclick="filterByGenre('Comedy')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Comedy</button>
-          <button onclick="filterByGenre('Sci-Fi')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Sci-Fi</button>
-          <button onclick="filterByGenre('Supernatural')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Supernatural</button>
-          <button onclick="filterByGenre('Drama')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-zinc-400 hover:text-white hover:bg-dark-800 transition shrink-0 active:scale-95">Drama</button>
+          <button onclick="filterByGenre('All')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-brand text-slate-50 transition shrink-0 active:scale-95">All</button>
+          <button onclick="filterByGenre('Action')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Action</button>
+          <button onclick="filterByGenre('Adventure')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Adventure</button>
+          <button onclick="filterByGenre('Fantasy')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Fantasy</button>
+          <button onclick="filterByGenre('Comedy')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Comedy</button>
+          <button onclick="filterByGenre('Sci-Fi')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Sci-Fi</button>
+          <button onclick="filterByGenre('Supernatural')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Supernatural</button>
+          <button onclick="filterByGenre('Drama')" class="genre-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-dark-850 text-slate-400 hover:text-sky-400 hover:bg-dark-800 transition shrink-0 active:scale-95">Drama</button>
         </div>
 
         <div class="flex items-center justify-between gap-3 pt-1">
-          <h3 id="catalog-section-heading" class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+          <h3 id="catalog-section-heading" class="text-xs font-bold uppercase tracking-wider text-slate-400">
             Trending Releases
           </h3>
-          <span class="hidden sm:inline text-[11px] text-zinc-500">HD Quality Guaranteed</span>
+          <span class="hidden sm:inline text-[11px] text-slate-400">HD Quality Guaranteed</span>
         </div>
 
-        <!-- Anime Cards Grid -->
+        <!-- Anime Cards Grid: first 20 releases, "Show more" adds a page at a time -->
         <div id="anime-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
           <!-- Populated dynamically via renderCatalogGrid -->
         </div>
 
+        <div class="flex justify-center pt-1">
+          <button
+            type="button"
+            id="load-more-btn"
+            onclick="loadMoreCatalog()"
+            class="hidden px-5 py-2.5 rounded-xl bg-dark-800 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold transition active:scale-95"
+          >
+            Show more
+          </button>
+        </div>
+
         <!-- Empty / Loading / Error State UI (title, message and action are set dynamically) -->
-        <div id="anime-empty-state" class="hidden py-16 text-center space-y-3 bg-dark-900/50 rounded-2xl border border-dark-800 p-8">
-          <div class="w-12 h-12 mx-auto rounded-full bg-dark-800 flex items-center justify-center text-zinc-500">
+        <div id="anime-empty-state" class="hidden py-16 text-center space-y-3 bg-dark-800/50 rounded-2xl border border-dark-700 p-8">
+          <div class="w-12 h-12 mx-auto rounded-full bg-dark-800 flex items-center justify-center text-slate-400">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
-          <h4 id="anime-empty-title" class="font-bold text-base text-zinc-200">No Anime Found</h4>
-          <p id="anime-empty-message" class="text-xs text-zinc-400 max-w-sm mx-auto">We couldn't find any anime matching your criteria. Try adjusting your search query or reset your genre filters.</p>
-          <button id="anime-empty-action" onclick="resetFiltersAndSearch()" class="px-4 py-2 rounded-xl bg-brand text-white text-xs font-semibold shadow transition active:scale-95">Reset Filters</button>
+          <h4 id="anime-empty-title" class="font-bold text-base text-slate-200">No Anime Found</h4>
+          <p id="anime-empty-message" class="text-xs text-slate-400 max-w-sm mx-auto">We couldn't find any anime matching your criteria. Try adjusting your search query or reset your genre filters.</p>
+          <button id="anime-empty-action" onclick="resetFiltersAndSearch()" class="px-4 py-2 rounded-xl bg-brand text-slate-50 text-xs font-semibold shadow transition active:scale-95">Reset Filters</button>
         </div>
       </section>
+
+      <!-- HOME ROWS: horizontal rails below the grid. Each card is a bare
+           anchor so crawlers can discover more of the catalogue from home. -->
+      <div id="home-rows" class="hidden space-y-7">
+        <section id="trending-row-section" class="space-y-3 scroll-mt-20">
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-50 tracking-tight">Trending Anime</h2>
+              <p class="text-[11px] text-slate-400 mt-0.5">The most-watched titles on AniStream right now</p>
+            </div>
+          </div>
+          <div id="trending-row" class="flex gap-3 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+            <!-- Populated dynamically via renderHomeRows -->
+          </div>
+        </section>
+
+        <section id="new-row-section" class="space-y-3 scroll-mt-20">
+          <div class="flex items-end justify-between gap-3">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-50 tracking-tight">New Anime</h2>
+              <p class="text-[11px] text-slate-400 mt-0.5">Fresh releases and the newest titles in the catalogue</p>
+            </div>
+          </div>
+          <div id="new-anime-row" class="flex gap-3 overflow-x-auto pb-1 scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+            <!-- Populated dynamically via renderHomeRows -->
+          </div>
+        </section>
+      </div>
 
     </section>
 
@@ -350,24 +390,24 @@
 
       <!-- Breadcrumbs & Quick Return -->
       <div class="flex items-center justify-between text-xs">
-        <nav class="flex items-center gap-2 text-zinc-400 font-medium" aria-label="Breadcrumb">
-          <button onclick="closeWatchPage()" class="hover:text-white transition flex items-center gap-1">
+        <nav class="flex items-center gap-2 text-slate-400 font-medium" aria-label="Breadcrumb">
+          <button onclick="closeWatchPage()" class="hover:text-sky-400 transition flex items-center gap-1">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
             <span>Back to Browse</span>
           </button>
-          <span class="text-zinc-600">/</span>
-          <span id="crumb-anime-title" class="text-zinc-200 font-semibold truncate max-w-[200px] sm:max-w-md">Anime Title</span>
-          <span class="text-zinc-600">/</span>
-          <span id="crumb-episode-num" class="text-brand font-bold">Episode 1</span>
+          <span class="text-slate-500">/</span>
+          <span id="crumb-anime-title" class="text-slate-200 font-semibold truncate max-w-[200px] sm:max-w-md">Anime Title</span>
+          <span class="text-slate-500">/</span>
+          <span id="crumb-episode-num" class="text-brand-soft font-bold">Episode 1</span>
         </nav>
       </div>
 
       <!-- Cinema Video Player Container -->
       <div class="space-y-4">
-        <div id="player-theater-wrapper" class="relative w-full rounded-2xl bg-black border border-dark-800 overflow-hidden shadow-2xl aspect-video max-h-[78vh]">
+        <div id="player-theater-wrapper" class="relative w-full rounded-2xl bg-dark-950 border border-dark-700 overflow-hidden shadow-2xl aspect-video max-h-[78vh]">
           
           <!-- Cinema Mount Point for Video/Embed -->
-          <div id="player" class="w-full h-full relative z-10 flex items-center justify-center bg-black">
+          <div id="player" class="w-full h-full relative z-10 flex items-center justify-center bg-dark-950">
             <!-- Populated via loadStream() -->
           </div>
 
@@ -376,29 +416,33 @@
         </div>
 
         <!-- Stream Player Controls Bar -->
-        <div class="p-3.5 sm:p-4 rounded-xl bg-dark-900 border border-dark-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="p-3.5 sm:p-4 rounded-xl bg-dark-800 border border-dark-700 flex flex-wrap items-center justify-between gap-3 text-xs">
           
           <!-- Episode Navigation & Skip Intro -->
           <div class="flex items-center gap-2">
-            <button
+            <a
               id="btn-prev-ep"
-              onclick="switchEpisode(currentEpisode - 1)"
-              class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-zinc-200 border border-dark-700 font-semibold transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+              href="/"
+              onclick="return handleEpisodeNav(event, currentEpisode - 1)"
+              aria-disabled="true"
+              class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-200 border border-dark-700 font-semibold transition active:scale-95 opacity-40 pointer-events-none"
               title="Previous Episode"
             >
               ⏮ Prev
-            </button>
-            <button
+            </a>
+            <a
               id="btn-next-ep"
-              onclick="switchEpisode(currentEpisode + 1)"
-              class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-zinc-200 border border-dark-700 font-semibold transition active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+              href="/"
+              onclick="return handleEpisodeNav(event, currentEpisode + 1)"
+              aria-disabled="false"
+              class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-200 border border-dark-700 font-semibold transition active:scale-95"
               title="Next Episode"
             >
               Next ⏭
-            </button>
+            </a>
             <button
               onclick="skipOpeningCredits()"
-              class="px-3 py-1.5 rounded-lg bg-brand/15 hover:bg-brand/25 text-brand border border-brand/30 font-bold transition active:scale-95"
+              class="px-3 py-1.5 rounded-lg bg-brand/15 hover:bg-brand/25 text-brand-soft border border-brand/30 font-bold transition active:scale-95"
               title="Skip Opening Credits (+85 seconds)"
             >
               Skip Intro (+85s)
@@ -408,30 +452,30 @@
           <!-- Server & Audio Selectors -->
           <div class="flex flex-wrap items-center gap-3">
             <!-- Audio Mode Segmented (Sub / Dub) -->
-            <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-800">
-              <button id="lang-btn-sub" onclick="setLanguage('sub')" class="lang-btn px-2.5 py-1 rounded-md text-[11px] font-bold bg-dark-750 text-white transition">SUB</button>
-              <button id="lang-btn-dub" onclick="setLanguage('dub')" class="lang-btn px-2.5 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition">DUB</button>
+            <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-700">
+              <button id="lang-btn-sub" onclick="setLanguage('sub')" class="lang-btn px-2.5 py-1 rounded-md text-[11px] font-bold bg-dark-750 text-slate-50 transition">SUB</button>
+              <button id="lang-btn-dub" onclick="setLanguage('dub')" class="lang-btn px-2.5 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition">DUB</button>
             </div>
 
             <!-- Stream Server Selector (live embeddable servers only) -->
             <div class="flex items-center gap-1.5">
-              <span class="text-[11px] text-zinc-400 font-medium">Server:</span>
-              <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-800">
-              <button id="server-btn-1" onclick="switchStreamServer(1, 'AnimeWixi')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 1: AnimeWixi embed (HD)">HD-1</button>
-              <button id="server-btn-2" onclick="switchStreamServer(2, 'ani.pm')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 2: ani.pm (VidStreaming) embed">HD-2</button>
-              <button id="server-btn-3" onclick="switchStreamServer(3, 'AniRaku')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-white transition" title="Server 3: AniRaku (Direct HLS — plays natively on this site. Default.)">HD-3</button>
-              <button id="server-btn-4" onclick="switchStreamServer(4, 'Shonen')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-zinc-400 hover:text-white transition" title="Server 4: Shonen hosted player embed">HD-4</button>
+              <span class="text-[11px] text-slate-400 font-medium">Server:</span>
+              <div class="flex items-center gap-1 bg-dark-950 p-0.5 rounded-lg border border-dark-700">
+              <button id="server-btn-1" onclick="switchStreamServer(1, 'AnimeWixi')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 1: AnimeWixi embed (HD)">HD-1</button>
+              <button id="server-btn-2" onclick="switchStreamServer(2, 'ani.pm')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 2: ani.pm (VidStreaming) embed">HD-2</button>
+              <button id="server-btn-3" onclick="switchStreamServer(3, 'AniRaku')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-slate-50 transition" title="Server 3: AniRaku (Direct HLS — plays natively on this site. Default.)">HD-3</button>
+              <button id="server-btn-4" onclick="switchStreamServer(4, 'Shonen')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 4: Shonen hosted player embed">HD-4</button>
               </div>
             </div>
 
             <!-- Auto-Fallback & Auto-skip intro toggles -->
-            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-zinc-400 hover:text-zinc-200 select-none" title="Automatically failover to the next API server if the stream fails">
-              <input type="checkbox" id="auto-fallback-checkbox" checked onchange="toggleAutoFallback(this.checked)" class="rounded bg-dark-800 border-dark-700 text-brand focus:ring-0 w-3.5 h-3.5" />
+            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-400 hover:text-slate-200 select-none" title="Automatically failover to the next API server if the stream fails">
+              <input type="checkbox" id="auto-fallback-checkbox" checked onchange="toggleAutoFallback(this.checked)" class="rounded bg-dark-800 border-dark-700 text-brand-soft focus:ring-0 w-3.5 h-3.5" />
               <span>Auto-Fallback</span>
             </label>
 
-            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-zinc-400 hover:text-zinc-200 select-none">
-              <input type="checkbox" id="auto-skip-checkbox" onchange="toggleAutoSkipOp(this.checked)" class="rounded bg-dark-800 border-dark-700 text-brand focus:ring-0 w-3.5 h-3.5" />
+            <label class="flex items-center gap-1.5 cursor-pointer text-[11px] text-slate-400 hover:text-slate-200 select-none">
+              <input type="checkbox" id="auto-skip-checkbox" onchange="toggleAutoSkipOp(this.checked)" class="rounded bg-dark-800 border-dark-700 text-brand-soft focus:ring-0 w-3.5 h-3.5" />
               <span>Auto Skip OP</span>
             </label>
           </div>
@@ -443,13 +487,13 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         
         <!-- Left: Anime Info & Synopsis -->
-        <div class="lg:col-span-1 p-5 rounded-2xl bg-dark-900 border border-dark-800 space-y-4">
+        <div class="lg:col-span-1 p-5 rounded-2xl bg-dark-800 border border-dark-700 space-y-4">
           <div class="flex gap-4">
-            <img id="watch-anime-poster" src="" alt="Poster" class="w-20 h-28 object-cover rounded-xl bg-dark-800 border border-dark-750 shrink-0 shadow-md" />
+            <img id="watch-anime-poster" src="" alt="Poster" class="w-20 h-28 object-cover rounded-xl bg-dark-800 border border-dark-700 shrink-0 shadow-md" />
             <div class="space-y-1 min-w-0">
-              <h3 id="watch-anime-title" class="font-extrabold text-sm sm:text-base text-white leading-tight line-clamp-2">Anime Title</h3>
-              <p id="watch-anime-alt" class="text-xs text-zinc-400 truncate font-medium"></p>
-              <div class="flex items-center gap-2 pt-1 text-[11px] text-zinc-400">
+              <h3 id="watch-anime-title" class="font-extrabold text-sm sm:text-base text-slate-50 leading-tight line-clamp-2">Anime Title</h3>
+              <p id="watch-anime-alt" class="text-xs text-slate-400 truncate font-medium"></p>
+              <div class="flex items-center gap-2 pt-1 text-[11px] text-slate-400">
                 <span class="text-amber-400 font-bold">★ <span id="watch-anime-rating">9.2</span></span>
                 <span>·</span>
                 <span id="watch-anime-ep-count">— Episodes</span>
@@ -457,21 +501,21 @@
             </div>
           </div>
 
-          <p id="watch-anime-synopsis" class="text-xs text-zinc-300 leading-relaxed max-h-40 overflow-y-auto pr-1">
+          <p id="watch-anime-synopsis" class="text-xs text-slate-300 leading-relaxed max-h-40 overflow-y-auto pr-1">
             Synopsis loading...
           </p>
 
-          <div class="pt-3 border-t border-dark-800 flex flex-wrap gap-1.5" id="watch-anime-genres">
+          <div class="pt-3 border-t border-dark-700 flex flex-wrap gap-1.5" id="watch-anime-genres">
             <!-- Genre tags populated dynamically -->
           </div>
         </div>
 
         <!-- Right: Episode Selection Grid -->
-        <div class="lg:col-span-2 p-5 rounded-2xl bg-dark-900 border border-dark-800 space-y-4">
+        <div class="lg:col-span-2 p-5 rounded-2xl bg-dark-800 border border-dark-700 space-y-4">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h4 class="font-bold text-sm text-white">Episodes List</h4>
-              <p class="text-xs text-zinc-400">Select an episode to start streaming</p>
+              <h4 class="font-bold text-sm text-slate-50">Episodes List</h4>
+              <p class="text-xs text-slate-400">Select an episode to start streaming</p>
             </div>
             
             <input
@@ -479,7 +523,7 @@
               type="text"
               placeholder="Filter episode # or title..."
               oninput="filterEpisodeButtons(this.value)"
-              class="w-full sm:w-56 h-8 px-3 rounded-lg bg-dark-800 text-xs text-zinc-200 placeholder-zinc-500 border border-dark-700 focus:outline-none focus:border-brand"
+              class="w-full sm:w-56 h-8 px-3 rounded-lg bg-dark-900 text-xs text-slate-200 placeholder-slate-500 border border-dark-700 focus:outline-none focus:border-brand"
             />
           </div>
 
@@ -503,14 +547,14 @@
     aria-label="Mobile primary navigation"
     class="fixed inset-x-0 bottom-0 z-40 lg:hidden px-3 pb-safe pointer-events-none"
   >
-    <div class="pointer-events-auto mx-auto max-w-md h-16 grid grid-cols-5 rounded-2xl border border-dark-800 bg-dark-900/95 backdrop-blur-xl shadow-2xl shadow-black/70 overflow-hidden">
+    <div class="pointer-events-auto mx-auto max-w-md h-16 grid grid-cols-5 rounded-2xl border border-dark-700 bg-dark-800/95 backdrop-blur-xl shadow-2xl shadow-dark-950/70 overflow-hidden">
       <!-- Home -->
       <button
         type="button"
         data-nav="home"
         onclick="handleBottomNav('home')"
         aria-current="page"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-brand transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-brand-soft transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/>
@@ -523,7 +567,7 @@
         type="button"
         data-nav="explore"
         onclick="handleBottomNav('explore')"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <circle cx="12" cy="12" r="9" stroke-width="2"/>
@@ -537,7 +581,7 @@
         type="button"
         data-nav="search"
         onclick="handleBottomNav('search')"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -550,7 +594,7 @@
         type="button"
         data-nav="mylist"
         onclick="handleBottomNav('mylist')"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
@@ -563,7 +607,7 @@
         type="button"
         data-nav="history"
         onclick="handleBottomNav('history')"
-        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-zinc-500 transition-colors active:scale-95"
+        class="bottom-nav-item flex flex-col items-center justify-center gap-1 text-slate-400 transition-colors active:scale-95"
       >
         <svg class="w-[22px] h-[22px]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -576,25 +620,25 @@
   <!-- ========================================== -->
   <!-- WATCH HISTORY & CONTINUE WATCHING MODAL    -->
   <!-- ========================================== -->
-  <div id="history-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-dark-900 border border-dark-750 rounded-2xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden text-zinc-200">
-      <div class="p-4 sm:p-5 border-b border-dark-800 flex items-center justify-between">
+  <div id="history-modal" class="fixed inset-0 z-50 hidden bg-dark-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-2xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden text-slate-200">
+      <div class="p-4 sm:p-5 border-b border-dark-700 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-brand/15 text-brand flex items-center justify-center">
+          <div class="w-8 h-8 rounded-xl bg-brand/15 text-brand-soft flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
-          <h3 class="font-bold text-base text-white">Watch History</h3>
+          <h3 class="font-bold text-base text-slate-50">Watch History</h3>
         </div>
-        <button onclick="toggleHistoryModal()" class="text-zinc-400 hover:text-white p-1">✕</button>
+        <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-sky-400 p-1">✕</button>
       </div>
 
-      <div id="history-modal-list" class="p-4 sm:p-5 max-h-96 overflow-y-auto divide-y divide-dark-800 text-xs space-y-2">
+      <div id="history-modal-list" class="p-4 sm:p-5 max-h-96 overflow-y-auto divide-y divide-dark-700 text-xs space-y-2">
         <!-- Rendered dynamically -->
       </div>
 
-      <div class="p-3 border-t border-dark-800 bg-dark-950 flex items-center justify-between text-xs">
-        <button onclick="clearAllWatchHistory()" class="text-red-400 hover:text-red-300 font-medium">Clear History</button>
-        <button onclick="toggleHistoryModal()" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-white font-semibold">Done</button>
+      <div class="p-3 border-t border-dark-700 bg-dark-950 flex items-center justify-between text-xs">
+        <button onclick="clearAllWatchHistory()" class="text-slate-400 hover:text-sky-400 font-medium transition-colors">Clear History</button>
+        <button onclick="toggleHistoryModal()" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-50 font-semibold">Done</button>
       </div>
     </div>
   </div>
@@ -602,28 +646,28 @@
   <!-- ========================================== -->
   <!-- MY LIST MODAL (saved titles)               -->
   <!-- ========================================== -->
-  <div id="mylist-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-dark-900 border border-dark-750 rounded-2xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden text-zinc-200">
-      <div class="p-4 sm:p-5 border-b border-dark-800 flex items-center justify-between">
+  <div id="mylist-modal" class="fixed inset-0 z-50 hidden bg-dark-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-2xl max-w-xl w-full flex flex-col shadow-2xl overflow-hidden text-slate-200">
+      <div class="p-4 sm:p-5 border-b border-dark-700 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-xl bg-brand/15 text-brand flex items-center justify-center">
+          <div class="w-8 h-8 rounded-xl bg-brand/15 text-brand-soft flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
           </div>
           <div>
-            <h3 class="font-bold text-base text-white">My List</h3>
-            <p id="mylist-count" class="text-[11px] text-zinc-500">0 saved titles</p>
+            <h3 class="font-bold text-base text-slate-50">My List</h3>
+            <p id="mylist-count" class="text-[11px] text-slate-400">0 saved titles</p>
           </div>
         </div>
-        <button onclick="toggleMyListModal(false)" class="text-zinc-400 hover:text-white p-1" aria-label="Close My List">✕</button>
+        <button onclick="toggleMyListModal(false)" class="text-slate-400 hover:text-sky-400 p-1" aria-label="Close My List">✕</button>
       </div>
 
-      <div id="mylist-modal-list" class="p-4 sm:p-5 max-h-96 overflow-y-auto divide-y divide-dark-800 text-xs space-y-2">
+      <div id="mylist-modal-list" class="p-4 sm:p-5 max-h-96 overflow-y-auto divide-y divide-dark-700 text-xs space-y-2">
         <!-- Rendered dynamically -->
       </div>
 
-      <div class="p-3 border-t border-dark-800 bg-dark-950 flex items-center justify-between text-xs">
-        <button onclick="clearMyList()" class="text-red-400 hover:text-red-300 font-medium">Clear List</button>
-        <button onclick="toggleMyListModal(false)" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-white font-semibold">Done</button>
+      <div class="p-3 border-t border-dark-700 bg-dark-950 flex items-center justify-between text-xs">
+        <button onclick="clearMyList()" class="text-slate-400 hover:text-sky-400 font-medium transition-colors">Clear List</button>
+        <button onclick="toggleMyListModal(false)" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-50 font-semibold">Done</button>
       </div>
     </div>
   </div>
@@ -631,27 +675,27 @@
   <!-- ========================================== -->
   <!-- WEEKLY AIRING SCHEDULE MODAL               -->
   <!-- ========================================== -->
-  <div id="schedule-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-dark-900 border border-dark-750 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-zinc-200">
-      <div class="p-4 sm:p-5 border-b border-dark-800 flex items-center justify-between">
+  <div id="schedule-modal" class="fixed inset-0 z-50 hidden bg-dark-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-dark-800 border border-dark-700 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden text-slate-200">
+      <div class="p-4 sm:p-5 border-b border-dark-700 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           </div>
           <div>
-            <h3 class="font-bold text-base text-white">Weekly Broadcast Schedule</h3>
-            <p class="text-xs text-zinc-400">Timetable of upcoming anime releases</p>
+            <h3 class="font-bold text-base text-slate-50">Weekly Broadcast Schedule</h3>
+            <p class="text-xs text-slate-400">Timetable of upcoming anime releases</p>
           </div>
         </div>
-        <button onclick="toggleScheduleModal()" class="text-zinc-400 hover:text-white p-1">✕</button>
+        <button onclick="toggleScheduleModal()" class="text-slate-400 hover:text-sky-400 p-1">✕</button>
       </div>
 
       <div id="schedule-modal-content" class="p-4 sm:p-6 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         <!-- Rendered dynamically -->
       </div>
 
-      <div class="p-3 border-t border-dark-800 bg-dark-950 flex justify-end">
-        <button onclick="toggleScheduleModal()" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-white text-xs font-semibold">Close</button>
+      <div class="p-3 border-t border-dark-700 bg-dark-950 flex justify-end">
+        <button onclick="toggleScheduleModal()" class="px-4 py-1.5 rounded-lg bg-dark-800 hover:bg-dark-750 text-slate-50 text-xs font-semibold">Close</button>
       </div>
     </div>
   </div>
@@ -659,15 +703,15 @@
   <!-- ========================================== -->
   <!-- CLEAN ENTERTAINMENT FOOTER                 -->
   <!-- ========================================== -->
-  <footer class="mt-auto border-t border-dark-800 bg-dark-950 pt-8 pb-28 md:pb-8 text-xs text-zinc-500">
+  <footer class="mt-auto border-t border-dark-700 bg-dark-950 pt-8 pb-28 md:pb-8 text-xs text-slate-400">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2.5">
-        <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-white text-xs font-bold">AS</div>
-        <span class="font-bold text-zinc-300 text-sm">AniStream</span>
-        <span class="text-zinc-600">·</span>
-        <span class="text-zinc-400">Free HD Anime Streaming Platform</span>
+        <div class="w-7 h-7 rounded-lg bg-brand flex items-center justify-center text-slate-50 text-xs font-bold">AS</div>
+        <span class="font-bold text-slate-300 text-sm">AniStream</span>
+        <span class="text-slate-500">·</span>
+        <span class="text-slate-400">Free HD Anime Streaming Platform</span>
       </div>
-      <p class="text-center sm:text-right text-[11px] text-zinc-500">
+      <p class="text-center sm:text-right text-[11px] text-slate-400">
         AniStream does not host media files on its servers. All streams are provided by non-affiliated third parties.
       </p>
     </div>

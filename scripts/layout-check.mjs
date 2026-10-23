@@ -2,7 +2,8 @@
  * Layout regression check for the cleaned-up shell:
  * centred mobile wordmark, search shortcut, ONE bottom navigation bar,
  * horizontal category tabs, one card grid under an English "Latest Episodes"
- * heading, and the Continue Watching row.
+ * heading, the Continue Watching row, and the calm slate/indigo palette
+ * (no red accents, no pure-black surfaces).
  *
  * Usage: npm run dev   (in another shell)   then   node scripts/layout-check.mjs
  */
@@ -37,9 +38,16 @@ const logoCentre = logoBox.x + logoBox.width / 2;
 check('mobile logo is horizontally centred', Math.abs(logoCentre - viewport.width / 2) <= 2,
   `logo centre ${logoCentre.toFixed(1)} vs viewport centre ${(viewport.width / 2).toFixed(1)}`);
 
-const searchBtnBox = await page.locator('#mobile-search-btn').boundingBox();
-check('search shortcut sits on the far right', searchBtnBox.x + searchBtnBox.width > viewport.width - 16,
-  `right edge ${(searchBtnBox.x + searchBtnBox.width).toFixed(1)}`);
+// The header's right slot holds Weekly Schedule; the duplicate magnifier that
+// used to sit there is gone (search lives in the bottom bar now).
+const scheduleBtnBox = await page.locator('#schedule-btn').boundingBox();
+check('weekly schedule sits in the header top-right',
+  scheduleBtnBox.x + scheduleBtnBox.width > viewport.width - 16 && scheduleBtnBox.y < 70,
+  `right edge ${(scheduleBtnBox.x + scheduleBtnBox.width).toFixed(1)}, top ${scheduleBtnBox.y.toFixed(1)}`);
+const headerSearchIcons = await page.locator('#mobile-search-btn').count();
+check('no duplicate search icon in the header', headerSearchIcons === 0, `${headerSearchIcons} nodes`);
+check('weekly schedule is labelled for assistive tech',
+  (await page.locator('#schedule-btn').getAttribute('aria-label')) === 'Weekly Schedule');
 
 // No second menu: the drawer and its trigger must be gone entirely.
 const drawerCount = await page.locator('#side-drawer, #drawer-open-btn').count();
@@ -55,7 +63,50 @@ check('bottom bar is the only navigation menu',
 const tabs = await page.locator('.category-tab').allTextContents();
 check('category tabs render content types', tabs.length >= 1 && tabs.some((t) => /Anime/i.test(t)), tabs.join(' | '));
 const activeTabBorder = await page.locator('.category-tab[aria-current="true"]').evaluate((el) => getComputedStyle(el).borderBottomColor);
-check('active category tab has the accent underline', /rgb\(229,\s*9,\s*20\)/.test(activeTabBorder), activeTabBorder);
+check('active category tab has the indigo accent underline', /rgb\(99,\s*102,\s*241\)/.test(activeTabBorder), activeTabBorder);
+
+// Palette: calm slate surfaces, soft indigo accent, muted silver secondary text.
+const palette = await page.evaluate(() => {
+  // Tailwind v4 emits oklch()/color-mix(); paint the value on a 1px canvas so
+  // the assertions compare actual rendered RGB rather than a colour syntax.
+  const toRgb = (css) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 1;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = css;
+    ctx.fillRect(0, 0, 1, 1);
+    const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+    return `rgb(${r}, ${g}, ${b})`;
+  };
+  const bg = (sel) => toRgb(getComputedStyle(document.querySelector(sel)).backgroundColor);
+  const fg = (sel) => toRgb(getComputedStyle(document.querySelector(sel)).color);
+  return {
+    page: bg('body'),
+    nav: bg('#bottom-nav > div'),
+    card: bg('#anime-grid > div'),
+    cta: bg('#hero-watch-btn'),
+    heading: fg('#hero-title'),
+    secondary: fg('#catalog-subtitle'),
+  };
+});
+check('page background is oceanic slate (#0F172A)', /rgb\(15,\s*23,\s*42\)/.test(palette.page), palette.page);
+check('bottom nav and cards use slate-800 (#1E293B)',
+  /rgb\(30,\s*41,\s*59\)/.test(palette.nav) && /rgb\(30,\s*41,\s*59\)/.test(palette.card),
+  `nav ${palette.nav}, card ${palette.card}`);
+check('primary buttons use indigo (#6366F1)', /rgb\(99,\s*102,\s*241\)/.test(palette.cta), palette.cta);
+check('headings are soft off-white (#F8FAFC)', /rgb\(248,\s*250,\s*252\)/.test(palette.heading), palette.heading);
+// slate-400 renders a hair cooler than its hex source: #94A3B8 → rgb(144,161,185)
+// through the oklch colour space, so both encodings are accepted.
+check('secondary labels are muted silver (#94A3B8)', /rgb\((148,\s*163,\s*184|144,\s*161,\s*185)\)/.test(palette.secondary), palette.secondary);
+const redNodes = await page.evaluate(() => {
+  const walk = [...document.querySelectorAll('body *')];
+  return walk.filter((el) => {
+    const s = getComputedStyle(el);
+    return /rgb\((2[0-5][0-9]|1[89][0-9]),\s*([0-9]{1,2}),\s*([0-9]{1,2})\)/.test(s.color) ||
+      /rgb\((2[0-5][0-9]|1[89][0-9]),\s*([0-9]{1,2}),\s*([0-9]{1,2})\)/.test(s.backgroundColor);
+  }).length;
+});
+check('no harsh red text or fills remain in the rendered page', redNodes === 0, `${redNodes} red nodes`);
 
 if (tabs.length > 1) {
   const target = page.locator('.category-tab').nth(1);
@@ -101,6 +152,17 @@ check('headings are English-only',
     : (/Latest Episodes/.test(bodyText) && /Continue Watching/.test(allText) ? 'Latest Episodes + Continue Watching present' : 'heading missing'));
 check('View All button exists', (await page.getByRole('button', { name: 'View All' }).count()) === 1);
 
+// Trending Anime + New Anime rails sit below the grid as bare anchor cards
+const railState = await page.evaluate(() => ({
+  homeRowsVisible: !document.getElementById('home-rows')?.classList.contains('hidden'),
+  trending: [...document.querySelectorAll('#trending-row a')].map((a) => a.getAttribute('href') || ''),
+  fresh: [...document.querySelectorAll('#new-anime-row a')].map((a) => a.getAttribute('href') || ''),
+}));
+check('Trending Anime + New Anime rails render anchor cards',
+  railState.homeRowsVisible && railState.trending.length > 0 && railState.fresh.length > 0 &&
+    [...railState.trending, ...railState.fresh].every((href) => /^\/anime\/[a-z0-9-]+$/.test(href)),
+  `${railState.trending.length} trending, ${railState.fresh.length} new`);
+
 // View All clears an active scope and restores the full grid
 await page.locator('.genre-btn', { hasText: 'Action' }).first().click();
 await page.waitForTimeout(400);
@@ -110,7 +172,7 @@ await page.waitForTimeout(600);
 const viewAllBadge = (await page.locator('#catalog-count-badge').textContent())?.trim() || '';
 const fullCount = await page.locator('#anime-grid > div').count();
 check('View All clears filters and shows the whole grid',
-  /Showing all releases/.test(viewAllBadge) && fullCount >= filteredCount,
+  /Showing (?:all releases|\d+ of \d+ releases)/.test(viewAllBadge) && fullCount >= filteredCount,
   `${viewAllBadge}, ${filteredCount} → ${fullCount} cards`);
 
 // Continue Watching is history-driven
@@ -129,9 +191,9 @@ await page.waitForFunction(() => document.querySelectorAll('#anime-grid > div').
 await page.waitForTimeout(800);
 
 const cwVisible = await page.locator('#continue-watching-section').evaluate((el) => !el.classList.contains('hidden'));
-const cwCard = page.locator('#continue-watching-row > button').first();
+const cwCard = page.locator('#continue-watching-row > a').first();
 const cwBox = await cwCard.boundingBox();
-check('Continue Watching shows saved history', cwVisible && (await page.locator('#continue-watching-row > button').count()) > 0);
+check('Continue Watching shows saved history', cwVisible && (await page.locator('#continue-watching-row > a').count()) > 0);
 check('Continue Watching uses broad landscape thumbnails', cwBox && cwBox.width / cwBox.height > 1.5,
   cwBox ? `${cwBox.width.toFixed(0)}x${cwBox.height.toFixed(0)}` : 'missing');
 const progressWidth = await cwCard.locator('div[style*="width"]').first().evaluate((el) => el.style.width).catch(() => '');
@@ -154,12 +216,12 @@ await page.screenshot({ path: 'artifacts/mobile-mylist.png' });
 await page.locator('#mylist-modal button', { hasText: 'Done' }).click();
 await page.waitForTimeout(300);
 
-// Search shortcut expands the search row and focuses it
-await page.locator('#mobile-search-btn').click();
+// Search lives in the bottom bar: it expands the search row and focuses it
+await page.locator('.bottom-nav-item[data-nav="search"]').click();
 await page.waitForTimeout(300);
 const searchOpen = await page.locator('#search-shell').evaluate((el) => !el.classList.contains('hidden'));
 const searchFocused = await page.evaluate(() => document.activeElement?.id === 'search-input');
-check('search shortcut opens and focuses the search field', searchOpen && searchFocused);
+check('bottom bar search opens and focuses the search field', searchOpen && searchFocused);
 
 // Home shortcut returns to the top and closes the search overlay
 await page.locator('.bottom-nav-item[data-nav="home"]').click();
@@ -174,7 +236,7 @@ await page.screenshot({ path: 'artifacts/mobile-home.png' });
 // must be closed by the click.
 await page.evaluate(() => window.scrollTo(0, 700));
 await page.waitForTimeout(200);
-await page.locator('#mobile-search-btn').click();
+await page.locator('.bottom-nav-item[data-nav="search"]').click();
 await page.waitForTimeout(300);
 await page.locator('header a[href="#browse-section"]').click();
 await page.waitForTimeout(800);
@@ -185,7 +247,7 @@ const heroState = await page.evaluate(() => {
     heroTop: Math.round(hero.top),
     headerBottom: Math.round(header.bottom),
     shellHidden: document.getElementById('search-shell').classList.contains('hidden'),
-    navHomeActive: document.querySelector('.bottom-nav-item[data-nav="home"]')?.classList.contains('text-brand') || false,
+    navHomeActive: document.querySelector('.bottom-nav-item[data-nav="home"]')?.classList.contains('text-brand-soft') || false,
   };
 });
 check('logo link closes the search overlay and marks Home active',
@@ -194,6 +256,14 @@ check('logo link closes the search overlay and marks Home active',
 check('hero banner sits clear of the sticky header after the logo link',
   heroState.heroTop >= heroState.headerBottom,
   `hero top ${heroState.heroTop} vs header bottom ${heroState.headerBottom}`);
+
+// The header schedule shortcut must open the modal on mobile.
+await page.locator('#schedule-btn').click();
+await page.waitForTimeout(500);
+const mobileScheduleOpen = await page.locator('#schedule-modal').evaluate((el) => !el.classList.contains('hidden'));
+check('header weekly schedule opens the schedule modal', mobileScheduleOpen);
+await page.locator('#schedule-modal button[onclick="toggleScheduleModal()"]').first().click();
+await page.waitForTimeout(300);
 
 check('no uncaught mobile page errors', mobileErrors.length === 0, mobileErrors.join(' | '));
 await mobile.close();
@@ -219,6 +289,25 @@ check('desktop renders the catalogue grid',
   (await deskPage.locator('#anime-grid > div').count()) >= 4,
   `${await deskPage.locator('#anime-grid > div').count()} cards`);
 await deskPage.screenshot({ path: 'artifacts/desktop-home.png' });
+
+// At the lg breakpoint the labelled Weekly Schedule joins the row — it must fit
+// beside the search field and the other actions without clipping.
+await deskPage.setViewportSize({ width: 1024, height: 900 });
+await deskPage.waitForTimeout(400);
+const lgHeader = await deskPage.evaluate(() => {
+  const bar = document.querySelector('header > div');
+  const schedule = document.getElementById('schedule-btn').getBoundingClientRect();
+  return {
+    barOverflow: bar.scrollWidth - bar.clientWidth,
+    docOverflow: document.documentElement.scrollWidth - window.innerWidth,
+    scheduleHeight: schedule.height,
+    scheduleLabel: document.getElementById('schedule-btn').textContent.trim(),
+  };
+});
+check('header actions fit at the lg breakpoint',
+  lgHeader.barOverflow <= 1 && lgHeader.docOverflow <= 1 && lgHeader.scheduleHeight >= 30,
+  JSON.stringify(lgHeader));
+check('desktop schedule is labelled "Weekly Schedule"', lgHeader.scheduleLabel === 'Weekly Schedule', lgHeader.scheduleLabel);
 check('no uncaught desktop page errors', deskErrors.length === 0, deskErrors.join(' | '));
 
 await browser.close();

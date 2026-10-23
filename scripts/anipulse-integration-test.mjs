@@ -82,7 +82,7 @@ check('all proxied requests succeeded', failedProxied.length === 0, failedProxie
 // 4. Open the title -> episodes come from the upstream schema.
 await bleachCard.click();
 await page.waitForSelector('#watch-section:not(.hidden)', { timeout: 15000 });
-await page.waitForSelector('#episodes-container > button', { timeout: 20000 });
+await page.waitForSelector('#episodes-container > a', { timeout: 20000 });
 const episodeText = (await page.locator('#episodes-container').textContent()) || '';
 check('episode list loaded from upstream schema', /The Day I Became a Shinigami/.test(episodeText),
   episodeText.slice(0, 60).replace(/\s+/g, ' '));
