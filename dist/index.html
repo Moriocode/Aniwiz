@@ -50,15 +50,15 @@
   </script>
 
   <style>*{-webkit-tap-highlight-color:transparent;box-sizing:border-box}html{scroll-behavior:smooth;background-color:#0f172a}body{color:#e2e8f0;background-color:#0f172a;font-family:Plus Jakarta Sans,system-ui,-apple-system,sans-serif;overflow-x:hidden}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:#0b1220}::-webkit-scrollbar-thumb{background:#334155;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#475569}.scrollbar-none::-webkit-scrollbar{display:none}.scrollbar-none{-ms-overflow-style:none;scrollbar-width:none}@keyframes shimmer{to{transform:translate(100%)}}.skeleton-box{background-color:#1e293b;position:relative;overflow:hidden}.skeleton-box:after{content:"";background-image:linear-gradient(90deg,#fff0 0,#ffffff0d 20%,#ffffff1a 60%,#fff0);animation:1.8s infinite shimmer;position:absolute;inset:0;transform:translate(-100%)}</style>
-  <script type="module" crossorigin src="/assets/index-BdH5XEmb.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-BJrMve74.css">
+  <script type="module" crossorigin src="/assets/index-22f7eDci.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Cc4OcGFC.css">
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-brand selection:text-slate-50">
 
   <!-- ========================================== -->
   <!-- TOP NAVIGATION HEADER                      -->
   <!-- ========================================== -->
-  <header class="sticky top-0 z-40 w-full bg-dark-800/95 backdrop-blur-md border-b border-dark-700 transition-colors">
+  <header class="sticky top-0 z-40 w-full bg-dark-800/95 border-b border-dark-700 transition-colors">
     <!-- Mobile: 3-slot grid so the wordmark stays centred (the left slot is
          deliberately empty — the bottom bar is the only navigation now).
          Desktop: single flex row. -->
@@ -197,38 +197,23 @@
     <!-- ========================================== -->
     <section id="browse-section" class="space-y-7 scroll-mt-16">
 
-      <!-- Horizontal content-type switcher (MyKisah pattern) -->
-      <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-700/80 -mt-1">
-        <div id="category-tabs-track" class="flex items-center gap-6 sm:gap-8 overflow-x-auto scrollbar-none">
-          <button
-            type="button"
-            data-category="all"
-            onclick="setCategory('all')"
-            aria-current="true"
-            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors border-brand text-slate-50"
-          >Anime</button>
-        </div>
-      </nav>
-
-      <!-- Hero Spotlight Banner: edge-to-edge key art. The artwork keeps its
-           own vibrancy (no dimming layer); a single bottom-up slate gradient
-           keeps the title, synopsis and actions readable over the bright top. -->
-      <div id="hero-banner" class="hero-bleed relative flex items-end overflow-hidden bg-dark-800">
+      <!-- Hero Spotlight Banner: AnimeKAI-style key art at the very top.
+           Edge-to-edge, square corners, no dimming filter; a single bottom-up
+           gradient keeps the copy readable over the bright artwork. -->
+      <div id="hero-banner" class="hero-bleed -mt-4 sm:-mt-6 relative flex items-end overflow-hidden bg-dark-800">
         <div
           id="hero-backdrop"
-          class="absolute inset-0 bg-cover bg-center brightness-110 saturate-125"
+          class="absolute inset-0 bg-cover bg-center"
           style="background-image: linear-gradient(135deg, #1E293B 0%, #0B1220 70%)"
         ></div>
 
         <!-- Single readability gradient: transparent over the artwork, deep
-             slate at the base where the title, synopsis and actions sit. The
-             midpoint is a semi-transparent slate rather than fully clear,
-             otherwise the synopsis and meta row disappear into bright key art. -->
+             slate at the base where the title, synopsis and actions sit. -->
         <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0f172a] from-5% via-[#0f172a]/60 via-38% to-transparent"></div>
 
         <!-- Content sits on the same rails as the rest of the page (max-w-7xl +
              gutters) while the banner itself runs the full viewport width. -->
-        <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-10 sm:pb-14">
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 pb-8 sm:pb-12">
           <div class="max-w-2xl space-y-3">
             <!-- Spotlight metadata (populated from live provider data only) -->
             <div class="flex flex-wrap items-center gap-2 text-xs text-slate-300 font-medium">
@@ -238,8 +223,6 @@
               <span id="hero-duration">—</span>
               <span aria-hidden="true" class="text-slate-500">·</span>
               <span id="hero-status">Loading…</span>
-              <span aria-hidden="true" class="text-slate-500">·</span>
-              <span class="text-amber-400 font-bold flex items-center gap-1">★ <span id="hero-rating">—</span></span>
             </div>
 
             <!-- Title -->
@@ -253,13 +236,31 @@
             <p id="hero-synopsis" class="text-xs sm:text-sm text-slate-300 line-clamp-2 sm:line-clamp-3 leading-relaxed max-w-xl">
             </p>
 
+            <!-- AnimeKAI-style stat strip: rating / release / quality -->
+            <div class="inline-flex items-stretch gap-4 sm:gap-6 rounded-xl border border-white/10 bg-dark-950/75 px-4 py-2.5">
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Rating</p>
+                <p class="mt-0.5 text-sm font-bold text-amber-400">★ <span id="hero-rating">—</span></p>
+              </div>
+              <div class="w-px bg-white/10" aria-hidden="true"></div>
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Release</p>
+                <p class="mt-0.5 text-sm font-bold text-slate-50"><span id="hero-year">—</span></p>
+              </div>
+              <div class="w-px bg-white/10" aria-hidden="true"></div>
+              <div>
+                <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Quality</p>
+                <p class="mt-0.5 text-sm font-bold text-slate-50"><span id="hero-quality">—</span></p>
+              </div>
+            </div>
+
             <!-- Action buttons -->
-            <div class="pt-2 flex flex-wrap items-center gap-3">
+            <div class="pt-1 flex flex-wrap items-center gap-3">
               <a
                 id="hero-watch-btn"
                 href="/"
                 onclick="return handleSpotlightLink(event)"
-                class="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-hover text-slate-50 text-xs sm:text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
+                class="px-6 py-3 rounded-xl bg-brand hover:bg-brand-hover text-slate-50 text-sm font-bold flex items-center gap-2 shadow-lg shadow-brand/30 transition-all active:scale-95"
               >
                 <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                 <span>Watch Episode 1</span>
@@ -267,7 +268,7 @@
               <button
                 id="hero-info-btn"
                 onclick="toggleHeroAnimeDetails()"
-                class="px-4 py-2.5 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 backdrop-blur-sm transition-all active:scale-95"
+                class="px-4 py-3 rounded-xl bg-dark-800/80 hover:bg-dark-750 text-slate-200 border border-dark-700 text-xs sm:text-sm font-semibold flex items-center gap-2 transition-all active:scale-95"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -278,6 +279,19 @@
           </div>
         </div>
       </div>
+
+      <!-- Horizontal content-type switcher (MyKisah pattern) -->
+      <nav id="category-tabs" aria-label="Content categories" class="border-b border-dark-700/80">
+        <div id="category-tabs-track" class="flex items-center gap-6 sm:gap-8 overflow-x-auto scrollbar-none">
+          <button
+            type="button"
+            data-category="all"
+            onclick="setCategory('all')"
+            aria-current="true"
+            class="category-tab shrink-0 py-3 text-sm font-semibold border-b-2 -mb-px transition-colors border-brand text-slate-50"
+          >Anime</button>
+        </div>
+      </nav>
 
       <!-- CONTINUE WATCHING: broad landscape thumbnails -->
       <section id="continue-watching-section" class="hidden space-y-3">
@@ -562,7 +576,7 @@
     aria-label="Mobile primary navigation"
     class="fixed inset-x-0 bottom-0 z-40 lg:hidden px-3 pb-safe pointer-events-none"
   >
-    <div class="pointer-events-auto mx-auto max-w-md h-16 grid grid-cols-5 rounded-2xl border border-dark-700 bg-dark-800/95 backdrop-blur-xl shadow-2xl shadow-dark-950/70 overflow-hidden">
+    <div class="pointer-events-auto mx-auto max-w-md h-16 grid grid-cols-5 rounded-2xl border border-dark-700 bg-dark-800/95 shadow-2xl shadow-dark-950/70 overflow-hidden">
       <!-- Home -->
       <button
         type="button"

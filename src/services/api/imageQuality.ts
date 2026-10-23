@@ -31,12 +31,13 @@ export function toHiResImage<T extends string | null | undefined>(url: T): T {
 /**
  * Card-sized renditions.
  *
- * Grid and rail cards display posters at roughly 140–200 CSS pixels wide, but
- * the full-size artwork (AniList `large`/`extraLarge` covers) weighs
- * 120–570 KB each — 3–4× what a card pixel actually needs. `toCardImage`
- * returns the smaller rendition for card contexts, and `cardImageSrcSet`
- * emits w-descriptor candidates so high-DPI screens can still fetch the sharp
- * file while ordinary screens download ~40 KB instead of ~500 KB.
+ * Grid and rail cards display posters at roughly 144–190 CSS pixels wide, but
+ * full-size AniList covers weigh 150–570 KB each. A srcset used to offer
+ * `large`/`extraLarge` to high-DPI screens; phones then picked the 460 px
+ * file, so 23 visible covers alone pulled ~5.9 MB (and the 900 px candidate
+ * 404s for PNG covers). `toCardImage` returns the 230 px `medium` rendition
+ * for every card instead: still 1.2–1.6× the CSS box, at roughly a third of
+ * the bytes.
  *
  * Only AniList covers are rewritten: their renditions are addressable in the
  * URL path (`/cover/large/bx…`). Every other provider URL passes through
@@ -59,12 +60,3 @@ export function toCardImage<T extends string | null | undefined>(url: T): T {
   return url.replace(ANILIST_COVER_SEGMENT, '/cover/medium/') as T;
 }
 
-/**
- * `srcset` candidates for a card poster (medium/large/extraLarge with their
- * pixel widths), or '' when the URL has no known card rendition.
- */
-export function cardImageSrcSet(url: unknown): string {
-  if (typeof url !== 'string' || !isAniListCover(url)) return '';
-  const at = (rendition: string) => url.replace(ANILIST_COVER_SEGMENT, `/cover/${rendition}/`);
-  return `${at('medium')} 230w, ${at('large')} 460w, ${at('extraLarge')} 900w`;
-}

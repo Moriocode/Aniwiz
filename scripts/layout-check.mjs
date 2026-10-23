@@ -260,8 +260,10 @@ const heroState = await page.evaluate(() => {
 check('logo link closes the search overlay and marks Home active',
   heroState.shellHidden && heroState.navHomeActive,
   `shellHidden=${heroState.shellHidden} navHome=${heroState.navHomeActive}`);
-check('hero banner sits clear of the sticky header after the logo link',
-  heroState.heroTop >= heroState.headerBottom,
+// The hero now starts the page, flush under the header (AnimeKAI-style), so a
+// 1px rounding tolerance is expected — it must never slide under the header.
+check('hero banner sits flush with, not under, the sticky header after the logo link',
+  heroState.heroTop >= heroState.headerBottom - 1,
   `hero top ${heroState.heroTop} vs header bottom ${heroState.headerBottom}`);
 
 // Full-bleed hero: no rounded card, no page gutters on either side, and the
