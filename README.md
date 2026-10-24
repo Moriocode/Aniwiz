@@ -1,8 +1,9 @@
 # Aniwiz — AniStream
 
 A dark-themed anime streaming front-end: trending/spotlight catalog, instant
-search, genre filters, per-title episode lists, a 5-server player with
-auto-failover, weekly airing schedule and local watch history.
+search, genre filters, per-title episode lists, a five-server player (AnimeWixi,
+ani.pm, AniRaku, Shonen, Anigato) with auto-failover, weekly airing schedule
+and local watch history.
 
 ## Quick start
 
@@ -89,7 +90,7 @@ its results join the search cascade; playback resolves per episode and plays
 through the same-origin Range proxy (direct files) or hls.js (playlists).
 With no instance running the proxy answers an honest 504, the probe keeps the
 button out of the picker and the cascade skips the source — the default
-four-server setup is unchanged.
+five-server setup is unchanged.
 
 Note: that project's episode-URL extraction currently fails upstream
 (its own scraper log reports `AA_CRYPTO_MISSING` after allanime.day changed

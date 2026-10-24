@@ -641,6 +641,21 @@ class AnimeService {
       };
     }
 
+    if (serverId === 7) {
+      // Anigato — hosted embed player keyed by AniList id (its own catalogue
+      // API returns AniList ids verbatim, so no translation is needed).
+      // Verified live: the embed answers 200 with no X-Frame-Options/CSP
+      // frame-ancestors, and mounts a <video> player inside the frame.
+      // `?audio=dub` is its only option; sub is the default and is omitted.
+      return {
+        streamUrl: `https://anigato.lol/embed/anime/${anilistId}/${episodeNumber}${audio === 'dub' ? '?audio=dub' : ''}`,
+        type: 'iframe',
+        serverName: 'Server 7: Anigato (Embed HD)',
+        audioMode: audio,
+        embeddable: true,
+      };
+    }
+
     // Legacy server id 5 (Multi-Mirror) was removed: its page refuses to be
     // framed. Unknown legacy ids land on server 1 rather than a dead player.
     let streamUrl = '';
