@@ -181,7 +181,7 @@ if (episodeCount > 1) {
 // 8b. Only live embeddable servers remain — the dead mirrors (MegaCloud,
 // AniKoto, Multi-Mirror) are gone; every offered server plays on this site.
 const serverBtnCount = await page.locator('.server-btn').count();
-check('picker offers four live embeddable servers', serverBtnCount === 4, `${serverBtnCount} server buttons`);
+check('picker offers five live embeddable servers', serverBtnCount === 5, `${serverBtnCount} server buttons`);
 const serverTitles = (await page.locator('.server-btn').evaluateAll((els) => els.map((e) => e.getAttribute('title') || ''))).join(' | ');
 check('no dead mirrors in the server picker', !/AniKoto|MegaCloud|Mirror/i.test(serverTitles), serverTitles);
 await page.locator('#server-btn-2').click();
@@ -201,6 +201,12 @@ await page.locator('#server-btn-4').click();
 await page.waitForSelector('#stream-iframe[src*="shonen.to"]', { timeout: 10000 }).catch(() => {});
 const shonenFrame = await page.locator('#stream-iframe[src*="shonen.to"]').count();
 check('server 4 (Shonen) loads its hosted player iframe', shonenFrame === 1, `${shonenFrame} shonen iframes`);
+
+// 8e. HD-5 (Anigato, server id 7) loads its hosted player iframe
+await page.locator('#server-btn-7').click();
+await page.waitForSelector('#stream-iframe[src*="anigato.lol/embed/anime/"]', { timeout: 10000 }).catch(() => {});
+const anigatoFrame = await page.locator('#stream-iframe[src*="anigato.lol/embed/anime/"]').count();
+check('server 7 (Anigato) loads its hosted player iframe', anigatoFrame === 1, `${anigatoFrame} anigato iframes`);
 
 await page.locator('#server-btn-1').click();
 await page.waitForTimeout(500);

@@ -543,6 +543,7 @@
               <button id="server-btn-2" onclick="switchStreamServer(2, 'ani.pm')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 2: ani.pm (VidStreaming) embed">HD-2</button>
               <button id="server-btn-3" onclick="switchStreamServer(3, 'AniRaku')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 3: AniRaku (Direct HLS — plays natively on this site)">HD-3</button>
               <button id="server-btn-4" onclick="switchStreamServer(4, 'Shonen')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold bg-brand text-slate-50 transition" title="Server 4: Shonen hosted player embed (Default — fastest start)">HD-4</button>
+              <button id="server-btn-7" onclick="switchStreamServer(7, 'Anigato')" class="server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition" title="Server 7: Anigato hosted player embed (HD)">HD-5</button>
               </div>
             </div>
 
@@ -1230,7 +1231,9 @@
       btn.type = 'button';
       btn.className = 'server-btn px-2 py-1 rounded-md text-[11px] font-bold text-slate-400 hover:text-sky-400 transition';
       btn.title = 'Server 5: Allanime (Direct — self-hosted instance)';
-      btn.textContent = 'HD-5';
+      // HD-N labels follow picker order, not server ids: Anigato (id 7) took
+      // the HD-5 slot, so the optional Allanime slot displays as HD-6.
+      btn.textContent = 'HD-6';
       btn.setAttribute('onclick', "switchStreamServer(5, 'Allanime')");
       row.appendChild(btn);
     }
@@ -1911,7 +1914,8 @@
     // Must match getStreamSource() in animeService:
     //   1 AnimeWixi · 2 ani.pm/VidStreaming · 3 AniRaku (native HLS)
     //   4 Shonen (hosted player embed, default — starts fastest)
-    //   6 OpenAnime (self-hosted, only offered when an instance is reachable)
+    //   7 Anigato (hosted player embed — 5th picker slot, labelled HD-5)
+    //   5 Allanime · 6 OpenAnime (self-hosted, only offered when reachable)
     // MegaCloud, AniKoto and Multi-Mirror were removed: their embed links 404
     // or refuse to be framed, so they never played inside this site.
     const SERVER_SHORT_NAMES = {
@@ -1920,7 +1924,8 @@
       3: 'AniRaku',
       4: 'Shonen',
       5: 'Allanime',
-      6: 'OpenAnime'
+      6: 'OpenAnime',
+      7: 'Anigato'
     };
 
     // Auto-fallback priority: after any embed failure, prefer the server with
@@ -1928,10 +1933,10 @@
     // servers. Servers 5 (Allanime) and 6 (OpenAnime, self-hosted) only
     // appear when an instance is reachable and are manual picker choices.
     // Keep in sync with StreamSourceResult.embeddable in animeService.
-    const EMBEDDABLE_SERVERS = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true };
+    const EMBEDDABLE_SERVERS = { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true };
 
     function nextEmbeddableServer(fromId) {
-      const FALLBACK_PRIORITY = [3, 1, 2, 4]; // native first — no embed host
+      const FALLBACK_PRIORITY = [3, 1, 2, 4, 7]; // native first — no embed host
       for (const id of FALLBACK_PRIORITY) {
         if (id !== fromId && EMBEDDABLE_SERVERS[id]) return id;
       }
@@ -2138,6 +2143,7 @@
             <button onclick="switchStreamServer(2)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 text-xs font-semibold border border-dark-700 transition active:scale-95">Server 2 (ani.pm)</button>
             <button onclick="switchStreamServer(3)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 text-xs font-semibold border border-dark-700 transition active:scale-95">Server 3 (AniRaku)</button>
             <button onclick="switchStreamServer(4)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 text-xs font-semibold border border-dark-700 transition active:scale-95">Server 4 (Shonen)</button>
+            <button onclick="switchStreamServer(7)" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-brand text-slate-200 hover:text-slate-50 text-xs font-semibold border border-dark-700 transition active:scale-95">Server 5 (Anigato)</button>
           </div>
         </div>
       `;

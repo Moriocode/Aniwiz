@@ -1,12 +1,12 @@
 /**
  * Per-server playback verification.
  *
- * For each of the four servers (HD-1 AniWixi embed, HD-2 ani.pm embed,
- * HD-3 native HLS, HD-4 Shonen embed) this asserts *playback evidence*, not
- * just that a player frame mounted:
+ * For each of the five servers (HD-1 AniWixi embed, HD-2 ani.pm embed,
+ * HD-3 native HLS, HD-4 Shonen embed, HD-5 Anigato embed) this asserts
+ * *playback evidence*, not just that a player frame mounted:
  *   - HD-3: a <video> reaches readyState >= 2 with a real duration AND
  *     currentTime advances while playing.
- *   - HD-1/2/4: the cross-origin iframe actually navigates to its embed URL
+ *   - HD-1/2/4/5: the cross-origin iframe actually navigates to its embed URL
  *     and the main resource answers HTTP 200 (no immediate error page).
  *
  * Usage: BASE_URL=http://127.0.0.1:3000 node scripts/playback-test.mjs
@@ -45,7 +45,7 @@ await page.waitForSelector('.server-btn', { timeout: 15000 });
 await page.waitForTimeout(1500);
 
 const serverButtons = await page.$$('.server-btn');
-check('server picker exposes 4 servers', serverButtons.length === 4, `${serverButtons.length} buttons`);
+check('server picker exposes 5 servers', serverButtons.length === 5, `${serverButtons.length} buttons`);
 
 async function framesSnapshot() {
   const snap = [];
@@ -132,6 +132,14 @@ async function activateServer(id) {
   const embed = await waitForEmbedFrame(/shonen/);
   check('HD-4 Shonen: embed iframe loaded', Boolean(embed), embed ? `${embed.url.slice(0, 100)} status=${embed.status}` : 'no iframe within 12s');
   if (embed) check('HD-4 Shonen: embed responded HTTP 200', embed.status === 200, `status=${embed.status}`);
+}
+
+// --- HD-5: Anigato embed (server id 7) ---
+{
+  await activateServer(7);
+  const embed = await waitForEmbedFrame(/anigato\.lol\/embed\/anime\//);
+  check('HD-5 Anigato: embed iframe loaded', Boolean(embed), embed ? `${embed.url.slice(0, 110)} status=${embed.status}` : 'no iframe within 12s');
+  if (embed) check('HD-5 Anigato: embed responded HTTP 200', embed.status === 200, `status=${embed.status}`);
 }
 
 // Known-external noise that originates inside third-party embeds, not in
